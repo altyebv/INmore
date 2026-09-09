@@ -26,6 +26,7 @@ export function createInitialState(product) {
     productId: product.id,
     artwork: null,
     transform: createTransform(product),
+    baseColor: product.print.stockColor,
     status: 'idle', // 'idle' | 'loading' | 'ready' | 'error'
     error: null,
     view: 'product', // 'product' | 'flat'
@@ -35,7 +36,7 @@ export function createInitialState(product) {
   };
 }
 
-const TRACKED_KEYS = ['transform'];
+const TRACKED_KEYS = ['transform', 'baseColor'];
 
 function snapshot(state) {
   return TRACKED_KEYS.reduce((acc, key) => ({ ...acc, [key]: state[key] }), {});
@@ -73,6 +74,9 @@ export function studioReducer(state, action) {
       };
     }
 
+    case 'set-base-color':
+      return withHistory(state, { ...state, baseColor: action.color });
+
     case 'artwork-loading':
       return { ...state, status: 'loading', error: null };
 
@@ -97,6 +101,7 @@ export function studioReducer(state, action) {
         status: 'idle',
         error: null,
         transform: createTransform(action.product),
+        baseColor: action.product.print.stockColor,
         history: [],
         future: [],
       };
