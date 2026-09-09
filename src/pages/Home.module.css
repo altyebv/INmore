@@ -1,0 +1,245 @@
+/* --- Hero ------------------------------------------------------------------ */
+.hero {
+  position: relative;
+  min-height: 100svh;
+  display: grid;
+  align-items: center;
+  padding-top: var(--header-h);
+  overflow: hidden;
+}
+
+.heroCanvas {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-end: 0;
+  width: min(58%, 46rem);
+  z-index: var(--z-canvas);
+}
+
+.heroCanvas::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(to var(--hero-fade-to, right), var(--ink-900) 0%, transparent 34%),
+    radial-gradient(80% 65% at 55% 48%, transparent 42%, var(--ink-900) 100%);
+  pointer-events: none;
+}
+
+:global([dir='rtl']) .heroCanvas { --hero-fade-to: left; }
+
+/* Transforms are not mirrored by direction, so the centring nudge is. */
+:global([dir='rtl']) .scrollCue { transform: translateX(50%); }
+
+@keyframes driftRtl {
+  0%, 100% { transform: translate(50%, 0); opacity: 0.6; }
+  50% { transform: translate(50%, 6px); opacity: 1; }
+}
+:global([dir='rtl']) .scrollCue { animation-name: driftRtl; }
+
+.heroInner {
+  position: relative;
+  z-index: var(--z-content);
+  display: grid;
+  gap: var(--space-6);
+  max-width: min(46rem, 52%);
+  pointer-events: none;
+}
+
+.heroInner > * { pointer-events: auto; }
+
+.heroTitle {
+  font-size: var(--step-5);
+  font-weight: 300;
+  max-width: 12ch;
+}
+
+.heroTitle em {
+  font-style: normal;
+  font-weight: 500;
+  display: block;
+}
+
+.heroMeta {
+  display: grid;
+  gap: var(--space-5);
+  justify-items: start;
+}
+
+.heroLede {
+  font-size: var(--step-0);
+  color: var(--fg-muted);
+  max-width: 40ch;
+}
+
+.scrollCue {
+  position: absolute;
+  inset-inline-start: 50%;
+  bottom: var(--space-6);
+  transform: translateX(-50%);
+  z-index: var(--z-content);
+  font-family: var(--font-mono);
+  font-size: var(--step--2);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--fg-faint);
+  animation: drift 3.2s var(--ease-in-out) infinite;
+}
+
+@keyframes drift {
+  0%, 100% { transform: translate(-50%, 0); opacity: 0.6; }
+  50% { transform: translate(-50%, 6px); opacity: 1; }
+}
+
+/* --- Transformation strip -------------------------------------------------- */
+.chain {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1px;
+  background: var(--line);
+  border-block: 1px solid var(--line);
+}
+
+.chainStep {
+  display: grid;
+  gap: var(--space-3);
+  align-content: start;
+  padding: clamp(1.5rem, 3vw, 2.5rem);
+  background: var(--bg);
+  transition: background var(--dur-base) var(--ease-out);
+}
+.chainStep:hover { background: var(--ink-800); }
+
+.chainFive { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+
+.frameCanvas { position: absolute; inset: 0; }
+
+.chainIndex {
+  font-family: var(--font-mono);
+  font-size: var(--step--2);
+  color: var(--accent);
+  letter-spacing: 0.12em;
+}
+
+.chainTitle { font-size: var(--step-1); }
+.chainBody { font-size: var(--step--1); color: var(--fg-muted); line-height: 1.55; }
+
+/* --- Disciplines ----------------------------------------------------------- */
+.disciplines { border-top: 1px solid var(--line); }
+
+.discipline {
+  display: grid;
+  grid-template-columns: 4rem minmax(0, 1fr) minmax(0, 1.1fr);
+  gap: clamp(1rem, 3vw, 3rem);
+  align-items: baseline;
+  padding-block: clamp(1.75rem, 3.5vw, 3rem);
+  border-bottom: 1px solid var(--line);
+  transition: padding-inline-start var(--dur-base) var(--ease-out);
+}
+.discipline:hover { padding-inline-start: var(--space-4); }
+
+.disciplineIndex {
+  font-family: var(--font-mono);
+  font-size: var(--step--2);
+  color: var(--fg-faint);
+}
+
+.disciplineTitle { font-size: var(--step-3); }
+
+.disciplineBody { display: grid; gap: var(--space-4); }
+.disciplineSummary { font-size: var(--step-0); color: var(--fg-muted); max-width: 44ch; }
+
+.disciplineList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
+  font-family: var(--font-mono);
+  font-size: var(--step--2);
+  color: var(--fg-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+/* --- Studio invitation ----------------------------------------------------- */
+.invite {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: clamp(2rem, 5vw, 5rem);
+  align-items: center;
+}
+
+.inviteTitle { font-size: var(--step-4); max-width: 14ch; }
+.inviteBody { font-size: var(--step-0); color: var(--fg-muted); max-width: 42ch; margin-block: var(--space-4) var(--space-5); }
+
+.inviteFrame {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: radial-gradient(120% 90% at 50% 0%, rgba(11, 11, 10, 0.06), transparent 60%), var(--bg-inset);
+}
+
+/* --- Work index ------------------------------------------------------------ */
+.workGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
+  gap: 1px;
+  background: var(--line);
+  border: 1px solid var(--line);
+}
+
+.workCard {
+  display: grid;
+  gap: var(--space-4);
+  align-content: space-between;
+  min-height: 16rem;
+  padding: clamp(1.5rem, 3vw, 2.25rem);
+  background: var(--bg);
+  transition: background var(--dur-base) var(--ease-out);
+}
+.workCard:hover { background: var(--ink-800); }
+
+.workTop {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+  font-family: var(--font-mono);
+  font-size: var(--step--2);
+  color: var(--fg-faint);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.workTitle { font-size: var(--step-1); max-width: 20ch; }
+.workBody { font-size: var(--step--1); color: var(--fg-muted); }
+
+.workMetric {
+  font-family: var(--font-mono);
+  font-size: var(--step-1);
+  color: var(--fg);
+  letter-spacing: -0.01em;
+}
+
+@media (max-width: 900px) {
+  .hero { align-items: end; padding-bottom: clamp(5rem, 14vw, 8rem); }
+  .heroCanvas {
+    inset-block-start: var(--header-h);
+    inset-inline: 0;
+    inset-block-end: auto;
+    width: 100%;
+    height: 46svh;
+  }
+  .heroCanvas::after {
+    background: radial-gradient(70% 70% at 50% 45%, transparent 45%, var(--ink-900) 100%);
+  }
+  .heroInner { max-width: none; }
+  .chain, .chainFive { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .discipline { grid-template-columns: 2.5rem minmax(0, 1fr); }
+  .disciplineBody { grid-column: 2 / -1; }
+  .invite { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 560px) {
+  .chain, .chainFive { grid-template-columns: 1fr; }
+}
