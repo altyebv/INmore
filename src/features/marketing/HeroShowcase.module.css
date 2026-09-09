@@ -1,0 +1,131 @@
+/* ===========================================================================
+   HeroShowcase
+   Full-bleed 3-D product carousel for the page hero.
+   =========================================================================== */
+
+.root {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  /* accent is set inline per-product */
+  --showcase-accent: #c8a05a;
+}
+
+/* --- Backdrop -------------------------------------------------------------- */
+.backdrop {
+  position: absolute;
+  inset: 0;
+  /* Radial halo that shifts colour with each product */
+  background: radial-gradient(
+    70% 70% at 60% 50%,
+    color-mix(in srgb, var(--showcase-accent) 18%, transparent) 0%,
+    transparent 100%
+  );
+  transition: background var(--dur-slow, 600ms) ease;
+  pointer-events: none;
+}
+
+/* --- Canvas ---------------------------------------------------------------- */
+.canvas {
+  position: absolute;
+  inset: 0;
+  transition: opacity 700ms ease;
+}
+.canvasFading { opacity: 0; }
+
+/* Stand-in shown while the lazy bundle loads */
+.placeholder {
+  position: absolute;
+  inset: 0;
+  background: transparent;
+}
+
+/* --- Product label --------------------------------------------------------- */
+.label {
+  position: absolute;
+  inset-inline-start: var(--space-5, 1.5rem);
+  bottom: calc(var(--space-5, 1.5rem) + 2rem); /* sit above the dots */
+  display: grid;
+  gap: 0.25rem;
+  pointer-events: none;
+  transition: opacity 700ms ease, transform 700ms ease;
+}
+.labelFading {
+  opacity: 0;
+  transform: translateY(6px);
+}
+
+.labelCategory {
+  font-family: var(--font-mono);
+  font-size: var(--step--2, 0.72rem);
+  letter-spacing: var(--tracking-label, 0.1em);
+  text-transform: uppercase;
+  color: var(--showcase-accent);
+  transition: color var(--dur-slow, 600ms) ease;
+}
+
+.labelName {
+  font-size: var(--step-0, 1rem);
+  font-weight: 500;
+  color: var(--fg, #f7f5f1);
+}
+
+/* --- Dot navigation -------------------------------------------------------- */
+.dots {
+  position: absolute;
+  inset-inline-start: var(--space-5, 1.5rem);
+  bottom: var(--space-5, 1.5rem);
+  display: flex;
+  gap: var(--space-2, 0.5rem);
+  align-items: center;
+}
+
+.dot {
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--fg, #f7f5f1) 30%, transparent);
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  transition:
+    background var(--dur-base, 200ms) ease,
+    transform var(--dur-base, 200ms) ease,
+    width var(--dur-base, 200ms) ease;
+  flex-shrink: 0;
+}
+
+.dotActive {
+  background: var(--dot-accent, var(--accent));
+  width: 1.4rem;
+  border-radius: 0.25rem;
+}
+
+/* --- Progress bar ---------------------------------------------------------- */
+.progress {
+  position: absolute;
+  bottom: 0;
+  inset-inline-start: 0;
+  height: 2px;
+  background: var(--showcase-accent);
+  transform-origin: left center;
+  animation: progressFill var(--progress-dur, 3200ms) linear forwards;
+}
+
+@keyframes progressFill {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+
+/* --- Responsive ------------------------------------------------------------ */
+@media (max-width: 900px) {
+  .label {
+    inset-inline-start: var(--space-4, 1rem);
+    bottom: calc(var(--space-4, 1rem) + 1.75rem);
+  }
+  .dots {
+    inset-inline-start: var(--space-4, 1rem);
+    bottom: var(--space-4, 1rem);
+  }
+}
