@@ -1,4 +1,7 @@
 import paperCup from './paperCup';
+import bag from './bag';
+import giftBox from './giftBox';
+import mailerBox from './mailerBox';
 import upcomingProducts from './upcoming';
 
 /**
@@ -9,9 +12,14 @@ import upcomingProducts from './upcoming';
  * picker can show the full range honestly.
  */
 
-export const liveProducts = [paperCup];
+export const liveProducts = [paperCup, bag, giftBox, mailerBox];
 
-export const catalogue = [...liveProducts, ...upcomingProducts].sort(
+// Upcoming entries whose ids are now live are excluded to avoid duplicates.
+const upcomingFiltered = upcomingProducts.filter(
+  (u) => !liveProducts.some((l) => l.id === u.id)
+);
+
+export const catalogue = [...liveProducts, ...upcomingFiltered].sort(
   (a, b) => (a.order ?? 999) - (b.order ?? 999)
 );
 
@@ -31,4 +39,4 @@ export function isLive(id) {
   return liveProducts.some((p) => p.id === id);
 }
 
-export { paperCup, upcomingProducts };
+export { paperCup, bag, giftBox, mailerBox, upcomingProducts };
