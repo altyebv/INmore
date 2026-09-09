@@ -1,27 +1,42 @@
-/**
- * Provisional wordmark.
- *
- * Drawn as type rather than an image so it stays crisp and inherits colour
- * from context. Replace with the approved logo file once the brand system is
- * signed off — no other component references the mark directly.
- */
+import styles from './Wordmark.module.css';
+
 export function Wordmark({ height = 18, title = 'INMORE' }) {
   return (
     <span
-      aria-label={title}
-      role="img"
+      className={styles.wordmark}
+      dir="ltr"
       style={{
         display: 'inline-flex',
         alignItems: 'center',
-        gap: '0.06em',
-        fontSize: `${height}px`,
-        fontWeight: 600,
-        letterSpacing: '0.28em',
+        gap: '0.55rem',
         lineHeight: 1,
-        textIndent: '0.28em',
+        unicodeBidi: 'isolate',
       }}
     >
-      INMORE
+      <img
+        src="/logo/inmore.png"
+        alt=""
+        aria-hidden="true"
+        height={height}
+        style={{
+          display: 'block',
+          width: 'auto',
+          height: `${height}px`,
+          objectFit: 'contain',
+        }}
+      />
+      <span
+        className={styles.text}
+        aria-label={title}
+        role="img"
+        style={{
+          fontSize: `${height * 0.72}px`,
+          fontWeight: 600,
+          letterSpacing: '0.2em',
+        }}
+      >
+        INMORE
+      </span>
     </span>
   );
 }

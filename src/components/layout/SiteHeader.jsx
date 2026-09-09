@@ -33,7 +33,7 @@ export function SiteHeader() {
     <header className={cx(styles.header, (scrolled || open) && styles.scrolled)}>
       <div className={cx('u-shell', styles.inner)}>
         <NavLink to="/" className={styles.brand} aria-label={t.common.home}>
-          <Wordmark height={16} />
+          <Wordmark height={24} />
         </NavLink>
 
         <nav
