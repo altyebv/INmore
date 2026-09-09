@@ -19,6 +19,7 @@ const COMPACT_CAMERA = { position: [0.13, 0.06, 0.24], fov: 28 };
 export function StudioStage({
   product,
   texture,
+  baseColor,
   autoRotate,
   onInteract,
   onExport,
@@ -43,6 +44,7 @@ export function StudioStage({
         className={styles.canvas}
         product={product}
         texture={texture}
+        baseColor={baseColor}
         autoRotate={autoRotate && !touched}
         onInteract={handleInteract}
         camera={compact ? COMPACT_CAMERA : undefined}

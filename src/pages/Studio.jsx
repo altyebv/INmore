@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import Button from '@/components/ui/Button';
 import ArtworkControls from '@/features/studio/components/ArtworkControls';
 import ArtworkDropzone from '@/features/studio/components/ArtworkDropzone';
+import BaseColorPicker from '@/features/studio/components/BaseColorPicker';
 import FlatPreview from '@/features/studio/components/FlatPreview';
 import ProductPicker from '@/features/studio/components/ProductPicker';
 import StudioStage from '@/features/studio/components/StudioStage';
@@ -26,6 +27,7 @@ function useStudioSession() {
   const studio = useStudio();
   const product = useLocalizedProduct(studio.product);
   const { texture } = useArtworkTexture(studio.product, studio.artwork, studio.transform);
+  const baseColor = studio.baseColor ?? studio.product.print.stockColor;
 
   useEffect(() => {
     const onKey = (event) => {
@@ -44,7 +46,7 @@ function useStudioSession() {
     [studio.product, studio.artwork, studio.transform]
   );
 
-  return { ...studio, product, texture, exportCurrentProof, commit: () => studio.setTransform({}, true) };
+  return { ...studio, product, texture, baseColor, exportCurrentProof, commit: () => studio.setTransform({}, true) };
 }
 
 function Step({ index, title, children }) {
@@ -86,6 +88,7 @@ function PointerStudio() {
         <StudioStage
           product={s.product}
           texture={s.texture}
+          baseColor={s.baseColor}
           autoRotate={s.autoRotate}
           onInteract={() => s.toggleAutoRotate(false)}
           onExport={s.exportCurrentProof}
@@ -96,6 +99,7 @@ function PointerStudio() {
       <aside className={styles.panel} aria-label={t.panelLabel}>
         <Step index="01" title={t.steps.product}>
           <ProductPicker selectedId={s.product.id} onSelect={s.selectProduct} />
+          <BaseColorPicker value={s.baseColor} onChange={s.setBaseColor} />
         </Step>
 
         <Step index="02" title={t.steps.artwork}>
@@ -187,6 +191,7 @@ function TouchStudio() {
         <StudioStage
           product={s.product}
           texture={s.texture}
+          baseColor={s.baseColor}
           autoRotate={s.autoRotate}
           onInteract={() => s.toggleAutoRotate(false)}
           onExport={s.exportCurrentProof}
@@ -225,6 +230,7 @@ function TouchStudio() {
         {tab === 'product' && (
           <div className={styles.sheetStep}>
             <ProductPicker selectedId={s.product.id} onSelect={s.selectProduct} />
+            <BaseColorPicker value={s.baseColor} onChange={s.setBaseColor} />
             <p className={styles.sheetHint}>{s.product.summary}</p>
             <Specs product={s.product} />
           </div>

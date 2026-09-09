@@ -69,6 +69,7 @@ export function StudioProvider({ children, initialProductId = defaultProductId }
       resetTransform: () => dispatch({ type: 'reset-transform', product }),
       selectProduct: (next) => dispatch({ type: 'select-product', product: next }),
       setView: (view) => dispatch({ type: 'set-view', view }),
+      setBaseColor: (color) => dispatch({ type: 'set-base-color', color }),
       toggleAutoRotate: (v) => dispatch({ type: 'toggle-auto-rotate', value: v }),
       undo: () => dispatch({ type: 'undo' }),
       redo: () => dispatch({ type: 'redo' }),
