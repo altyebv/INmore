@@ -9,8 +9,18 @@ import useModelAvailability from './models/useModelAvailability';
  *
  * Presentation code never asks "is there a GLB yet?" — it asks for a product
  * and gets the best available representation of it.
+ *
+ * Resolution strategy:
+ * 1. If the GLB URL exists we *always* attempt it (even while the HEAD check
+ *    is still in flight). `useGLTF` will throw a promise that the Suspense
+ *    boundary catches, and when it resolves the model appears.
+ * 2. While the GLB is downloading the Suspense fallback shows the proxy (if
+ *    one is registered). If there is no proxy the fallback is `null` — this
+ *    is fine for the three GLB-only products whose files ship with the build.
+ * 3. If the HEAD check ultimately reports `'missing'`, we fall back to the
+ *    proxy permanently.
  */
-export function ProductModel({ product, texture, autoRotate = false }) {
+export function ProductModel({ product, texture, baseColor, autoRotate = false }) {
   const group = useRef();
   const availability = useModelAvailability(product.model.url);
   const Proxy = PROXY_REGISTRY[product.model.proxy];
@@ -19,17 +29,21 @@ export function ProductModel({ product, texture, autoRotate = false }) {
     if (autoRotate && group.current) group.current.rotation.y += delta * 0.22;
   });
 
+  const stockColor = baseColor ?? product.print.stockColor;
+  const proxyNode = Proxy ? (
+    <Proxy texture={texture} material={{ ...product.material, stockColor }} />
+  ) : null;
+
+  // When the model is confirmed missing, only the proxy can help.
+  // Otherwise (checking *or* available) we optimistically try the GLB.
   const content =
-    availability === 'available' ? (
-      <Suspense fallback={Proxy ? <Proxy texture={texture} material={product.material} /> : null}>
-        <GlbProductModel product={product} texture={texture} />
+    availability === 'missing' ? (
+      proxyNode
+    ) : (
+      <Suspense fallback={proxyNode}>
+        <GlbProductModel product={product} texture={texture} baseColor={stockColor} />
       </Suspense>
-    ) : Proxy ? (
-      <Proxy
-        texture={texture}
-        material={{ ...product.material, stockColor: product.print.stockColor }}
-      />
-    ) : null;
+    );
 
   return (
     <group

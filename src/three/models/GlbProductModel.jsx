@@ -11,7 +11,7 @@ import * as THREE from 'three';
  * lids, handles, seams and inner surfaces keep the materials they were
  * authored with.
  */
-export function GlbProductModel({ product, texture }) {
+export function GlbProductModel({ product, texture, baseColor }) {
   const { scene } = useGLTF(product.model.url);
 
   const cloned = useMemo(() => scene.clone(true), [scene]);
@@ -26,18 +26,25 @@ export function GlbProductModel({ product, texture }) {
         child.name === product.model.printMeshName ||
         child.material?.name === product.model.printMeshName;
 
-      if (!isPrintSurface || !texture) return;
-
       const material = child.material.clone();
-      material.map = texture;
-      material.color = new THREE.Color('#ffffff');
-      material.roughness = product.material.roughness ?? material.roughness;
-      material.metalness = product.material.metalness ?? 0;
-      material.envMapIntensity = product.material.envMapIntensity ?? 1;
+
+      if (isPrintSurface && texture) {
+        material.map = texture;
+        material.color = new THREE.Color('#ffffff');
+        material.roughness = product.material.roughness ?? material.roughness;
+        material.metalness = product.material.metalness ?? 0;
+        material.envMapIntensity = product.material.envMapIntensity ?? 1;
+      } else if (!isPrintSurface && baseColor) {
+        // Non-print meshes (base, lid, handles…) pick up the stock colour.
+        material.color = new THREE.Color(baseColor);
+      } else if (isPrintSurface && !texture && baseColor) {
+        material.color = new THREE.Color(baseColor);
+      }
+
       material.needsUpdate = true;
       child.material = material;
     });
-  }, [cloned, texture, product]);
+  }, [cloned, texture, baseColor, product]);
 
   return <primitive object={cloned} />;
 }
