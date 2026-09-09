@@ -1,0 +1,89 @@
+.header {
+  position: fixed;
+  inset-inline: 0;
+  top: 0;
+  z-index: var(--z-header);
+  height: var(--header-h);
+  display: flex;
+  align-items: center;
+  transition: background var(--dur-base) var(--ease-out), border-color var(--dur-base) var(--ease-out);
+  border-bottom: 1px solid transparent;
+}
+
+.scrolled {
+  background: color-mix(in srgb, var(--ink-900) 82%, transparent);
+  backdrop-filter: blur(14px) saturate(1.4);
+  border-bottom-color: var(--line);
+}
+
+.inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-5);
+  width: 100%;
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  color: var(--paper-100);
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  gap: clamp(1rem, 2.5vw, 2.25rem);
+}
+
+.link {
+  position: relative;
+  font-size: var(--step--1);
+  color: rgba(247, 245, 241, 0.62);
+  padding-block: 0.35rem;
+  transition: color var(--dur-fast) var(--ease-out);
+}
+.link:hover { color: var(--paper-100); }
+
+.link::after {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  height: 1px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform var(--dur-base) var(--ease-out);
+}
+.active { color: var(--paper-100); }
+.active::after { transform: scaleX(1); }
+
+/* The underline should grow from the reading edge in both directions. */
+:global([dir='rtl']) .link::after { transform-origin: right; }
+
+.actions { display: flex; align-items: center; gap: var(--space-3); }
+
+.toggle { display: none; }
+
+@media (max-width: 900px) {
+  .nav {
+    position: fixed;
+    inset-block-start: var(--header-h);
+    inset-inline: 0;
+    inset-block-end: auto;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0;
+    padding: var(--space-4) var(--gutter) var(--space-6);
+    background: var(--ink-900);
+    border-bottom: 1px solid var(--line);
+    transform: translateY(-120%);
+    transition: transform var(--dur-base) var(--ease-out);
+  }
+  .navOpen { transform: translateY(0); }
+  .link { font-size: var(--step-1); padding-block: var(--space-3); width: 100%; }
+  .link::after { display: none; }
+  .toggle { display: inline-flex; }
+  .desktopAction { display: none; }
+}

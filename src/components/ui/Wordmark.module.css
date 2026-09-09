@@ -1,0 +1,18 @@
+.text {
+  color: var(--paper-100);
+  transition: color var(--dur-base) var(--ease-out), background var(--dur-base) var(--ease-out);
+}
+
+.wordmark:hover .text {
+  background: linear-gradient(90deg, #00b7e9, #ec168c 50%, #ffe500);
+  background-size: 200% 100%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  animation: wordmark-gradient 2.4s ease-in-out infinite;
+}
+
+@keyframes wordmark-gradient {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}

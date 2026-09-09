@@ -1,0 +1,73 @@
+.base {
+  --btn-bg: transparent;
+  --btn-fg: var(--fg);
+  --btn-border: var(--line-strong);
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: 0.7em 1.35em;
+  border: 1px solid var(--btn-border);
+  border-radius: var(--radius-pill);
+  background: var(--btn-bg);
+  color: var(--btn-fg);
+  font-size: var(--step--1);
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  line-height: 1;
+  white-space: nowrap;
+  transition:
+    background var(--dur-fast) var(--ease-out),
+    color var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out),
+    transform var(--dur-fast) var(--ease-out);
+}
+
+.base:hover:not(:disabled) { transform: translateY(-1px); }
+.base:active:not(:disabled) { transform: translateY(0); }
+
+.base:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.primary {
+  --btn-bg: var(--fg);
+  --btn-fg: var(--bg);
+  --btn-border: var(--fg);
+}
+.primary:hover:not(:disabled) { --btn-bg: var(--paper-000); --btn-border: var(--paper-000); }
+
+.accent {
+  --btn-bg: var(--accent);
+  --btn-fg: #fff;
+  --btn-border: var(--accent);
+}
+.accent:hover:not(:disabled) { --btn-bg: var(--accent-soft); --btn-border: var(--accent-soft); }
+
+.ghost { --btn-border: transparent; color: var(--fg-muted); }
+.ghost:hover:not(:disabled) { color: var(--fg); background: var(--line); }
+
+.quiet:hover:not(:disabled) { background: var(--line); }
+
+.sm { padding: 0.5em 0.95em; font-size: var(--step--2); }
+.lg { padding: 0.9em 1.8em; font-size: var(--step-0); }
+
+.icon {
+  padding: 0;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: var(--radius-md);
+}
+
+.block { width: 100%; }
+
+/* Minimum comfortable target on touch, without changing the visual scale of
+   small buttons on pointer devices. */
+@media (pointer: coarse) {
+  .base { min-height: 2.75rem; }
+  .sm { min-height: 2.5rem; padding: 0.6em 1.1em; }
+  .icon { width: 2.75rem; height: 2.75rem; }
+}

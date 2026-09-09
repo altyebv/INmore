@@ -1,0 +1,44 @@
+.section {
+  position: relative;
+  padding-block: clamp(4rem, 10vw, 9rem);
+  background: var(--bg);
+  color: var(--fg);
+}
+
+.tight { padding-block: clamp(3rem, 6vw, 5rem); }
+
+.header {
+  display: grid;
+  gap: var(--space-4);
+  margin-bottom: clamp(2.5rem, 5vw, 4.5rem);
+}
+
+.eyebrow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  font-family: var(--font-mono);
+  font-size: var(--step--2);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--fg-faint);
+}
+
+.eyebrow::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--line);
+}
+
+.title {
+  font-size: var(--step-4);
+  max-width: 20ch;
+}
+
+.lede {
+  font-size: var(--step-1);
+  color: var(--fg-muted);
+  max-width: 46ch;
+  line-height: 1.45;
+}
