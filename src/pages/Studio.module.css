@@ -1,0 +1,133 @@
+/* ===========================================================================
+   Studio
+   Two layouts, one set of components. The pointer layout is a page with a
+   sticky side panel; the touch layout is an app shell with a pinned viewer
+   and a bottom sheet.
+   =========================================================================== */
+
+.page {
+  min-height: 100svh;
+  padding-top: var(--header-h);
+  display: flex;
+  flex-direction: column;
+}
+
+.intro { padding-block: clamp(1.5rem, 4vw, 3rem) var(--space-5); }
+
+.introInner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.title { font-size: var(--step-3); }
+
+.lede {
+  font-size: var(--step--1);
+  color: var(--fg-muted);
+  max-width: 44ch;
+}
+
+/* --- Pointer layout -------------------------------------------------------- */
+.workspace {
+  flex: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 27rem);
+  gap: var(--space-5);
+  align-items: stretch;
+  padding-bottom: clamp(2rem, 5vw, 4rem);
+}
+
+.viewer { min-height: min(62vh, 640px); display: flex; }
+.viewer > * { flex: 1; }
+
+.panel {
+  display: grid;
+  gap: var(--space-5);
+  align-content: start;
+  padding: var(--space-5);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--ink-800);
+  max-height: calc(100svh - var(--header-h) - 6rem);
+  overflow-y: auto;
+  position: sticky;
+  top: calc(var(--header-h) + 1rem);
+}
+
+.step { display: grid; gap: var(--space-3); }
+
+.stepHeader { display: flex; align-items: baseline; gap: var(--space-3); }
+
+.stepIndex {
+  font-family: var(--font-mono);
+  font-size: var(--step--2);
+  color: var(--accent);
+  letter-spacing: 0.12em;
+}
+
+.stepTitle {
+  font-family: var(--font-mono);
+  font-size: var(--step--2);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--fg-muted);
+}
+
+.stepRule { flex: 1; height: 1px; background: var(--line); }
+
+.specs {
+  display: grid;
+  gap: var(--space-2);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--line);
+}
+
+.spec {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+  font-family: var(--font-mono);
+  font-size: var(--step--2);
+  color: var(--fg-faint);
+}
+.specValue { color: var(--fg-muted); text-align: end; }
+
+.cta { display: grid; gap: var(--space-2); }
+.historyRow { display: grid; grid-auto-flow: column; gap: var(--space-2); }
+
+/* --- Touch layout ---------------------------------------------------------- */
+.shell {
+  position: fixed;
+  inset: 0;
+  padding-top: var(--header-h);
+  display: block;
+  overflow: hidden;
+}
+
+.shellIntro {
+  padding: var(--space-3) var(--gutter) var(--space-2);
+}
+
+.shellTitle { font-size: var(--step-1); }
+
+.shellViewer {
+  position: absolute;
+  inset-inline: var(--space-3);
+  top: calc(var(--header-h) + 3.1rem);
+  /* Never let the sheet squeeze the product out of existence, whatever the
+     sheet reports — the viewer keeps a floor. */
+  bottom: min(calc(var(--sheet-h, 30svh) + var(--space-3)), 72svh);
+  transition: bottom var(--dur-base) var(--ease-out);
+}
+.shellViewer > * { height: 100%; }
+
+.sheetStep { display: grid; gap: var(--space-4); }
+
+.sheetHint {
+  font-size: var(--step--1);
+  color: var(--fg-muted);
+  line-height: 1.55;
+}

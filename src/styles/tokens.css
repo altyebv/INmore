@@ -1,0 +1,135 @@
+/* ---------------------------------------------------------------------------
+   INMORE design tokens
+   Single source of truth for colour, type, spacing, motion and elevation.
+   Brand values here are provisional and intended to be replaced with the
+   approved brand system without touching component code.
+   --------------------------------------------------------------------------- */
+
+:root {
+  /* --- Colour: ink / paper -------------------------------------------------- */
+  --ink-000: #000000;
+  --ink-900: #0b0b0a;
+  --ink-800: #121211;
+  --ink-700: #1a1a18;
+  --ink-600: #232320;
+  --ink-500: #2f2f2b;
+  --ink-400: #494943;
+
+  --paper-000: #ffffff;
+  --paper-100: #f7f5f1;
+  --paper-200: #ece8e1;
+  --paper-300: #d9d3c9;
+  --paper-400: #b4aca0;
+
+  /* --- Colour: accent (provisional, pending brand approval) ----------------- */
+  --accent: #e2481f;
+  --accent-soft: #f26a44;
+  --accent-dim: rgba(226, 72, 31, 0.16);
+
+  /* --- Semantic surfaces ---------------------------------------------------- */
+  --bg: var(--ink-900);
+  --bg-raised: var(--ink-800);
+  --bg-inset: var(--ink-700);
+  --line: rgba(247, 245, 241, 0.11);
+  --line-strong: rgba(247, 245, 241, 0.22);
+
+  --fg: var(--paper-100);
+  --fg-muted: rgba(247, 245, 241, 0.62);
+  --fg-faint: rgba(247, 245, 241, 0.38);
+
+  --focus: #f6b23d;
+
+  /* --- Typography ----------------------------------------------------------- */
+  --font-latin: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-arabic: 'IBM Plex Sans Arabic', 'Noto Sans Arabic', 'Segoe UI', Tahoma, sans-serif;
+  --font-sans: var(--font-latin);
+  --font-mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', 'Menlo', monospace;
+
+  --step--2: clamp(0.69rem, 0.67rem + 0.09vw, 0.75rem);
+  --step--1: clamp(0.8rem, 0.77rem + 0.15vw, 0.89rem);
+  --step-0: clamp(1rem, 0.96rem + 0.2vw, 1.13rem);
+  --step-1: clamp(1.25rem, 1.18rem + 0.36vw, 1.5rem);
+  --step-2: clamp(1.56rem, 1.44rem + 0.62vw, 2rem);
+  --step-3: clamp(1.95rem, 1.74rem + 1.05vw, 2.66rem);
+  --step-4: clamp(2.44rem, 2.09rem + 1.74vw, 3.55rem);
+  --step-5: clamp(3.05rem, 2.5rem + 2.77vw, 4.74rem);
+  --step-6: clamp(3.81rem, 2.95rem + 4.3vw, 6.31rem);
+
+  --tracking-tight: -0.03em;
+  --tracking-label: 0.16em;
+
+  /* --- Space ---------------------------------------------------------------- */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+  --space-8: 4rem;
+  --space-9: 6rem;
+  --space-10: 8rem;
+
+  /* --- Layout --------------------------------------------------------------- */
+  --measure: 62ch;
+  --shell-max: 88rem;
+  --gutter: clamp(1.25rem, 4vw, 4rem);
+  --header-h: 4.5rem;
+
+  /* --- Radius & elevation --------------------------------------------------- */
+  --radius-sm: 2px;
+  --radius-md: 4px;
+  --radius-lg: 10px;
+  --radius-pill: 999px;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.5);
+  --shadow-md: 0 12px 32px -12px rgba(0, 0, 0, 0.7);
+  --shadow-lg: 0 40px 80px -40px rgba(0, 0, 0, 0.85);
+
+  /* --- Motion --------------------------------------------------------------- */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-fast: 160ms;
+  --dur-base: 320ms;
+  --dur-slow: 720ms;
+
+  --z-canvas: 1;
+  --z-content: 10;
+  --z-header: 100;
+  --z-overlay: 200;
+}
+
+/* ---------------------------------------------------------------------------
+   Arabic typography
+   Arabic has no uppercase and a taller x-height, so the tracked-out uppercase
+   labels and the tight display letter-spacing that suit Inter actively hurt
+   here. The whole scale is retuned rather than the font simply swapped.
+   --------------------------------------------------------------------------- */
+:root[lang='ar'] {
+  --font-sans: var(--font-arabic);
+  --font-mono: var(--font-arabic);
+  --tracking-tight: 0;
+  --tracking-label: 0;
+}
+
+/* Restore the mono voice for the Latin strings that stay Latin in Arabic —
+   measurements, file names, dimensions, years. */
+:root[lang='ar'] .u-mono-latin {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+}
+
+:root[lang='ar'] body { line-height: 1.75; }
+
+/* Light surface inversion — used for "paper" sections. */
+.on-paper {
+  --bg: var(--paper-100);
+  --bg-raised: var(--paper-000);
+  --bg-inset: var(--paper-200);
+  --line: rgba(11, 11, 10, 0.12);
+  --line-strong: rgba(11, 11, 10, 0.28);
+  --fg: var(--ink-900);
+  --fg-muted: rgba(11, 11, 10, 0.6);
+  --fg-faint: rgba(11, 11, 10, 0.38);
+  background: var(--bg);
+  color: var(--fg);
+}
