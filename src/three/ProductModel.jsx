@@ -2,6 +2,7 @@ import { Suspense, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { PROXY_REGISTRY } from './models/PaperCupProxy';
 import GlbProductModel from './models/GlbProductModel';
+import GlbLoadBoundary from './models/GlbLoadBoundary';
 import useModelAvailability from './models/useModelAvailability';
 
 /**
@@ -19,6 +20,11 @@ import useModelAvailability from './models/useModelAvailability';
  *    is fine for the three GLB-only products whose files ship with the build.
  * 3. If the HEAD check ultimately reports `'missing'`, we fall back to the
  *    proxy permanently.
+ *
+ * Callers that need to know *when* a product's final representation has been
+ * decided (rather than just rendering whatever's current) can await
+ * `whenProductReady` from `./models/productReadiness`, which mirrors this
+ * same branching.
  */
 export function ProductModel({ product, texture, baseColor, autoRotate = false }) {
   const group = useRef();
@@ -40,9 +46,15 @@ export function ProductModel({ product, texture, baseColor, autoRotate = false }
     availability === 'missing' ? (
       proxyNode
     ) : (
-      <Suspense fallback={proxyNode}>
-        <GlbProductModel product={product} texture={texture} baseColor={stockColor} />
-      </Suspense>
+      // GlbLoadBoundary is the safety net for the optimistic attempt above:
+      // if the GLB 404s or fails to parse before the HEAD check catches up,
+      // this catches the thrown error and falls back to the proxy instead of
+      // taking the canvas down with it.
+      <GlbLoadBoundary url={product.model.url} fallback={proxyNode}>
+        <Suspense fallback={proxyNode}>
+          <GlbProductModel product={product} texture={texture} baseColor={stockColor} />
+        </Suspense>
+      </GlbLoadBoundary>
     );
 
   return (

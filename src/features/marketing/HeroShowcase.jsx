@@ -11,7 +11,10 @@ import styles from './HeroShowcase.module.css';
  * directly to that product.
  *
  * The 3D bundle is loaded lazily; during loading each slot shows a
- * colour-filled stand-in so the layout never shifts.
+ * colour-filled stand-in so the layout never shifts. Every product's GLB and
+ * availability check is also warmed the moment the showcase mounts (see
+ * `warmProducts`), and a transition only swaps the visible product back in
+ * once it's confirmed ready — so the fade-in never lands on an empty canvas.
  */
 
 const ProductViewer = lazy(() => import('@/three/ProductViewer'));
@@ -20,6 +23,19 @@ const ProductViewer = lazy(() => import('@/three/ProductViewer'));
 const DWELL_MS = 3200;
 /** How long (ms) the cross-fade takes. Must match the CSS transition. */
 const FADE_MS = 700;
+/**
+ * Upper bound (ms) on how long a transition will wait for the next product to
+ * report ready before revealing it regardless. In practice this almost never
+ * matters — every GLB starts downloading the moment the showcase mounts — but
+ * it stops a stalled asset or a very slow connection from freezing the
+ * carousel on a faded-out canvas forever.
+ */
+const READY_TIMEOUT_MS = 4000;
+
+/** Resolves after `ms` — used as the ceiling on the readiness wait below. */
+function delay(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
 
 /**
  * One accent colour per product, in the same order as `liveProducts`.
@@ -48,8 +64,23 @@ export function HeroShowcase({ className }) {
   const timerRef = useRef(null);
   const fadeRef = useRef(null);
   const activeRef = useRef(0);              // mirror of `active` for callbacks
+  const mountedRef = useRef(true);
 
   activeRef.current = active;
+
+  // Warm every product's GLB and availability check as soon as the showcase
+  // mounts — well ahead of the first transition. Imported dynamically so the
+  // three.js bundle stays out of this component's own chunk (it's only ever
+  // needed once `ProductViewer` itself loads).
+  useEffect(() => {
+    mountedRef.current = true;
+    import('@/three/models/productReadiness').then((mod) => {
+      if (mountedRef.current) mod.warmProducts(liveProducts);
+    });
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
 
   /** Advance to a specific index with a cross-fade. */
   const goTo = (next) => {
@@ -58,7 +89,15 @@ export function HeroShowcase({ className }) {
     setActive(next); // update accent colour immediately
 
     clearTimeout(fadeRef.current);
-    fadeRef.current = setTimeout(() => {
+    fadeRef.current = setTimeout(async () => {
+      // Wait until the incoming product is actually ready — its GLB has
+      // settled, or the HEAD check has confirmed it's missing and the proxy
+      // is the final answer — so the canvas never fades back in on nothing.
+      // Capped so a stalled asset can't freeze the carousel indefinitely.
+      const { whenProductReady } = await import('@/three/models/productReadiness');
+      await Promise.race([whenProductReady(liveProducts[next]), delay(READY_TIMEOUT_MS)]);
+
+      if (!mountedRef.current) return;
       setVisible(next);
       fadingRef.current = false;
     }, FADE_MS);
