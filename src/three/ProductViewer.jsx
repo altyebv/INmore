@@ -15,6 +15,7 @@ import ProductModel from './ProductModel';
 export function ProductViewer({
   product,
   texture,
+  baseColor,
   autoRotate,
   onInteract,
   className,
@@ -40,7 +41,7 @@ export function ProductViewer({
       }}
     >
       <Suspense fallback={null}>
-        <ProductModel product={product} texture={texture} autoRotate={autoRotate} />
+        <ProductModel product={product} texture={texture} baseColor={baseColor} autoRotate={autoRotate} />
         <Stage camera={camera} autoRotate={false} onInteract={handleInteract} />
       </Suspense>
     </Canvas>
