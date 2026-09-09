@@ -1,0 +1,90 @@
+.wrap {
+  position: relative;
+  display: grid;
+  gap: var(--space-3);
+}
+
+.stage {
+  position: relative;
+  width: 100%;
+  aspect-ratio: var(--preview-aspect, 2.5);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background:
+    linear-gradient(45deg, rgba(255, 255, 255, 0.03) 25%, transparent 25%) -8px 0 / 16px 16px,
+    linear-gradient(-45deg, rgba(255, 255, 255, 0.03) 25%, transparent 25%) -8px 0 / 16px 16px,
+    var(--ink-700);
+  overflow: hidden;
+  touch-action: none;
+  cursor: grab;
+}
+.stage:active { cursor: grabbing; }
+.stage[data-empty='true'] { cursor: default; }
+
+.canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+.guide {
+  position: absolute;
+  border: 1px dashed rgba(226, 72, 31, 0.75);
+  pointer-events: none;
+  border-radius: 1px;
+}
+
+.seam {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(247, 245, 241, 0.5) 0 4px,
+    transparent 4px 8px
+  );
+  pointer-events: none;
+}
+
+.seamLabel {
+  position: absolute;
+  top: var(--space-2);
+  transform: translateX(-50%);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--fg-faint);
+  pointer-events: none;
+}
+
+.empty {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  text-align: center;
+  gap: var(--space-2);
+  color: var(--fg-faint);
+  font-family: var(--font-mono);
+  font-size: var(--step--2);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  pointer-events: none;
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--space-3);
+  font-family: var(--font-mono);
+  font-size: var(--step--2);
+  color: var(--fg-faint);
+}
+
+.warn { color: var(--accent-soft); }
+
+@media (pointer: coarse) {
+  /* Bigger hit area for dragging, without distorting the layout: the stage
+     keeps the print area's true proportions and simply gets more room. */
+  .stage { min-height: 5.5rem; }
+  .meta { font-size: var(--step--2); }
+}

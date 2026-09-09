@@ -1,0 +1,88 @@
+.stage {
+  position: relative;
+  min-height: 0;
+  height: 100%;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background:
+    radial-gradient(120% 90% at 50% 0%, rgba(247, 245, 241, 0.07), transparent 62%),
+    var(--ink-800);
+  border: 1px solid var(--line);
+}
+
+.canvas { position: absolute; inset: 0; }
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: var(--space-4);
+  pointer-events: none;
+}
+
+.overlayRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.overlayRow > * { pointer-events: auto; }
+
+.caption {
+  font-family: var(--font-mono);
+  font-size: var(--step--2);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--fg-faint);
+  pointer-events: none;
+}
+
+.hint {
+  font-family: var(--font-mono);
+  font-size: var(--step--2);
+  color: var(--fg-faint);
+  opacity: 1;
+  transition: opacity var(--dur-slow) var(--ease-out);
+  pointer-events: none;
+}
+.hintHidden { opacity: 0; }
+
+.tools { display: flex; gap: var(--space-2); }
+
+.notice {
+  max-width: 34ch;
+  text-align: end;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--ink-900) 80%, transparent);
+  backdrop-filter: blur(8px);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  line-height: 1.5;
+  letter-spacing: 0.06em;
+  color: var(--fg-faint);
+}
+
+@media (max-width: 700px) {
+  /* On a narrow stage the hint is the more useful of the two. */
+  .notice { display: none; }
+}
+
+/* Touch layout: the stage is the whole upper screen, so it drops its own
+   chrome and lets the sheet carry the actions. */
+.compact {
+  border-radius: var(--radius-md);
+  container-type: size;
+}
+.compact .overlay { padding: var(--space-3); }
+
+/* When the sheet is pulled up the stage gets short. Every pixel then belongs
+   to the product, so its labels step out of the way. */
+@container (max-height: 220px) {
+  .caption,
+  .hint { display: none; }
+}

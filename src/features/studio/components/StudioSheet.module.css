@@ -1,0 +1,121 @@
+/* ---------------------------------------------------------------------------
+   Bottom sheet
+   The controls live here on touch layouts. The sheet's height is published as
+   --sheet-h on the shell so the product viewer above can shrink to match,
+   which is the whole point: the product never disappears behind the controls.
+   --------------------------------------------------------------------------- */
+
+.sheet {
+  position: fixed;
+  inset-inline: 0;
+  bottom: 0;
+  z-index: var(--z-overlay);
+  height: var(--sheet-h);
+  display: flex;
+  flex-direction: column;
+  background: var(--ink-800);
+  border-top: 1px solid var(--line-strong);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  box-shadow: var(--shadow-lg);
+  overscroll-behavior: contain;
+}
+
+.settling { transition: height var(--dur-base) var(--ease-out); }
+
+.grip {
+  flex: none;
+  display: grid;
+  place-items: center;
+  padding: var(--space-3) 0 var(--space-2);
+  touch-action: none;
+  cursor: grab;
+  background: none;
+  border: none;
+  width: 100%;
+}
+.grip:active { cursor: grabbing; }
+
+.gripBar {
+  width: 2.5rem;
+  height: 4px;
+  border-radius: var(--radius-pill);
+  background: var(--line-strong);
+  transition: background var(--dur-fast) var(--ease-out);
+}
+.grip:hover .gripBar { background: var(--fg-faint); }
+
+.tabs {
+  flex: none;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  gap: var(--space-1);
+  padding: 0 var(--space-4) var(--space-3);
+}
+
+.tab {
+  position: relative;
+  min-height: 2.75rem;
+  padding: 0 var(--space-2);
+  border: none;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--fg-faint);
+  font-size: var(--step--1);
+  font-weight: 500;
+  transition: color var(--dur-fast) var(--ease-out), background var(--dur-fast) var(--ease-out);
+}
+
+.tab[aria-selected='true'] {
+  color: var(--fg);
+  background: var(--ink-700);
+}
+
+.tabDone {
+  position: absolute;
+  top: 0.45rem;
+  inset-inline-end: 0.55rem;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  padding: 0 var(--space-4) calc(var(--space-6) + env(safe-area-inset-bottom, 0px));
+  display: grid;
+  gap: var(--space-5);
+  align-content: start;
+}
+
+.footerBar {
+  flex: none;
+  display: grid;
+  grid-auto-flow: column;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4) calc(var(--space-3) + env(safe-area-inset-bottom, 0px));
+  border-top: 1px solid var(--line);
+  background: var(--ink-800);
+}
+
+.specs {
+  display: grid;
+  gap: var(--space-2);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--line);
+}
+
+.spec {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+  font-family: var(--font-mono);
+  font-size: var(--step--2);
+  color: var(--fg-faint);
+}
+.specValue { color: var(--fg-muted); text-align: end; }
