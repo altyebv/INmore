@@ -1,14 +1,30 @@
-import HeroShowcase from './HeroShowcase';
+import { Suspense, lazy } from 'react';
+import { paperCup } from '@/products';
 
 /**
- * The hero product block.
+ * The hero object.
  *
- * Delegates to HeroShowcase, which cycles through all live products with
- * animated colour and model transitions. Kept as a thin wrapper so call-sites
- * in Home.jsx don't need to change.
+ * The 3D bundle is loaded lazily so first paint is text, not a renderer. Until
+ * it arrives the hero shows a still, calm surface rather than a spinner.
  */
-export function HeroProduct({ className }) {
-  return <HeroShowcase className={className} />;
+const ProductViewer = lazy(() => import('@/three/ProductViewer'));
+
+/** Slightly wider framing than the studio: the hero shows the whole object. */
+const HERO_CAMERA = { position: [0.5, 0.28, 1], fov: 26, framing: 1.95 };
+
+export function HeroProduct({ className, autoRotate = true }) {
+  return (
+    <div className={className}>
+      <Suspense fallback={null}>
+        <ProductViewer
+          product={paperCup}
+          texture={null}
+          autoRotate={autoRotate}
+          camera={HERO_CAMERA}
+        />
+      </Suspense>
+    </div>
+  );
 }
 
 export default HeroProduct;

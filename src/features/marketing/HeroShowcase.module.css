@@ -1,6 +1,7 @@
 /* ===========================================================================
    HeroShowcase
-   Full-bleed 3-D product carousel for the page hero.
+   The chrome around the 3-D product rail: the halo behind it, the arrows
+   either side of the centred product, and the readout below it.
    =========================================================================== */
 
 .root {
@@ -8,124 +9,179 @@
   width: 100%;
   height: 100%;
   overflow: hidden;
-  /* accent is set inline per-product */
+  touch-action: pan-y; /* horizontal drag steers the rail; the page still scrolls */
   --showcase-accent: #c8a05a;
 }
 
-/* --- Backdrop -------------------------------------------------------------- */
-.backdrop {
-  position: absolute;
-  inset: 0;
-  /* Radial halo that shifts colour with each product */
-  background: radial-gradient(
-    70% 70% at 60% 50%,
-    color-mix(in srgb, var(--showcase-accent) 18%, transparent) 0%,
-    transparent 100%
-  );
-  transition: background var(--dur-slow, 600ms) ease;
-  pointer-events: none;
+.root:focus-visible {
+  outline: 2px solid var(--showcase-accent);
+  outline-offset: -4px;
 }
 
-/* --- Canvas ---------------------------------------------------------------- */
+/* --- Halo -----------------------------------------------------------------
+   A pool of the current product's colour behind the rail. It is the only
+   thing on the page that changes hue with the selection, which is enough to
+   make the change feel like a change of subject rather than a slide.
+   ------------------------------------------------------------------------- */
+.halo {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(
+      46% 42% at 50% 46%,
+      color-mix(in srgb, var(--showcase-accent) 26%, transparent) 0%,
+      transparent 72%
+    ),
+    radial-gradient(70% 55% at 50% 100%, rgba(226, 72, 31, 0.08) 0%, transparent 70%);
+  transition: background var(--dur-slow) var(--ease-out);
+  pointer-events: none;
+  z-index: var(--z-canvas);
+}
+
 .canvas {
   position: absolute;
   inset: 0;
-  transition: opacity 700ms ease;
+  z-index: var(--z-canvas);
 }
-.canvasFading { opacity: 0; }
+.canvas canvas { display: block; }
 
-/* Stand-in shown while the lazy bundle loads */
-.placeholder {
+/* --- Arrows ---------------------------------------------------------------- */
+.arrow {
   position: absolute;
-  inset: 0;
-  background: transparent;
-}
-
-/* --- Product label --------------------------------------------------------- */
-.label {
-  position: absolute;
-  inset-inline-start: var(--space-5, 1.5rem);
-  bottom: calc(var(--space-5, 1.5rem) + 2rem); /* sit above the dots */
+  top: 46%;
+  z-index: var(--z-content);
   display: grid;
-  gap: 0.25rem;
-  pointer-events: none;
-  transition: opacity 700ms ease, transform 700ms ease;
-}
-.labelFading {
-  opacity: 0;
-  transform: translateY(6px);
-}
-
-.labelCategory {
-  font-family: var(--font-mono);
-  font-size: var(--step--2, 0.72rem);
-  letter-spacing: var(--tracking-label, 0.1em);
-  text-transform: uppercase;
-  color: var(--showcase-accent);
-  transition: color var(--dur-slow, 600ms) ease;
-}
-
-.labelName {
-  font-size: var(--step-0, 1rem);
-  font-weight: 500;
-  color: var(--fg, #f7f5f1);
-}
-
-/* --- Dot navigation -------------------------------------------------------- */
-.dots {
-  position: absolute;
-  inset-inline-start: var(--space-5, 1.5rem);
-  bottom: var(--space-5, 1.5rem);
-  display: flex;
-  gap: var(--space-2, 0.5rem);
-  align-items: center;
-}
-
-.dot {
-  width: 0.45rem;
-  height: 0.45rem;
-  border-radius: 50%;
-  background: color-mix(in srgb, var(--fg, #f7f5f1) 30%, transparent);
-  border: none;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
   padding: 0;
+  border: 1px solid color-mix(in srgb, var(--fg) 14%, transparent);
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--ink-900) 35%, transparent);
+  backdrop-filter: blur(2px);
+  color: color-mix(in srgb, var(--fg) 65%, transparent);
   cursor: pointer;
   transition:
-    background var(--dur-base, 200ms) ease,
-    transform var(--dur-base, 200ms) ease,
-    width var(--dur-base, 200ms) ease;
-  flex-shrink: 0;
+    color var(--dur-base) var(--ease-out),
+    border-color var(--dur-base) var(--ease-out),
+    background var(--dur-base) var(--ease-out);
 }
 
-.dotActive {
-  background: var(--dot-accent, var(--accent));
-  width: 1.4rem;
-  border-radius: 0.25rem;
+.arrow:hover,
+.arrow:focus-visible {
+  color: var(--fg);
+  border-color: var(--line-strong);
+  background: color-mix(in srgb, var(--ink-900) 55%, transparent);
 }
 
-/* --- Progress bar ---------------------------------------------------------- */
-.progress {
+/* Positioned as a fraction of the width so they stay just outside the centred
+   product as the rail's on-screen size changes with the viewport. */
+.arrowPrev { inset-inline-start: clamp(1rem, 27%, 30rem); }
+.arrowNext { inset-inline-end: clamp(1rem, 27%, 30rem); }
+
+/* The chevron points along the reading direction, so both mirror in Arabic. */
+.arrowNext svg { transform: rotate(180deg); }
+:global([dir='rtl']) .arrowPrev svg { transform: rotate(180deg); }
+:global([dir='rtl']) .arrowNext svg { transform: none; }
+
+/* --- Readout --------------------------------------------------------------- */
+.readout {
   position: absolute;
-  bottom: 0;
-  inset-inline-start: 0;
-  height: 2px;
-  background: var(--showcase-accent);
-  transform-origin: left center;
-  animation: progressFill var(--progress-dur, 3200ms) linear forwards;
+  inset-inline: 0;
+  bottom: clamp(1.5rem, 5vh, 3.25rem);
+  z-index: var(--z-content);
+  display: grid;
+  justify-items: center;
+  gap: var(--space-2);
+  text-align: center;
+  pointer-events: none;
 }
 
-@keyframes progressFill {
-  from { transform: scaleX(0); }
-  to   { transform: scaleX(1); }
+.category {
+  font-family: var(--font-mono);
+  font-size: var(--step--2);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--showcase-accent);
+  /* `forwards`, never `both`. With `both` the element holds the animation's
+     opening frame — opacity 0 — until the animation actually starts, so any
+     situation where it does not start leaves the product's name invisible
+     rather than un-animated. `forwards` falls back to the styles above. */
+  animation: riseIn var(--dur-slow) var(--ease-out) forwards;
+}
+
+.name {
+  font-size: clamp(1.5rem, 4.5vw, 2.75rem);
+  font-weight: 300;
+  line-height: 1.05;
+  color: var(--fg);
+  animation: riseIn var(--dur-slow) var(--ease-out) 60ms forwards;
+}
+
+@keyframes riseIn {
+  from { opacity: 0; transform: translateY(0.5rem); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* --- Rail marker ----------------------------------------------------------- */
+.rail {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+  pointer-events: auto;
+}
+
+.pip {
+  display: grid;
+  align-items: center;
+  width: 2.25rem;
+  height: 1.5rem; /* a comfortable target around a 2px line */
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+
+.pipTrack {
+  display: block;
+  height: 2px;
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--fg) 22%, transparent);
+  transition:
+    background var(--dur-base) var(--ease-out),
+    box-shadow var(--dur-base) var(--ease-out);
+}
+
+.pip:hover .pipTrack { background: color-mix(in srgb, var(--fg) 45%, transparent); }
+
+.pipActive .pipTrack {
+  background: var(--pip-accent, var(--showcase-accent));
+  box-shadow: 0 0 12px color-mix(in srgb, var(--pip-accent, var(--showcase-accent)) 60%, transparent);
 }
 
 /* --- Responsive ------------------------------------------------------------ */
 @media (max-width: 900px) {
-  .label {
-    inset-inline-start: var(--space-4, 1rem);
-    bottom: calc(var(--space-4, 1rem) + 1.75rem);
-  }
-  .dots {
-    inset-inline-start: var(--space-4, 1rem);
-    bottom: var(--space-4, 1rem);
-  }
+  /* On a phone the rail fills the width, so arrows either side of the centred
+     product would sit on top of it. Swipe is the primary control here and the
+     pips below are the visible affordance; the arrows step aside. */
+  .arrow { display: none; }
+
+  .readout { bottom: clamp(0.75rem, 3vh, 1.5rem); }
+  .name { font-size: clamp(1.25rem, 6vw, 1.75rem); }
+}
+
+/* Short viewports: the readout keeps its place but stops taking a fifth of the
+   height to do it. */
+@media (max-height: 560px) {
+  .readout { bottom: var(--space-3); gap: 0; }
+  .name { font-size: 1.25rem; }
+  .rail { margin-top: var(--space-2); }
+  .arrow { top: 44%; width: 2.25rem; height: 2.25rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .category,
+  .name { animation: none; }
+  .halo { transition: none; }
 }
