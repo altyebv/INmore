@@ -10,31 +10,13 @@
 /** @type {Partial<import('./schema').ProductConfig>[]} */
 export const upcomingProducts = [
   {
-    id: 'shopping-bag-paper',
-    slug: 'paper-bag',
-    name: 'Laminated paper bag',
-    shortName: 'Paper bag',
-    category: 'Retail packaging',
-    status: 'coming-soon',
-    order: 20,
-    summary: 'Twisted-handle kraft or art-card bag, printed on both faces and gussets.',
-    translations: {
-      ar: {
-        name: 'كيس ورقي مغلَّف',
-        shortName: 'كيس ورقي',
-        category: 'تغليف التجزئة',
-        summary: 'كيس كرافت أو ورق فني بمقبض مجدول، يُطبع على الوجهين والجانبين.',
-      },
-    },
-  },
-  {
     id: 'mailer-box',
     slug: 'mailer-box',
     name: 'Corrugated mailer box',
     shortName: 'Mailer box',
     category: 'Shipping',
     status: 'coming-soon',
-    order: 30,
+    order: 50,
     summary: 'E-flute mailer with full outer print and an optional printed interior.',
     translations: {
       ar: {
@@ -52,7 +34,7 @@ export const upcomingProducts = [
     shortName: 'Canvas tote',
     category: 'Merchandise',
     status: 'coming-soon',
-    order: 40,
+    order: 60,
     summary: '10 oz cotton canvas, screen printed one or two positions.',
     translations: {
       ar: {
