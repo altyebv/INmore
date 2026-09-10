@@ -12,7 +12,7 @@ import styles from './FlatPreview.module.css';
  * here and watches it move on the product beside them. It draws from the same
  * compositor the 3D texture uses, so the two views can never disagree.
  */
-export function FlatPreview({ product, artwork, transform, onTransform, onCommit }) {
+export function FlatPreview({ product, artwork, transform, baseColor, onTransform, onCommit }) {
   const displayRef = useRef(null);
   const bufferRef = useRef(null);
   const dragRef = useRef(null);
@@ -35,7 +35,7 @@ export function FlatPreview({ product, artwork, transform, onTransform, onCommit
     const buffer = bufferRef.current;
     if (!display || !buffer) return;
 
-    composeArtwork(buffer, print, artwork, transform);
+    composeArtwork(buffer, print, artwork, transform, { stockColor: baseColor });
 
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
     const width = display.clientWidth;
@@ -51,7 +51,7 @@ export function FlatPreview({ product, artwork, transform, onTransform, onCommit
     ctx.imageSmoothingQuality = 'high';
     // Show only the printable window, scaled to fill the stage.
     ctx.drawImage(buffer, rect.x, rect.y, rect.width, rect.height, 0, 0, width, height);
-  }, [print, artwork, transform, size, rect.x, rect.y, rect.width, rect.height]);
+  }, [print, artwork, transform, baseColor, size, rect.x, rect.y, rect.width, rect.height]);
 
   // Keep the drawing crisp through container resizes.
   useEffect(() => {
