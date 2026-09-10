@@ -2,6 +2,7 @@ import Button from '@/components/ui/Button';
 import Reveal from '@/components/ui/Reveal';
 import Section from '@/components/ui/Section';
 import HeroProduct from '@/features/marketing/HeroProduct';
+import HeroShowcase from '@/features/marketing/HeroShowcase';
 import { useContent } from '@/i18n';
 import usePageMeta from '@/lib/utils/usePageMeta';
 import styles from './Home.module.css';
@@ -17,24 +18,31 @@ export function Home() {
   return (
     <main id="main">
       {/* --- Hero ---------------------------------------------------------- */}
+      {/* The rail fills the viewport and the copy sits over it. The scrim
+          between them is what keeps the headline readable while products pass
+          behind it — the depth is the point, so the products are not moved out
+          of the way, they are lit through. */}
       <section className={styles.hero}>
-        <HeroProduct className={styles.heroCanvas} />
+        <HeroShowcase className={styles.heroCanvas} />
+        <div className={styles.heroScrim} aria-hidden="true" />
 
         <div className={'u-shell ' + styles.heroInner}>
-          <Reveal className="u-label" shift="0.5rem">
-            {c.eyebrow}
-          </Reveal>
+          <div className={styles.heroCopy}>
+            <Reveal className="u-label" shift="0.5rem">
+              {c.eyebrow}
+            </Reveal>
 
-          <Reveal as="h1" className={styles.heroTitle} delay={80}>
-            {c.headlineLead} <em>{c.headlineEmphasis}</em>
-          </Reveal>
+            <Reveal as="h1" className={styles.heroTitle} delay={80}>
+              {c.headlineLead} <em>{c.headlineEmphasis}</em>
+            </Reveal>
 
-          <Reveal className={styles.heroMeta} delay={180}>
-            <p className={styles.heroLede}>{c.lede}</p>
-            <Button to="/studio" variant="accent" size="lg">
-              {common.testYourProduct}
-            </Button>
-          </Reveal>
+            <Reveal className={styles.heroMeta} delay={180}>
+              <p className={styles.heroLede}>{c.lede}</p>
+              <Button to="/studio" variant="accent" size="lg">
+                {common.testYourProduct}
+              </Button>
+            </Reveal>
+          </div>
         </div>
 
         <span className={styles.scrollCue}>{c.scroll}</span>
