@@ -1,4 +1,8 @@
-/* --- Hero ------------------------------------------------------------------ */
+/* --- Hero ------------------------------------------------------------------
+   Full-bleed: the product rail owns the whole viewport and the copy sits on
+   top of it. Nothing is reserved for the canvas, because the composition is
+   the products passing *behind* the headline rather than beside it.
+   --------------------------------------------------------------------------- */
 .hero {
   position: relative;
   min-height: 100svh;
@@ -6,47 +10,49 @@
   align-items: center;
   padding-top: var(--header-h);
   overflow: hidden;
+  background: var(--ink-900);
 }
 
 .heroCanvas {
   position: absolute;
-  inset-block: 0;
-  inset-inline-end: 0;
-  width: min(58%, 46rem);
+  inset: 0;
   z-index: var(--z-canvas);
 }
 
-.heroCanvas::after {
-  content: '';
+/* The scrim does two jobs: it darkens the side the copy sits on so the text
+   holds contrast against whatever product drifts behind it, and it vignettes
+   the frame so the rail reads as lit from the middle rather than cropped at
+   the edges. It sits between the canvas and the copy, and never takes a click. */
+.heroScrim {
   position: absolute;
   inset: 0;
-  background:
-    linear-gradient(to var(--hero-fade-to, right), var(--ink-900) 0%, transparent 34%),
-    radial-gradient(80% 65% at 55% 48%, transparent 42%, var(--ink-900) 100%);
+  z-index: 2;
   pointer-events: none;
+  background:
+    linear-gradient(
+      to var(--hero-scrim-to, right),
+      var(--ink-900) 0%,
+      color-mix(in srgb, var(--ink-900) 88%, transparent) 30%,
+      transparent 52%
+    ),
+    radial-gradient(125% 85% at 50% 42%, transparent 52%, rgba(11, 11, 10, 0.62) 100%);
 }
 
-:global([dir='rtl']) .heroCanvas { --hero-fade-to: left; }
-
-/* Transforms are not mirrored by direction, so the centring nudge is. */
-:global([dir='rtl']) .scrollCue { transform: translateX(50%); }
-
-@keyframes driftRtl {
-  0%, 100% { transform: translate(50%, 0); opacity: 0.6; }
-  50% { transform: translate(50%, 6px); opacity: 1; }
-}
-:global([dir='rtl']) .scrollCue { animation-name: driftRtl; }
+:global([dir='rtl']) .heroScrim { --hero-scrim-to: left; }
 
 .heroInner {
   position: relative;
   z-index: var(--z-content);
-  display: grid;
-  gap: var(--space-6);
-  max-width: min(46rem, 52%);
   pointer-events: none;
 }
 
-.heroInner > * { pointer-events: auto; }
+.heroCopy {
+  display: grid;
+  gap: var(--space-6);
+  max-width: min(34rem, 46%);
+}
+
+.heroCopy > * { pointer-events: auto; }
 
 .heroTitle {
   font-size: var(--step-5);
@@ -72,11 +78,12 @@
   max-width: 40ch;
 }
 
+/* The carousel's own readout owns the bottom centre, so the scroll cue moves
+   to the trailing corner rather than stacking on top of it. */
 .scrollCue {
   position: absolute;
-  inset-inline-start: 50%;
+  inset-inline-end: var(--gutter);
   bottom: var(--space-6);
-  transform: translateX(-50%);
   z-index: var(--z-content);
   font-family: var(--font-mono);
   font-size: var(--step--2);
@@ -87,8 +94,12 @@
 }
 
 @keyframes drift {
-  0%, 100% { transform: translate(-50%, 0); opacity: 0.6; }
-  50% { transform: translate(-50%, 6px); opacity: 1; }
+  0%, 100% { transform: translateY(0); opacity: 0.6; }
+  50% { transform: translateY(6px); opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scrollCue { animation: none; opacity: 0.8; }
 }
 
 /* --- Transformation strip -------------------------------------------------- */
@@ -221,57 +232,77 @@
   letter-spacing: -0.01em;
 }
 
-@media (max-width: 900px) {
+@media (orientation: landscape) and (max-height: 560px) {
   .hero {
-    /* Stack vertically: canvas on top, text below */
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    padding-top: var(--header-h);
-    padding-bottom: 0;
+    align-items: center;
     min-height: 100svh;
   }
 
-  .heroCanvas {
-    /* Takes the top 52 % of the viewport — tall enough to show the product
-       clearly, short enough to leave room for the text. */
-    position: relative;
-    inset: unset;
-    width: 100%;
-    height: 52svh;
-    flex-shrink: 0;
+  .heroCopy {
+    gap: var(--space-3);
+    max-width: min(24rem, 44%);
   }
 
-  .heroCanvas::after {
-    /* Fade only from the bottom so the product isn't washed out at the sides */
-    background: linear-gradient(
-      to bottom,
-      transparent 40%,
-      var(--ink-900) 100%
-    );
+  .heroTitle { font-size: var(--step-3); max-width: 14ch; }
+  .heroLede { display: none; }
+  .scrollCue { display: none; }
+}
+
+@media (max-width: 900px) {
+  /* Still full-bleed. The rail keeps the middle of the screen and the copy
+     moves to the top, above it — stacking the canvas into a strip would trade
+     the whole point of the hero for a layout that already exists further down
+     the page. */
+  .hero {
+    align-items: start;
+    min-height: 100svh;
   }
 
-  .heroInner {
-    /* Text block fills whatever remains */
-    position: relative;
-    z-index: var(--z-content);
+  .heroScrim {
+    background:
+      linear-gradient(to bottom, var(--ink-900) 0%, color-mix(in srgb, var(--ink-900) 78%, transparent) 34%, transparent 62%),
+      radial-gradient(130% 62% at 50% 56%, transparent 40%, rgba(11, 11, 10, 0.88) 100%);
+  }
+
+  .heroInner { padding-top: var(--space-5); }
+
+  .heroCopy {
     max-width: none;
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    padding-block: var(--space-6) clamp(5rem, 14vw, 7rem);
+    gap: var(--space-4);
   }
 
-  .scrollCue {
-    /* Keep cue anchored to the very bottom on mobile too */
-    position: absolute;
-  }
+  /* The copy takes the upper half and the rail the lower, so the headline
+     steps down a size and the lede is held to a few short lines. A hero that
+     needs six lines of body copy is not a hero. */
+  .heroTitle { font-size: var(--step-4); max-width: 11ch; }
+  .heroLede { font-size: var(--step--1); max-width: 30ch; }
+
+  .scrollCue { display: none; }
 
   .chain, .chainFive { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .discipline { grid-template-columns: 2.5rem minmax(0, 1fr); }
   .disciplineBody { grid-column: 2 / -1; }
   .invite { grid-template-columns: 1fr; }
+}
+
+/* A phone held sideways is 400-ish pixels tall with a header already in it.
+   There is no arrangement in which a three-line headline, a four-line lede, a
+   button and a product all fit, so the lede — the only part that repeats what
+   the page says again further down — stands aside. */
+@media (orientation: landscape) and (max-height: 560px) {
+  .hero {
+    align-items: center;
+    min-height: 100svh;
+  }
+
+  .heroCopy {
+    gap: var(--space-3);
+    max-width: min(24rem, 44%);
+  }
+
+  .heroTitle { font-size: var(--step-3); max-width: 14ch; }
+  .heroLede { display: none; }
+  .scrollCue { display: none; }
 }
 
 @media (max-width: 560px) {
