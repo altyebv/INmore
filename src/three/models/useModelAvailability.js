@@ -1,17 +1,13 @@
 import { useEffect, useState } from 'react';
 
 const cache = new Map();
+/*
+ * Checks already in flight, so a URL is probed once however many components
+ * ask about it. The hero mounts several slots over the same product, and
+ * without this each of them fired its own request for the same answer.
+ */
 const pending = new Map();
 
-/**
- * Resolve (and cache) whether a model URL is really there.
- *
- * Shared by the hook below and the pre-warming helpers, so a given URL's HEAD
- * check only ever fires once — no matter how many components ask about it or
- * how many times a carousel loops back around to the same product.
- *
- * @returns {Promise<'available'|'missing'>}
- */
 function checkAvailability(url) {
   if (cache.has(url)) return Promise.resolve(cache.get(url));
   if (pending.has(url)) return pending.get(url);
@@ -59,6 +55,7 @@ export function useModelAvailability(url) {
 
     let cancelled = false;
     setStatus('checking');
+
     checkAvailability(url).then((result) => {
       if (!cancelled) setStatus(result);
     });
@@ -69,24 +66,6 @@ export function useModelAvailability(url) {
   }, [url]);
 
   return status;
-}
-
-/**
- * Kick off HEAD checks for a batch of URLs ahead of time. Call this as early
- * as possible (e.g. when a carousel mounts) so that by the time each product
- * actually needs an answer, `useModelAvailability` reads it straight from
- * cache instead of waiting on a fresh request.
- */
-export function preloadModelAvailability(urls) {
-  urls.filter(Boolean).forEach((url) => {
-    checkAvailability(url);
-  });
-}
-
-/** Resolves once a URL's availability is known — cached or not yet. */
-export function whenAvailabilityKnown(url) {
-  if (!url) return Promise.resolve('missing');
-  return checkAvailability(url);
 }
 
 export default useModelAvailability;
