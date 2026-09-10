@@ -8,7 +8,7 @@ import { ContactShadows, Environment, Lightformer, OrbitControls } from '@react-
  * reads as a small photography setup: a broad key from above-front, a cool fill
  * behind, and two narrow strips that pick out the silhouette.
  */
-export function Stage({ camera, autoRotate, onInteract }) {
+export function Stage({ camera, autoRotate, onInteract, controls = true, ground = 0.05 }) {
   return (
     <>
       <ambientLight intensity={0.35} />
@@ -50,15 +50,16 @@ export function Stage({ camera, autoRotate, onInteract }) {
       </Environment>
 
       <ContactShadows
-        position={[0, -0.049, 0]}
+        position={[0, -ground, 0]}
         opacity={0.5}
-        scale={0.55}
+        scale={ground * 11}
         blur={2.4}
-        far={0.14}
+        far={ground * 2.8}
         resolution={512}
         color="#000000"
       />
 
+      {controls && (
       <OrbitControls
         makeDefault
         enablePan={false}
@@ -75,6 +76,7 @@ export function Stage({ camera, autoRotate, onInteract }) {
         autoRotateSpeed={0.9}
         onStart={onInteract}
       />
+      )}
     </>
   );
 }
