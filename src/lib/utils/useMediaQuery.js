@@ -28,6 +28,19 @@ export function useMediaQuery(query) {
 /** The studio switches to its touch layout below this width. */
 export const STUDIO_COMPACT_QUERY = '(max-width: 1080px)';
 
+/**
+ * Within the touch layout, the controls dock to the side rather than the
+ * bottom whenever the screen is at least as wide as it is tall.
+ *
+ * The test is shape, not size, because the constraint is shape: a bottom sheet
+ * spends height and a side panel spends width, and the right one to use is
+ * whichever spends the axis the screen has to spare. A phone turned sideways
+ * has roughly 390 px of height with a header already in it — a bottom sheet
+ * there leaves the product a letterbox — while the same phone upright cannot
+ * spare the width for a panel wide enough to hold a slider.
+ */
+export const STUDIO_SIDE_PANEL_QUERY = '(max-width: 1080px) and (min-aspect-ratio: 1/1)';
+
 /** True on devices whose primary input cannot hover or hit small targets. */
 export const COARSE_POINTER_QUERY = '(pointer: coarse)';
 

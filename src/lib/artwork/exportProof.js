@@ -7,10 +7,15 @@ import composeArtwork, { getPrintRect, getSafeRect } from './composeArtwork';
  * file they can send to us, and our production team gets the exact placement
  * the visitor approved on screen.
  */
-export async function exportProof(product, artwork, transform, { withGuides = true } = {}) {
+export async function exportProof(
+  product,
+  artwork,
+  transform,
+  { withGuides = true, stockColor } = {}
+) {
   const { print } = product;
   const canvas = document.createElement('canvas');
-  composeArtwork(canvas, print, artwork, transform);
+  composeArtwork(canvas, print, artwork, transform, { stockColor });
 
   if (withGuides) {
     const ctx = canvas.getContext('2d');
