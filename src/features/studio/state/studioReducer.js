@@ -26,6 +26,7 @@ export function createInitialState(product) {
     productId: product.id,
     artwork: null,
     transform: createTransform(product),
+    /** Chosen stock. Not part of the transform — it survives an artwork reset. */
     baseColor: product.print.stockColor,
     status: 'idle', // 'idle' | 'loading' | 'ready' | 'error'
     error: null,
@@ -65,17 +66,19 @@ export function studioReducer(state, action) {
   switch (action.type) {
     case 'select-product': {
       if (action.product.id === state.productId) return state;
+      const base = createInitialState(action.product);
       return {
-        ...createInitialState(action.product),
+        ...base,
         // Artwork survives a product change — the visitor's logo is theirs, the
-        // product is just the surface it lands on.
+        // product is just the surface it lands on. The stock does not: board
+        // and cup stock are different materials with different ranges.
         artwork: state.artwork,
         status: state.artwork ? 'ready' : 'idle',
+        // A placement computed for the new product's print area, so the logo
+        // arrives correctly sized rather than reset to an arbitrary default.
+        transform: action.transform ?? base.transform,
       };
     }
-
-    case 'set-base-color':
-      return withHistory(state, { ...state, baseColor: action.color });
 
     case 'artwork-loading':
       return { ...state, status: 'loading', error: null };
@@ -101,10 +104,14 @@ export function studioReducer(state, action) {
         status: 'idle',
         error: null,
         transform: createTransform(action.product),
-        baseColor: action.product.print.stockColor,
         history: [],
         future: [],
       };
+
+    case 'base-color': {
+      if (action.color === state.baseColor) return state;
+      return withHistory(state, { ...state, baseColor: action.color });
+    }
 
     case 'transform': {
       const next = clampTransform({ ...state.transform, ...action.patch });
