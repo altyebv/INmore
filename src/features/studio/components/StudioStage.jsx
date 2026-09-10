@@ -14,7 +14,7 @@ import styles from './StudioStage.module.css';
  * motion introduces the object, it does not fight the person inspecting it.
  */
 /** The touch stage is short and wide, so the product is framed tighter. */
-const COMPACT_CAMERA = { position: [0.13, 0.06, 0.24], fov: 28 };
+const COMPACT_CAMERA = { position: [0.45, 0.24, 1], fov: 28, framing: 1.35 };
 
 export function StudioStage({
   product,

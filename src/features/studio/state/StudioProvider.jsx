@@ -2,6 +2,7 @@ import { createContext, useCallback, useContext, useMemo, useReducer, useRef } f
 import { getProduct, defaultProductId } from '@/products';
 import { loadArtwork, releaseArtwork, ArtworkError } from '@/lib/artwork/loadArtwork';
 import autoTrim from '@/lib/artwork/autoTrim';
+import { IDENTITY_CROP } from '@/lib/artwork/constants';
 import { getFitScale } from '@/lib/artwork/composeArtwork';
 import { useT } from '@/i18n';
 import studioReducer, { createInitialState, createTransform } from './studioReducer';
@@ -21,6 +22,31 @@ export function StudioProvider({ children, initialProductId = defaultProductId }
 
   const product = getProduct(state.productId) ?? initialProduct;
 
+  /**
+   * Size and place existing artwork for a product's print area.
+   *
+   * Shared by upload and by switching product, so a logo lands looking
+   * deliberate in both cases rather than tiny on a large panel.
+   */
+  const placementFor = useCallback((nextProduct, art) => {
+    const base = { ...createTransform(nextProduct), crop: art?.crop ?? IDENTITY_CROP };
+    if (!art) return base;
+    const fit = getFitScale(nextProduct.print, art, base, 'contain');
+    return { ...base, scale: Math.min(base.scale, fit * 0.82) };
+  }, []);
+
+  const selectProduct = useCallback(
+    (next) => {
+      const target = getProduct(next.id) ?? next;
+      dispatch({
+        type: 'select-product',
+        product: target,
+        transform: placementFor(target, state.artwork),
+      });
+    },
+    [placementFor, state.artwork]
+  );
+
   const uploadArtwork = useCallback(
     async (file) => {
       dispatch({ type: 'artwork-loading' });
@@ -29,10 +55,7 @@ export function StudioProvider({ children, initialProductId = defaultProductId }
 
         // Remove exported padding, then size the mark so it reads immediately.
         artwork.crop = autoTrim(artwork.source, artwork.width, artwork.height);
-
-        const base = { ...createTransform(product), crop: artwork.crop };
-        const fit = getFitScale(product.print, artwork, base, 'contain');
-        const transform = { ...base, scale: Math.min(base.scale, fit * 0.82) };
+        const transform = placementFor(product, artwork);
 
         if (previousArtwork.current) releaseArtwork(previousArtwork.current);
         previousArtwork.current = artwork;
@@ -48,7 +71,7 @@ export function StudioProvider({ children, initialProductId = defaultProductId }
         return null;
       }
     },
-    [product]
+    [product, placementFor]
   );
 
   const clearArtwork = useCallback(() => {
@@ -67,16 +90,16 @@ export function StudioProvider({ children, initialProductId = defaultProductId }
       clearArtwork,
       setTransform: (patch, commit = true) => dispatch({ type: 'transform', patch, commit }),
       resetTransform: () => dispatch({ type: 'reset-transform', product }),
-      selectProduct: (next) => dispatch({ type: 'select-product', product: next }),
+      selectProduct,
       setView: (view) => dispatch({ type: 'set-view', view }),
-      setBaseColor: (color) => dispatch({ type: 'set-base-color', color }),
+      setBaseColor: (color) => dispatch({ type: 'base-color', color }),
       toggleAutoRotate: (v) => dispatch({ type: 'toggle-auto-rotate', value: v }),
       undo: () => dispatch({ type: 'undo' }),
       redo: () => dispatch({ type: 'redo' }),
       canUndo: state.history.length > 0,
       canRedo: state.future.length > 0,
     }),
-    [state, product, errorCopy, uploadArtwork, clearArtwork]
+    [state, product, errorCopy, uploadArtwork, clearArtwork, selectProduct]
   );
 
   return <StudioContext.Provider value={value}>{children}</StudioContext.Provider>;
