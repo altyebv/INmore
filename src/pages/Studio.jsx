@@ -1,18 +1,22 @@
 import { useCallback, useEffect, useState } from 'react';
 import Button from '@/components/ui/Button';
+import cx from '@/lib/utils/cx';
 import ArtworkControls from '@/features/studio/components/ArtworkControls';
 import ArtworkDropzone from '@/features/studio/components/ArtworkDropzone';
-import BaseColorPicker from '@/features/studio/components/BaseColorPicker';
 import FlatPreview from '@/features/studio/components/FlatPreview';
 import ProductPicker from '@/features/studio/components/ProductPicker';
+import StockPicker from '@/features/studio/components/StockPicker';
 import StudioStage from '@/features/studio/components/StudioStage';
 import StudioSheet, { SNAP_POINTS } from '@/features/studio/components/StudioSheet';
 import StudioProvider, { useStudio } from '@/features/studio/state/StudioProvider';
 import useArtworkTexture from '@/three/useArtworkTexture';
 import exportProof from '@/lib/artwork/exportProof';
 import usePageMeta from '@/lib/utils/usePageMeta';
-import useMediaQuery, { STUDIO_COMPACT_QUERY } from '@/lib/utils/useMediaQuery';
-import { useContent, useLocalizedProduct } from '@/i18n';
+import useMediaQuery, {
+  STUDIO_COMPACT_QUERY,
+  STUDIO_SIDE_PANEL_QUERY,
+} from '@/lib/utils/useMediaQuery';
+import { useContent, useLocale, useLocalizedProduct } from '@/i18n';
 import { useAppShell } from '@/app/ShellContext';
 import styles from './Studio.module.css';
 
@@ -26,8 +30,12 @@ import styles from './Studio.module.css';
 function useStudioSession() {
   const studio = useStudio();
   const product = useLocalizedProduct(studio.product);
-  const { texture } = useArtworkTexture(studio.product, studio.artwork, studio.transform);
-  const baseColor = studio.baseColor ?? studio.product.print.stockColor;
+  const { texture } = useArtworkTexture(
+    studio.product,
+    studio.artwork,
+    studio.transform,
+    studio.baseColor
+  );
 
   useEffect(() => {
     const onKey = (event) => {
@@ -42,11 +50,14 @@ function useStudioSession() {
   }, [studio]);
 
   const exportCurrentProof = useCallback(
-    () => exportProof(studio.product, studio.artwork, studio.transform),
-    [studio.product, studio.artwork, studio.transform]
+    () =>
+      exportProof(studio.product, studio.artwork, studio.transform, {
+        stockColor: studio.baseColor,
+      }),
+    [studio.product, studio.artwork, studio.transform, studio.baseColor]
   );
 
-  return { ...studio, product, texture, baseColor, exportCurrentProof, commit: () => studio.setTransform({}, true) };
+  return { ...studio, product, texture, exportCurrentProof, commit: () => studio.setTransform({}, true) };
 }
 
 function Step({ index, title, children }) {
@@ -99,10 +110,13 @@ function PointerStudio() {
       <aside className={styles.panel} aria-label={t.panelLabel}>
         <Step index="01" title={t.steps.product}>
           <ProductPicker selectedId={s.product.id} onSelect={s.selectProduct} />
-          <BaseColorPicker value={s.baseColor} onChange={s.setBaseColor} />
         </Step>
 
-        <Step index="02" title={t.steps.artwork}>
+        <Step index="02" title={t.stock.step}>
+          <StockPicker product={s.product} value={s.baseColor} onChange={s.setBaseColor} />
+        </Step>
+
+        <Step index="03" title={t.steps.artwork}>
           <ArtworkDropzone
             artwork={s.artwork}
             status={s.status}
@@ -112,11 +126,12 @@ function PointerStudio() {
           />
         </Step>
 
-        <Step index="03" title={t.steps.placement}>
+        <Step index="04" title={t.steps.placement}>
           <FlatPreview
             product={s.product}
             artwork={s.artwork}
             transform={s.transform}
+            baseColor={s.baseColor}
             onTransform={s.setTransform}
             onCommit={s.commit}
           />
@@ -156,6 +171,10 @@ function TouchStudio() {
   const s = useStudioSession();
   const { ui } = useContent();
   const t = ui.studio;
+  const { isRTL } = useLocale();
+  // Shape, not size, decides which edge the controls dock to — see
+  // STUDIO_SIDE_PANEL_QUERY for the reasoning.
+  const sidePanel = useMediaQuery(STUDIO_SIDE_PANEL_QUERY);
 
   const [tab, setTab] = useState('product');
   const [snap, setSnap] = useState('peek');
@@ -181,11 +200,15 @@ function TouchStudio() {
   ];
 
   return (
-    <div className={styles.shell}>
-      <div className={styles.shellIntro}>
-        <p className="u-label">{t.eyebrow}</p>
-        <h1 className={styles.shellTitle}>{t.heading}</h1>
-      </div>
+    <div className={cx(styles.shell, sidePanel && styles.shellSide)}>
+      {/* With the panel on the side the screen is short, and the page title is
+          the one thing on it that neither shows the product nor changes it. */}
+      {!sidePanel && (
+        <div className={styles.shellIntro}>
+          <p className="u-label">{t.eyebrow}</p>
+          <h1 className={styles.shellTitle}>{t.heading}</h1>
+        </div>
+      )}
 
       <div className={styles.shellViewer}>
         <StudioStage
@@ -207,6 +230,8 @@ function TouchStudio() {
         snap={snap}
         onSnapChange={setSnap}
         gripLabel={t.sheetHandle}
+        edge={sidePanel ? 'inline-end' : 'bottom'}
+        rtl={isRTL}
         footer={
           tab === 'placement' && s.artwork ? (
             <>
@@ -230,8 +255,8 @@ function TouchStudio() {
         {tab === 'product' && (
           <div className={styles.sheetStep}>
             <ProductPicker selectedId={s.product.id} onSelect={s.selectProduct} />
-            <BaseColorPicker value={s.baseColor} onChange={s.setBaseColor} />
             <p className={styles.sheetHint}>{s.product.summary}</p>
+            <StockPicker product={s.product} value={s.baseColor} onChange={s.setBaseColor} />
             <Specs product={s.product} />
           </div>
         )}
@@ -256,6 +281,7 @@ function TouchStudio() {
               product={s.product}
               artwork={s.artwork}
               transform={s.transform}
+              baseColor={s.baseColor}
               onTransform={s.setTransform}
               onCommit={s.commit}
             />
