@@ -4,21 +4,49 @@ import { clamp } from '@/lib/utils/math';
 import styles from './StudioSheet.module.css';
 
 /**
- * Draggable bottom sheet for the touch studio.
+ * The touch studio's control panel — a draggable sheet that docks to whichever
+ * edge the screen can spare.
  *
- * Three snap points rather than free height: a visitor should not have to
+ * ## Why the edge moves
+ *
+ * The sheet exists to solve one problem: on a small screen the controls and the
+ * product must be visible at the same time, because watching the product change
+ * while you drag a slider is the whole reason the studio exists. Which edge
+ * does that best depends entirely on the shape of the screen, and a phone
+ * changes shape when it is turned:
+ *
+ * - **Upright**, height is the plentiful axis and width is not. A 390 px-wide
+ *   screen cannot give a side panel enough room for a slider *and* keep the
+ *   product legible, so the sheet takes the bottom and the two stack.
+ * - **Turned sideways**, that reverses. There are barely 390 px of height, most
+ *   of it already spent on the header, and a bottom sheet at its smallest stop
+ *   leaves the product a letterbox. The panel goes to the side, the product
+ *   keeps full height, and both are comfortable.
+ *
+ * The stops, the drag, the tabs and the peek behaviour are identical either
+ * way — only the axis changes. That is deliberate: which edge to use is a
+ * layout decision, and two components would have been two implementations of
+ * the same interaction, drifting apart.
+ *
+ * ## The stops
+ *
+ * Three fixed stops rather than free resizing: a visitor should not have to
  * fine-tune a panel, and the stops correspond to real intents — glance at the
- * product, work on it, read the detail. The top stop deliberately stops short
- * of the screen so the product is always at least partly visible; watching it
- * change while you drag a slider is the entire reason the studio exists.
+ * product, work on it, read the detail. The largest stop deliberately falls
+ * short of the whole screen so the product is always at least partly visible.
+ * If the sheet can bury the product, the studio stops being a studio and
+ * becomes a form.
  */
 
 /**
- * Stops are expressed as a fraction of the viewport. The top stop is capped
- * well below full height on purpose: if the sheet can bury the product, the
- * studio stops being a studio and becomes a form.
+ * Stops as a fraction of the axis the sheet grows along.
+ *
+ * The side stops are larger fractions than the bottom ones because they are
+ * fractions of a *landscape* width — 44 % of an 844 px screen is a comfortable
+ * 370 px column, while 44 % of that screen's height would be a slot.
  */
 export const SNAP_POINTS = { peek: 0.3, half: 0.52, full: 0.68 };
+export const SIDE_SNAP_POINTS = { peek: 0.3, half: 0.44, full: 0.58 };
 const ORDER = ['peek', 'half', 'full'];
 
 export function StudioSheet({
@@ -29,69 +57,102 @@ export function StudioSheet({
   onSnapChange,
   gripLabel,
   footer,
+  /** Which edge the sheet is docked to. 'inline-end' follows reading direction. */
+  edge = 'bottom',
+  /** Reading direction, so a side sheet knows which way "open" is. */
+  rtl = false,
   children,
 }) {
-  const [dragHeight, setDragHeight] = useState(null);
+  const side = edge === 'inline-end';
+  const stops = side ? SIDE_SNAP_POINTS : SNAP_POINTS;
+
+  const [dragSize, setDragSize] = useState(null);
   const dragRef = useRef(null);
 
-  const height = dragHeight ?? SNAP_POINTS[snap] ?? SNAP_POINTS.peek;
+  const size = dragSize ?? stops[snap] ?? stops.peek;
 
   const handlePointerDown = useCallback(
     (event) => {
       event.currentTarget.setPointerCapture(event.pointerId);
-      dragRef.current = { startY: event.clientY, startHeight: SNAP_POINTS[snap] };
-      setDragHeight(SNAP_POINTS[snap]);
+      dragRef.current = {
+        start: side ? event.clientX : event.clientY,
+        startSize: stops[snap],
+      };
+      setDragSize(stops[snap]);
     },
-    [snap]
+    [snap, side, stops]
   );
 
-  const handlePointerMove = useCallback((event) => {
-    const drag = dragRef.current;
-    if (!drag) return;
-    const delta = (drag.startY - event.clientY) / window.innerHeight;
-    setDragHeight(clamp(drag.startHeight + delta, 0.16, SNAP_POINTS.full + 0.04));
-  }, []);
+  const handlePointerMove = useCallback(
+    (event) => {
+      const drag = dragRef.current;
+      if (!drag) return;
+      // Opening always means dragging *away* from the edge the sheet is on:
+      // upwards from the bottom, and inwards from whichever side it sits on.
+      const travel = side
+        ? ((drag.start - event.clientX) / window.innerWidth) * (rtl ? -1 : 1)
+        : (drag.start - event.clientY) / window.innerHeight;
+      setDragSize(clamp(drag.startSize + travel, 0.16, stops.full + 0.04));
+    },
+    [side, rtl, stops]
+  );
 
   const endDrag = useCallback(() => {
     const drag = dragRef.current;
     if (!drag) return;
     dragRef.current = null;
 
-    setDragHeight((current) => {
-      const target = current ?? SNAP_POINTS[snap];
+    setDragSize((current) => {
+      const target = current ?? stops[snap];
       const nearest = ORDER.reduce((best, key) =>
-        Math.abs(SNAP_POINTS[key] - target) < Math.abs(SNAP_POINTS[best] - target) ? key : best
+        Math.abs(stops[key] - target) < Math.abs(stops[best] - target) ? key : best
       );
       onSnapChange(nearest);
       return null;
     });
-  }, [snap, onSnapChange]);
+  }, [snap, onSnapChange, stops]);
 
-  // Keyboard equivalent of dragging the grip.
+  // Keyboard equivalent of dragging the grip. The key that opens the sheet is
+  // the one pointing away from its edge.
   const handleGripKey = useCallback(
     (event) => {
+      const open = side ? (rtl ? 'ArrowRight' : 'ArrowLeft') : 'ArrowUp';
+      const close = side ? (rtl ? 'ArrowLeft' : 'ArrowRight') : 'ArrowDown';
       const index = ORDER.indexOf(snap);
-      if (event.key === 'ArrowUp' && index < ORDER.length - 1) {
+      if (event.key === open && index < ORDER.length - 1) {
         event.preventDefault();
         onSnapChange(ORDER[index + 1]);
-      } else if (event.key === 'ArrowDown' && index > 0) {
+      } else if (event.key === close && index > 0) {
         event.preventDefault();
         onSnapChange(ORDER[index - 1]);
       }
     },
-    [snap, onSnapChange]
+    [snap, onSnapChange, side, rtl]
   );
 
-  // Publish the sheet height so the viewer above can reserve room for it.
+  // Publish the sheet's extent so the viewer beside or above it can reserve
+  // exactly that much room and resize as the sheet moves. Both custom
+  // properties are always written — the unused one zeroed — so turning the
+  // phone, which changes the edge, cannot leave a stale reservation behind on
+  // the axis the sheet just left.
   useEffect(() => {
-    document.documentElement.style.setProperty('--sheet-h', `${height * 100}svh`);
-    return () => document.documentElement.style.removeProperty('--sheet-h');
-  }, [height]);
+    const root = document.documentElement;
+    root.style.setProperty('--sheet-h', side ? '0px' : `${size * 100}svh`);
+    root.style.setProperty('--sheet-w', side ? `${size * 100}vw` : '0px');
+    return () => {
+      root.style.removeProperty('--sheet-h');
+      root.style.removeProperty('--sheet-w');
+    };
+  }, [size, side]);
 
   return (
     <section
-      className={cx(styles.sheet, dragHeight === null && styles.settling)}
-      style={{ '--sheet-h': `${height * 100}svh` }}
+      className={cx(
+        styles.sheet,
+        side ? styles.edgeSide : styles.edgeBottom,
+        dragSize === null && styles.settling
+      )}
+      style={{ '--sheet-extent': side ? `${size * 100}vw` : `${size * 100}svh` }}
       aria-label={gripLabel}
     >
       <button
