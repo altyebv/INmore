@@ -3,12 +3,15 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "description": "INMORE — advertising, branding, design and production. Web experience.",
+  "description": "INMORE \u2014 advertising, branding, design and production. Web experience.",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "models:inspect": "node tools/inspect-models.mjs",
+    "models:axis": "node tools/panel-axis.mjs",
+    "models:uv": "node tools/uv-map.mjs"
   },
   "dependencies": {
     "@react-three/drei": "^9.114.3",
@@ -19,7 +22,11 @@
     "three": "^0.169.0"
   },
   "devDependencies": {
+    "@gltf-transform/core": "^4.5.0",
+    "@gltf-transform/extensions": "^4.5.0",
+    "@gltf-transform/functions": "^4.5.0",
     "@vitejs/plugin-react": "^4.3.3",
+    "draco3dgltf": "^1.5.7",
     "vite": "^5.4.10"
   }
 }
