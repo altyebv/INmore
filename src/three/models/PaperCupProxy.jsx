@@ -21,7 +21,7 @@ const DIMENSIONS = {
   wallSegments: 128,
 };
 
-export function PaperCupProxy({ texture, material = {}, ...props }) {
+export function PaperCupProxy({ texture, material = {}, stockColor, ...props }) {
   const { topRadius, bottomRadius, height, rimTube, baseInset, wallSegments } = DIMENSIONS;
 
   const bodyGeometry = useMemo(
@@ -60,7 +60,7 @@ export function PaperCupProxy({ texture, material = {}, ...props }) {
     [topRadius, rimTube, wallSegments]
   );
 
-  const stock = material.stockColor ?? '#f7f5f1';
+  const stock = stockColor ?? material.stockColor ?? '#f7f5f1';
 
   return (
     <group {...props}>
@@ -68,7 +68,9 @@ export function PaperCupProxy({ texture, material = {}, ...props }) {
       <mesh geometry={bodyGeometry} castShadow receiveShadow>
         <meshStandardMaterial
           map={texture}
-          color="#ffffff"
+          /* With artwork the texture carries the colour; without it the body
+             is bare stock like the rest of the cup. */
+          color={texture ? '#ffffff' : stock}
           roughness={material.roughness ?? 0.62}
           metalness={material.metalness ?? 0}
           envMapIntensity={material.envMapIntensity ?? 0.8}
@@ -107,6 +109,9 @@ export function PaperCupProxy({ texture, material = {}, ...props }) {
     </group>
   );
 }
+
+/** Half the diagonal of the cup's bounding box, for camera framing. */
+PaperCupProxy.radiusM = Math.hypot(DIMENSIONS.topRadius * 2, DIMENSIONS.height) / 2;
 
 export const PROXY_REGISTRY = {
   'paper-cup-proxy': PaperCupProxy,
