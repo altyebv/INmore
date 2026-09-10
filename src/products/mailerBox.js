@@ -25,7 +25,7 @@ export const mailerBox = {
 
   model: {
     url: '/models/package1.glb',
-    printMeshName: 'BoxBody',
+    printMeshName: 'material_0',
     proxy: null,
     scale: 1,
     yOffset: -0.02,

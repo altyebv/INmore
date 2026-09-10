@@ -1,3 +1,5 @@
+import { stockPalette, STOCKS } from './stock';
+
 /**
  * Paper cup — the first fully implemented product.
  *
@@ -35,6 +37,7 @@ export const paperCup = {
      * the studio picks it up automatically — see public/models/README.md.
      */
     url: '/models/paper-cup.glb',
+    stockMeshes: ['CupBody'],
     /** Mesh (or material) inside the GLB that carries the printable wrap. */
     printMeshName: 'CupBody',
     /**
@@ -52,17 +55,24 @@ export const paperCup = {
 
   /* --- Framing ------------------------------------------------------------- */
   camera: {
-    position: [0.16, 0.09, 0.3],
-    target: [0, 0.005, 0],
+    /** A viewing direction, not a distance — see `three/framing.js`. */
+    position: [0.5, 0.3, 1],
+    target: [0, 0, 0],
     fov: 26,
-    minDistance: 0.18,
-    maxDistance: 0.62,
+    framing: 1.7,
     minPolarAngle: 0.35,
     maxPolarAngle: 1.95,
   },
 
   /* --- Print surface ------------------------------------------------------- */
   print: {
+    /**
+     * The cup's model is authored with a flat, unrolled print layout, so the
+     * artwork is simply its texture. Products whose UVs are not a print layout
+     * use `mode: 'decal'` instead — see `printSurface.js`.
+     */
+    mode: 'texture',
+
     /** Resolution of the generated artwork texture. */
     texture: { width: 2560, height: 1024 },
 
@@ -79,7 +89,10 @@ export const paperCup = {
     wrap: true,
 
     /** Unprinted stock colour behind the artwork. */
-    stockColor: '#f7f5f1',
+    stockColor: STOCKS.white.color,
+
+    /** Stocks this product is actually available in. */
+    stockPalette: stockPalette('white', 'natural', 'sand', 'black', 'forest', 'clay'),
 
     /** Default placement of freshly uploaded artwork. */
     defaultTransform: { scale: 0.42, x: 0, y: 0, rotation: 0, repeat: 1 },

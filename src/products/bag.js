@@ -25,9 +25,9 @@ export const bag = {
 
   model: {
     url: '/models/bag.glb',
-    printMeshName: 'BagBody',
+    printMeshName: 'paper_cardboard_material8',
     proxy: null,
-    scale: 1,
+    scale: 0.8,
     yOffset: -0.02,
     heightM: 0.32,
   },
