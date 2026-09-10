@@ -1,20 +1,10 @@
-import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import cx from '@/lib/utils/cx';
 import { useContent } from '@/i18n';
-import Signature from '@/components/ui/signature/Signature';
 import styles from './SiteFooter.module.css';
 
 export function SiteFooter() {
   const { company, footerColumns } = useContent();
-  const [signatureRun, setSignatureRun] = useState(false);
-
-  useEffect(() => {
-    if (!window.matchMedia('(hover: none)').matches) return undefined;
-
-    const timer = window.setTimeout(() => setSignatureRun(true), 6000);
-    return () => window.clearTimeout(timer);
-  }, []);
 
   return (
     <footer className={styles.footer}>
@@ -46,17 +36,10 @@ export function SiteFooter() {
         </div>
 
         <div className={styles.bottom}>
-          <span className={styles.rights}>
+          <span>
             © {new Date().getFullYear()} {company.legalName}
           </span>
-          <span
-            className={styles.signatureSlot}
-            onMouseEnter={() => setSignatureRun(true)}
-            onMouseLeave={() => setSignatureRun(false)}
-          >
-            <Signature uid="footer-signature" run={signatureRun} className={styles.signature} />
-          </span>
-          <span className={styles.location}>{company.location}</span>
+          <span>{company.location}</span>
         </div>
       </div>
     </footer>
