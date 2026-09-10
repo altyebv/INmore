@@ -97,7 +97,7 @@ function drawPlacement(ctx, artwork, box, transform, offsetX) {
  * @param {import('@/products/schema').ProductPrintConfig} print
  * @param {object|null} artwork Result of `loadArtwork`, or null for bare stock.
  * @param {object} transform
- * @param {{ transparentBackground?: boolean }} [options]
+ * @param {{ transparentBackground?: boolean, stockColor?: string }} [options]
  */
 export function composeArtwork(canvas, print, artwork, transform, options = {}) {
   const { texture } = print;
@@ -109,7 +109,7 @@ export function composeArtwork(canvas, print, artwork, transform, options = {}) 
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   if (!options.transparentBackground) {
-    ctx.fillStyle = print.stockColor;
+    ctx.fillStyle = options.stockColor ?? print.stockColor;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
   }
 
