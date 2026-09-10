@@ -1,7 +1,7 @@
 import paperCup from './paperCup';
-import bag from './bag';
+import shoppingBag from './shoppingBag';
 import giftBox from './giftBox';
-import mailerBox from './mailerBox';
+import mailerPackage from './mailerPackage';
 import upcomingProducts from './upcoming';
 
 /**
@@ -12,18 +12,16 @@ import upcomingProducts from './upcoming';
  * picker can show the full range honestly.
  */
 
-export const liveProducts = [paperCup, bag, giftBox, mailerBox];
+export const liveProducts = [paperCup, shoppingBag, giftBox, mailerPackage];
 
-// Upcoming entries whose ids are now live are excluded to avoid duplicates.
-const upcomingFiltered = upcomingProducts.filter(
-  (u) => !liveProducts.some((l) => l.id === u.id)
-);
-
-export const catalogue = [...liveProducts, ...upcomingFiltered].sort(
+export const catalogue = [...liveProducts, ...upcomingProducts].sort(
   (a, b) => (a.order ?? 999) - (b.order ?? 999)
 );
 
 export const defaultProductId = paperCup.id;
+
+/** Products the hero cycles through — live ones, in catalogue order. */
+export const showcaseProducts = catalogue.filter((p) => p.status === 'live');
 
 /** @returns {import('./schema').ProductConfig | undefined} */
 export function getProduct(id) {
@@ -39,4 +37,13 @@ export function isLive(id) {
   return liveProducts.some((p) => p.id === id);
 }
 
-export { paperCup, bag, giftBox, mailerBox, upcomingProducts };
+/** The stock palette a product offers, falling back to its single stock. */
+export function paletteFor(product) {
+  return (
+    product?.print?.stockPalette ?? [
+      { id: 'stock', color: product?.print?.stockColor ?? '#f7f5f1', label: 'Stock' },
+    ]
+  );
+}
+
+export { paperCup, shoppingBag, giftBox, mailerPackage, upcomingProducts };
