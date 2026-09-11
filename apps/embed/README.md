@@ -99,8 +99,19 @@ worth knowing:
 ## Developing
 
 ```bash
-npm run build:embed     # embed.js, the frame, and the tenant configs
-npm run preview:embed   # then open http://localhost:4173/demo.html
+npm run dev --workspace apps/embed   # http://localhost:5174/demo.html
+```
+
+Hot reload covers everything: the loader, the frame, the engine. `/embed.js`
+is bundled as an IIFE on request, the way it actually ships — Vite's module
+server cannot serve it, since `demo.html` loads it with a plain script tag and
+would otherwise get an ES module with a null `document.currentScript`.
+
+To check the real artefacts and their sizes:
+
+```bash
+npm run build:embed     # embed.js, the frame, tenant configs, models, draco
+npm run preview:embed   # http://localhost:4173/demo.html
 ```
 
 `demo.html` is a deliberately hostile host page — `content-box` on everything,

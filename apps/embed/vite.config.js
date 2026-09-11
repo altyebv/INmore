@@ -62,6 +62,41 @@ function externalAssets() {
 
     /** In development, serve them from where they actually are. */
     configureServer(server) {
+      /*
+       * Serve /embed.js in development, bundled the way it actually ships.
+       *
+       * The loader is the one file a client's page loads with a plain script
+       * tag, so it is built as an IIFE — which means Vite's module server
+       * cannot serve it: demo.html would get an ES module where it expects a
+       * classic script, and `document.currentScript` would be null.
+       *
+       * Without this, testing the snippet meant a full build every time, and
+       * "run the dev server" would not have been the honest answer to how to
+       * work on this. It is the same esbuild Vite already depends on, on a
+       * file measured in kilobytes, so rebuilding per request costs nothing.
+       */
+      server.middlewares.use(async (req, res, next) => {
+        if (req.url?.split('?')[0] !== '/embed.js') return next();
+
+        try {
+          const { build } = await import('esbuild');
+          const result = await build({
+            entryPoints: [path.join(here, 'src/loader.js')],
+            bundle: true,
+            format: 'iife',
+            target: 'es2018',
+            write: false,
+          });
+          res.setHeader('Content-Type', 'application/javascript');
+          res.setHeader('Cache-Control', 'no-store');
+          res.end(result.outputFiles[0].text);
+        } catch (error) {
+          res.statusCode = 500;
+          res.end(`/* embed.js failed to build: ${error.message} */`);
+        }
+        return undefined;
+      });
+
       server.middlewares.use((req, res, next) => {
         const match = sources.find(({ to }) => req.url?.startsWith(`/${to}/`));
         if (!match) return next();
