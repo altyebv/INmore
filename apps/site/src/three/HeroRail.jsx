@@ -2,8 +2,7 @@ import { useEffect, useMemo, useRef } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import { Environment, Lightformer, MeshReflectorMaterial } from '@react-three/drei';
 import * as THREE from 'three';
-import ProductModel from './ProductModel';
-import { paletteFor } from '@/products';
+import { ProductModel, paletteFor } from '@inmore/engine';
 
 /**
  * The hero rail — every product, at once, on a curved track.

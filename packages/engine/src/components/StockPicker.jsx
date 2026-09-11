@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
-import { paletteFor } from '@/products';
-import { useT } from '@/i18n';
-import cx from '@/lib/utils/cx';
+import { paletteFor } from '../catalogue';
+import { useCopy, useStudioLocale, localize } from '../i18n';
+import cx from '../utils/cx';
 import { studioUtils } from '../StudioRoot';
 import styles from './StockPicker.module.css';
 
@@ -15,11 +15,19 @@ import styles from './StockPicker.module.css';
  * is a stock or a printed flood.
  */
 export function StockPicker({ product, value, onChange }) {
-  const t = useT().studio.stock;
+  const t = useCopy().stock;
+  const { locale } = useStudioLocale();
   const palette = useMemo(() => paletteFor(product), [product]);
 
   const active = palette.find((stock) => stock.color.toLowerCase() === value?.toLowerCase());
-  const localised = (stock) => t.names?.[stock.id] ?? stock.label;
+
+  /*
+   * Board names are the client's, not the engine's — "Natural kraft" is what
+   * this print house calls it, and the next one may not stock it at all. So a
+   * stock carries its own label, either as a plain string or as a map of
+   * locale to string, and the engine only chooses between what it was given.
+   */
+  const localised = (stock) => localize(stock.label, locale);
 
   return (
     <div className={styles.picker}>

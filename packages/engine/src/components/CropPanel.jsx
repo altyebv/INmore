@@ -1,9 +1,9 @@
 import { useCallback, useRef } from 'react';
-import Button from '@/components/ui/Button';
-import { clamp } from '@/lib/utils/math';
-import { IDENTITY_CROP } from '@/lib/artwork/constants';
-import autoTrim from '@/lib/artwork/autoTrim';
-import { useT } from '@/i18n';
+import Button from '../ui/Button';
+import { clamp } from '../utils/math';
+import { IDENTITY_CROP } from '../artwork/constants';
+import autoTrim from '../artwork/autoTrim';
+import { useCopy } from '../i18n';
 import styles from './CropPanel.module.css';
 
 const MIN_SIZE = 0.06;
@@ -15,7 +15,7 @@ const MIN_SIZE = 0.06;
  * pixel size and of how large the panel happens to be rendered.
  */
 export function CropPanel({ artwork, crop, onChange, onCommit }) {
-  const t = useT().studio.crop;
+  const t = useCopy().crop;
   const stageRef = useRef(null);
   const dragRef = useRef(null);
 

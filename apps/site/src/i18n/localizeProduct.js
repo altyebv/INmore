@@ -1,19 +1,18 @@
 import { useMemo } from 'react';
+import { localizeProduct } from '@inmore/engine';
 import { useLocale } from './LocaleProvider';
 
 /**
- * Resolve a product's display strings for the active locale.
+ * Localising products, bound to the site's active locale.
  *
- * Product configs stay single objects — geometry, print area, camera and
- * translations together — because they describe one physical thing. Only the
- * readable fields are swapped, and a product with no translation for a
- * language simply keeps its base strings rather than disappearing.
+ * `localizeProduct` itself belongs to the engine — swapping a product's
+ * readable fields is part of understanding a product config, and the engine is
+ * what understands those. These are the site's convenience wrappers around it,
+ * which is all the site actually needed: the same function, with the locale
+ * already answered.
  */
-export function localizeProduct(product, locale) {
-  const translation = product?.translations?.[locale];
-  if (!translation) return product;
-  return { ...product, ...translation };
-}
+
+export { localizeProduct };
 
 export function useLocalizedProduct(product) {
   const { locale } = useLocale();

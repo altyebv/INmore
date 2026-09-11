@@ -1,5 +1,5 @@
-import { clamp } from '@/lib/utils/math';
-import { IDENTITY_CROP } from '@/lib/artwork/constants';
+import { clamp } from '../utils/math';
+import { IDENTITY_CROP } from '../artwork/constants';
 
 /**
  * Studio state machine.
@@ -26,7 +26,7 @@ export const TRANSFORM_BOUNDS = {
   repeat: { min: 1, max: 6, step: 1 },
 };
 
-/** @param {import('@/products/schema').ProductPrintConfig} print */
+/** @param {import('../catalogue/schema').ProductPrintConfig} print */
 export function transformLimitsFor(print) {
   const { widthMm, heightMm } = print.physical;
   const { width, rotation, repeat } = TRANSFORM_BOUNDS;

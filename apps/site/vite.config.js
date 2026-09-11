@@ -14,6 +14,13 @@ export default defineConfig({
   resolve: {
     alias: { '@': src },
   },
+  /*
+   * The engine is a workspace package consumed as source, not as a build. It
+   * must not be pre-bundled: Vite's dependency optimiser would hand us a
+   * CommonJS-ish bundle with its CSS modules flattened, and edits to it would
+   * stop hot-reloading.
+   */
+  optimizeDeps: { exclude: ['@inmore/engine'] },
   build: {
     target: 'es2020',
     rollupOptions: {

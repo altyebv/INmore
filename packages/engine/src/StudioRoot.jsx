@@ -1,5 +1,5 @@
-import { useMemo } from 'react';
-import cx from '@/lib/utils/cx';
+import { forwardRef, useMemo } from 'react';
+import cx from './utils/cx';
 import styles from './StudioRoot.module.css';
 
 /**
@@ -50,15 +50,18 @@ import styles from './StudioRoot.module.css';
  *   children: React.ReactNode,
  * }} props
  */
-export function StudioRoot({
-  branding,
-  locale = 'en',
-  dir = 'ltr',
-  insetBlockStart,
-  className,
-  children,
-  ...rest
-}) {
+export const StudioRoot = forwardRef(function StudioRoot(
+  {
+    branding,
+    locale = 'en',
+    dir = 'ltr',
+    insetBlockStart,
+    className,
+    children,
+    ...rest
+  },
+  ref
+) {
   /*
    * Only properties the tenant actually set are written. An undefined entry
    * must not reach the style object as `undefined`, or it overrides the
@@ -90,7 +93,9 @@ export function StudioRoot({
 
   return (
     <div
+      ref={ref}
       className={cx(styles.root, className)}
+      data-studio-root=""
       data-locale={locale}
       dir={dir}
       style={style}
@@ -99,7 +104,7 @@ export function StudioRoot({
       {children}
     </div>
   );
-}
+});
 
 /**
  * The scoped replacements for what used to be global `.u-*` utilities.

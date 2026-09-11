@@ -1,10 +1,12 @@
 import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-import Stage from './Stage';
-import ProductModel from './ProductModel';
-import resolveCamera from './framing';
-import { preloadProductModel } from './models/loader';
+import {
+  ProductModel,
+  Stage,
+  preloadProductModel,
+  resolveCamera,
+} from '@inmore/engine';
 
 /**
  * The hero's product chain.

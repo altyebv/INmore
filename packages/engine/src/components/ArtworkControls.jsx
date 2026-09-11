@@ -1,10 +1,10 @@
 import { useState } from 'react';
-import Button from '@/components/ui/Button';
-import Slider from '@/components/ui/Slider';
-import cx from '@/lib/utils/cx';
-import { roundTo } from '@/lib/utils/math';
-import { getFitWidthMm } from '@/lib/artwork/composeArtwork';
-import { useT } from '@/i18n';
+import Button from '../ui/Button';
+import Slider from '../ui/Slider';
+import cx from '../utils/cx';
+import { roundTo } from '../utils/math';
+import { getFitWidthMm } from '../artwork/composeArtwork';
+import { useCopy } from '../i18n';
 import { transformLimitsFor } from '../state/studioReducer';
 import CropPanel from './CropPanel';
 import styles from './ArtworkControls.module.css';
@@ -17,7 +17,7 @@ import styles from './ArtworkControls.module.css';
  */
 export function ArtworkControls({ product, artwork, transform, onTransform, onCommit, onReset }) {
   const [cropping, setCropping] = useState(false);
-  const t = useT().studio.controls;
+  const t = useCopy().controls;
   const disabled = !artwork;
   const { print } = product;
   const { widthMm, xMm, yMm, rotation, repeat } = transformLimitsFor(print);

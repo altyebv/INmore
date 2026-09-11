@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { paletteFor } from '@/products';
-import { MAX_TEXTURE_EDGE, resolveSurface } from '@/lib/artwork/composeArtwork';
+import { paletteFor, MAX_TEXTURE_EDGE, resolveSurface } from '@inmore/engine';
 import { inmoreCatalogue } from './tenant';
 
 /**

@@ -1,9 +1,9 @@
 import { useCallback, useRef, useState } from 'react';
-import Button from '@/components/ui/Button';
-import { ACCEPTED_EXTENSIONS } from '@/lib/artwork/constants';
-import { formatBytes } from '@/lib/utils/format';
-import { useT } from '@/i18n';
-import cx from '@/lib/utils/cx';
+import Button from '../ui/Button';
+import { ACCEPTED_EXTENSIONS } from '../artwork/constants';
+import { formatBytes } from '../utils/format';
+import { useCopy } from '../i18n';
+import cx from '../utils/cx';
 import { studioUtils } from '../StudioRoot';
 import styles from './ArtworkDropzone.module.css';
 
@@ -14,7 +14,7 @@ import styles from './ArtworkDropzone.module.css';
 export function ArtworkDropzone({ artwork, status, error, onUpload, onClear, compact = false }) {
   const [dragging, setDragging] = useState(false);
   const inputRef = useRef(null);
-  const t = useT().studio.dropzone;
+  const t = useCopy().dropzone;
 
   const handleFiles = useCallback(
     (files) => {

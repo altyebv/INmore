@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
-import composeArtwork from '@/lib/artwork/composeArtwork';
+import composeArtwork from '../artwork/composeArtwork';
 
 /**
  * Keep a canvas texture in sync with the studio's artwork placement.

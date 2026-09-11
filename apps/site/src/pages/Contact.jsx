@@ -2,6 +2,7 @@ import { useState } from 'react';
 import Button from '@/components/ui/Button';
 import Reveal from '@/components/ui/Reveal';
 import { useContent, useLocalizedCatalogue } from '@/i18n';
+import { inmoreCatalogue } from '@/tenant';
 import usePageMeta from '@/lib/utils/usePageMeta';
 import styles from './Contact.module.css';
 
@@ -17,7 +18,7 @@ const ENDPOINT = import.meta.env.VITE_CONTACT_ENDPOINT;
  */
 export function Contact() {
   const { company, ui } = useContent();
-  const catalogue = useLocalizedCatalogue();
+  const catalogue = useLocalizedCatalogue(inmoreCatalogue.all);
   const c = ui.contact;
 
   usePageMeta({ title: c.title, description: c.description });

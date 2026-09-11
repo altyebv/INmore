@@ -1,7 +1,6 @@
 import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { paletteFor } from '@/products';
+import { localizeProduct, paletteFor } from '@inmore/engine';
 import { useContent, useLocale } from '@/i18n';
-import { localizeProduct } from '@/i18n/localizeProduct';
 import useMediaQuery from '@/lib/utils/useMediaQuery';
 import styles from './HeroShowcase.module.css';
 

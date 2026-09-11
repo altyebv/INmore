@@ -198,11 +198,21 @@
   text-decoration: none;
 }
 
+/*
+ * A theme styling bare `canvas` or `img` is common enough to be worth
+ * neutralising — the harness's green canvas border came from exactly such a
+ * rule. No engine module styles these directly, so this cannot out-specify
+ * anything of ours.
+ *
+ * A host using `!important` still wins, and no reset can change that. That is
+ * the argument for the iframe, not for an escalation here.
+ */
 .root img,
 .root canvas,
 .root svg {
   display: block;
   max-width: 100%;
+  border: 0;
 }
 
 /* A theme forcing `img { width: 100% !important }` must not stretch the 3-D
@@ -292,3 +302,4 @@
     transition-duration: 0.01ms !important;
   }
 }
+

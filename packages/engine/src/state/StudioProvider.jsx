@@ -1,9 +1,9 @@
 import { createContext, useCallback, useContext, useMemo, useReducer, useRef } from 'react';
-import { loadArtwork, releaseArtwork, ArtworkError } from '@/lib/artwork/loadArtwork';
-import autoTrim from '@/lib/artwork/autoTrim';
-import { IDENTITY_CROP } from '@/lib/artwork/constants';
-import { getFitWidthMm } from '@/lib/artwork/composeArtwork';
-import { useT } from '@/i18n';
+import { loadArtwork, releaseArtwork, ArtworkError } from '../artwork/loadArtwork';
+import autoTrim from '../artwork/autoTrim';
+import { IDENTITY_CROP } from '../artwork/constants';
+import { getFitWidthMm } from '../artwork/composeArtwork';
+import { useCopy } from '../i18n';
 import studioReducer, { createInitialState, createTransform } from './studioReducer';
 
 const StudioContext = createContext(null);
@@ -20,7 +20,7 @@ const StudioContext = createContext(null);
  * decides.
  *
  * @param {{
- *   catalogue: import('@/products').Catalogue,
+ *   catalogue: import('../catalogue').Catalogue,
  *   initialProductId?: string,
  *   children: React.ReactNode,
  * }} props
@@ -35,7 +35,7 @@ export function StudioProvider({ children, catalogue, initialProductId }) {
 
   const [state, dispatch] = useReducer(studioReducer, initialProduct, createInitialState);
   const previousArtwork = useRef(null);
-  const errorCopy = useT().studio.errors;
+  const errorCopy = useCopy().errors;
 
   const product = catalogue.get(state.productId) ?? initialProduct;
 

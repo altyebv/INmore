@@ -1,8 +1,7 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, render, screen, within } from '@testing-library/react';
-import { createCatalogue } from '@/products';
-import { LocaleProvider } from '@/i18n';
+import { createCatalogue } from '../catalogue';
 import ProductPicker from '../components/ProductPicker';
 import StudioProvider, { useStudio } from './StudioProvider';
 
@@ -69,7 +68,13 @@ function Studio({ catalogue, label, initialProductId }) {
   );
 }
 
-const mount = (ui) => render(<LocaleProvider initialLocale="en">{ui}</LocaleProvider>);
+/*
+ * No provider wrapping. The engine's copy and locale contexts carry working
+ * defaults — English, left to right — precisely so a host that has not decided
+ * yet still gets a studio rather than a crash. If this needed a provider, the
+ * defaults would not be doing their job.
+ */
+const mount = (ui) => render(ui);
 
 afterEach(cleanup);
 

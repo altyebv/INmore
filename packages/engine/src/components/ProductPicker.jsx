@@ -1,4 +1,6 @@
-import { useLocalizedCatalogue, useT } from '@/i18n';
+import { useMemo } from 'react';
+import { localizeProduct } from '../catalogue';
+import { useCopy, useStudioLocale } from '../i18n';
 import { useStudio } from '../state/StudioProvider';
 import styles from './ProductPicker.module.css';
 
@@ -11,8 +13,17 @@ import styles from './ProductPicker.module.css';
  * than hidden: the range is real, the models are not all finished.
  */
 export function ProductPicker({ selectedId, onSelect }) {
-  const products = useLocalizedCatalogue(useStudio().catalogue.all);
-  const t = useT().studio;
+  const { catalogue } = useStudio();
+  const { locale } = useStudioLocale();
+  const t = useCopy();
+
+  // Names and categories are read on screen, so they have to be the visitor's.
+  // Only the readable fields are swapped; what reaches the picker is still a
+  // complete product config.
+  const products = useMemo(
+    () => catalogue.all.map((product) => localizeProduct(product, locale)),
+    [catalogue, locale]
+  );
 
   return (
     <div className={styles.list} role="group" aria-label={t.chooseProduct}>

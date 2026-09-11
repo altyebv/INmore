@@ -1,4 +1,4 @@
-import { createCatalogue } from '@/products';
+import { createCatalogue } from '@inmore/engine';
 import STOCKS from '@/products/stock';
 import paperCup from '@/products/paperCup';
 import shoppingBag from '@/products/shoppingBag';

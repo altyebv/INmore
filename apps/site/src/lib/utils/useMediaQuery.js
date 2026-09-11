@@ -3,9 +3,11 @@ import { useEffect, useState } from 'react';
 /**
  * Subscribe to a media query.
  *
- * Used to choose between the studio's two layouts. Deliberately a real query
- * rather than a user-agent check, so a narrow desktop window behaves like a
- * phone — which is also how it gets tested.
+ * The site's copy. The studio had one too and has taken it with it — but the
+ * engine's now measures its own element rather than the viewport, because a
+ * studio embedded in a column should lay itself out for the column. The site's
+ * marketing pages genuinely are the viewport, so for them a media query is the
+ * right question and this stays.
  */
 export function useMediaQuery(query) {
   const [matches, setMatches] = useState(() => {
@@ -24,24 +26,5 @@ export function useMediaQuery(query) {
 
   return matches;
 }
-
-/** The studio switches to its touch layout below this width. */
-export const STUDIO_COMPACT_QUERY = '(max-width: 1080px)';
-
-/**
- * Within the touch layout, the controls dock to the side rather than the
- * bottom whenever the screen is at least as wide as it is tall.
- *
- * The test is shape, not size, because the constraint is shape: a bottom sheet
- * spends height and a side panel spends width, and the right one to use is
- * whichever spends the axis the screen has to spare. A phone turned sideways
- * has roughly 390 px of height with a header already in it — a bottom sheet
- * there leaves the product a letterbox — while the same phone upright cannot
- * spare the width for a panel wide enough to hold a slider.
- */
-export const STUDIO_SIDE_PANEL_QUERY = '(max-width: 1080px) and (min-aspect-ratio: 1/1)';
-
-/** True on devices whose primary input cannot hover or hit small targets. */
-export const COARSE_POINTER_QUERY = '(pointer: coarse)';
 
 export default useMediaQuery;

@@ -3,11 +3,11 @@ import composeArtwork, {
   getPrintRect,
   getSafeRect,
   normaliseSafe,
-} from '@/lib/artwork/composeArtwork';
+} from '../artwork/composeArtwork';
 import { transformLimitsFor } from '../state/studioReducer';
-import { clamp, roundTo } from '@/lib/utils/math';
-import { useT } from '@/i18n';
-import cx from '@/lib/utils/cx';
+import { clamp, roundTo } from '../utils/math';
+import { useCopy } from '../i18n';
+import cx from '../utils/cx';
 import { studioUtils } from '../StudioRoot';
 import styles from './FlatPreview.module.css';
 
@@ -26,7 +26,7 @@ export function FlatPreview({ product, artwork, transform, baseColor, onTransfor
   const pointersRef = useRef(new Map());
   const pinchRef = useRef(null);
   const [size, setSize] = useState({ width: 0, height: 0 });
-  const t = useT().studio.preview;
+  const t = useCopy().preview;
 
   const { print } = product;
   const { physical } = print;

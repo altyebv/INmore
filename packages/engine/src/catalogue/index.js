@@ -100,6 +100,20 @@ export function createCatalogue({ products = [], stocks = {} } = {}) {
 }
 
 /**
+ * Resolve a product's display strings for the active locale.
+ *
+ * Product configs stay single objects — geometry, print area, camera and
+ * translations together — because they describe one physical thing. Only the
+ * readable fields are swapped, and a product with no translation for a
+ * language keeps its base strings rather than disappearing.
+ */
+export function localizeProduct(product, locale) {
+  const translation = product?.translations?.[locale];
+  if (!translation) return product;
+  return { ...product, ...translation };
+}
+
+/**
  * The stock palette a product offers, falling back to its single stock.
  *
  * Pure — it reads the product it is given and nothing else, so it needs no

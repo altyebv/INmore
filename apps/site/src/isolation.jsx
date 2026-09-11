@@ -1,71 +1,32 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import { MemoryRouter } from 'react-router-dom';
-import { LocaleProvider } from '@/i18n';
-import StudioRoot from '@/features/studio/StudioRoot';
-import StudioProvider from '@/features/studio/state/StudioProvider';
-import ProductPicker from '@/features/studio/components/ProductPicker';
-import StockPicker from '@/features/studio/components/StockPicker';
-import ArtworkDropzone from '@/features/studio/components/ArtworkDropzone';
-import { useStudio } from '@/features/studio/state/StudioProvider';
+import { Studio, Button } from '@inmore/engine';
 import { inmoreBranding, inmoreCatalogue } from '@/tenant';
 
 /**
  * The isolation harness.
  *
- * Deliberately does NOT import `@/styles/global.css`. That omission is the
- * entire test: the studio's tokens used to live on `:root` in that file, so
- * without it every colour, size and spacing in the studio resolved to nothing
- * — and nobody would have discovered that until it was mounted on a client's
- * page, which is the one place it could not be fixed quickly.
+ * Deliberately imports no site stylesheet, no locale provider and no router.
+ * That omission is the entire test. The studio's tokens used to live on
+ * `:root` in `global.css`, its direction on `<html>`, and its buttons needed a
+ * Router above them — so without any of those it rendered as unstyled markup
+ * or threw outright, and nobody would have discovered that until it was on a
+ * client's page, which is the one place it cannot be fixed quickly.
  *
- * Three slots, because each proves something the previous one cannot:
+ * It mounts the real `<Studio>`, not a hand-assembled subset, so what is being
+ * proven is the thing that ships.
  *
- * 1. INMORE's own branding, so the studio should look exactly as it does on
- *    the site despite the site's stylesheet being absent.
+ * Three slots, because each proves something the previous cannot:
+ *
+ * 1. INMORE's branding — should look exactly as it does on the site, with the
+ *    site's stylesheet absent.
  * 2. A different tenant, to show the brand is data rather than a stylesheet.
- * 3. Arabic, right to left, inside a left-to-right English host page — which
+ * 3. Arabic, right to left, inside a left-to-right English host page, which
  *    only works because direction moved off `<html>` and onto the studio.
  *
- * Served at /isolation.html in development. Not part of the production build.
+ * Served at /isolation.html in development. Vite builds index.html only, so it
+ * does not ship.
  */
-
-/** Enough of the studio to see whether it is styled, without the 3-D bundle. */
-function Panel() {
-  const studio = useStudio();
-  return (
-    <div style={{ display: 'grid', gap: '1rem', padding: '1.5rem' }}>
-      <ProductPicker selectedId={studio.product.id} onSelect={studio.selectProduct} />
-      <StockPicker
-        product={studio.product}
-        value={studio.baseColor}
-        onChange={studio.setBaseColor}
-      />
-      <ArtworkDropzone
-        artwork={studio.artwork}
-        status={studio.status}
-        error={studio.error}
-        onUpload={studio.uploadArtwork}
-        onClear={studio.clearArtwork}
-      />
-    </div>
-  );
-}
-
-function Slot({ title, locale = 'en', dir = 'ltr', branding }) {
-  return (
-    <section className="harness-slot">
-      <h2>{title}</h2>
-      <LocaleProvider initialLocale={locale} ownsDocument={false}>
-        <StudioRoot branding={branding} locale={locale} dir={dir}>
-          <StudioProvider catalogue={inmoreCatalogue}>
-            <Panel />
-          </StudioProvider>
-        </StudioRoot>
-      </LocaleProvider>
-    </section>
-  );
-}
 
 /** A second tenant, invented, to prove branding is data and not a stylesheet. */
 const otherBranding = {
@@ -75,17 +36,39 @@ const otherBranding = {
   radius: '2px',
 };
 
+function Slot({ title, locale = 'en', branding, tenant }) {
+  return (
+    <section className="harness-slot">
+      <h2>{title}</h2>
+      <Studio
+        tenant={tenant}
+        catalogue={inmoreCatalogue}
+        branding={branding}
+        locale={locale}
+        renderCta={({ submit, block, size }) => (
+          <Button variant="primary" block={block} size={size} onClick={submit}>
+            {locale === 'ar' ? 'اطلب عرض سعر' : 'Request a quote'}
+          </Button>
+        )}
+        onSubmit={(payload) => console.info(`[${tenant}] submit`, payload)}
+      />
+    </section>
+  );
+}
+
 createRoot(document.getElementById('harness')).render(
   <StrictMode>
-    <MemoryRouter>
-      <Slot title="1 — INMORE branding, no site stylesheet" branding={inmoreBranding} />
-      <Slot title="2 — a different tenant, same engine" branding={otherBranding} />
-      <Slot
-        title="3 — Arabic, RTL, inside an LTR host page"
-        locale="ar"
-        dir="rtl"
-        branding={inmoreBranding}
-      />
-    </MemoryRouter>
+    <Slot
+      title="1 — INMORE branding, no site stylesheet"
+      tenant="inmore"
+      branding={inmoreBranding}
+    />
+    <Slot title="2 — a different tenant, same engine" tenant="other" branding={otherBranding} />
+    <Slot
+      title="3 — Arabic, RTL, inside an LTR host page"
+      tenant="inmore-ar"
+      locale="ar"
+      branding={inmoreBranding}
+    />
   </StrictMode>
 );

@@ -1,4 +1,4 @@
-import { clamp, degToRad } from '@/lib/utils/math';
+import { clamp, degToRad } from '../utils/math';
 import { IDENTITY_CROP } from './constants';
 
 /**
@@ -225,7 +225,7 @@ function drawPlacement(ctx, artwork, box, transform, offsetX) {
  * Composite the print layout onto a canvas.
  *
  * @param {HTMLCanvasElement} canvas Reused between renders to avoid GC churn.
- * @param {import('@/products/schema').ProductPrintConfig} print
+ * @param {import('../catalogue/schema').ProductPrintConfig} print
  * @param {object|null} artwork Result of `loadArtwork`, or null for bare stock.
  * @param {object} transform
  * @param {{

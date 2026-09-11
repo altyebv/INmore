@@ -1,54 +1,18 @@
 import { forwardRef } from 'react';
 import { Link } from 'react-router-dom';
-import cx from '@/lib/utils/cx';
-import styles from './Button.module.css';
+import { Button as EngineButton } from '@inmore/engine';
 
 /**
- * One button, three jobs: real button, internal link, external link.
- * Consolidating them here keeps focus, disabled and sizing behaviour identical
- * wherever an action appears.
+ * The site's button: the engine's, taught about routes.
+ *
+ * The engine's Button deliberately knows nothing about routing — it mounts in
+ * host pages that have no router, and requiring one would be the engine
+ * asserting something about a page it does not own. Routing is this app's
+ * concern, so the `to` prop lives here and resolves to a react-router Link.
  */
-export const Button = forwardRef(function Button(
-  { as, to, href, variant = 'quiet', size = 'md', block, icon, className, children, ...props },
-  ref
-) {
-  const classes = cx(
-    styles.base,
-    styles[variant],
-    size !== 'md' && styles[size],
-    icon && styles.icon,
-    block && styles.block,
-    className
-  );
-
-  if (to) {
-    return (
-      <Link ref={ref} to={to} className={classes} {...props}>
-        {children}
-      </Link>
-    );
-  }
-
-  if (href) {
-    return (
-      <a
-        ref={ref}
-        href={href}
-        className={classes}
-        rel={props.target === '_blank' ? 'noopener noreferrer' : undefined}
-        {...props}
-      >
-        {children}
-      </a>
-    );
-  }
-
-  const Component = as ?? 'button';
-  return (
-    <Component ref={ref} className={classes} type={Component === 'button' ? 'button' : undefined} {...props}>
-      {children}
-    </Component>
-  );
+export const Button = forwardRef(function Button({ to, ...props }, ref) {
+  if (to) return <EngineButton ref={ref} as={Link} to={to} {...props} />;
+  return <EngineButton ref={ref} {...props} />;
 });
 
 export default Button;

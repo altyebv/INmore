@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import cx from '@/lib/utils/cx';
-import { clamp } from '@/lib/utils/math';
+import cx from '../utils/cx';
+import { clamp } from '../utils/math';
 import styles from './StudioSheet.module.css';
 
 /**
@@ -68,6 +68,7 @@ export function StudioSheet({
 
   const [dragSize, setDragSize] = useState(null);
   const dragRef = useRef(null);
+  const sheetRef = useRef(null);
 
   const size = dragSize ?? stops[snap] ?? stops.peek;
 
@@ -130,13 +131,23 @@ export function StudioSheet({
     [snap, onSnapChange, side, rtl]
   );
 
-  // Publish the sheet's extent so the viewer beside or above it can reserve
-  // exactly that much room and resize as the sheet moves. Both custom
-  // properties are always written — the unused one zeroed — so turning the
-  // phone, which changes the edge, cannot leave a stale reservation behind on
-  // the axis the sheet just left.
+  /*
+   * Publish the sheet's extent so the viewer beside or above it can reserve
+   * exactly that much room and resize as the sheet moves. Both custom
+   * properties are always written — the unused one zeroed — so turning the
+   * phone, which changes the edge, cannot leave a stale reservation behind on
+   * the axis the sheet just left.
+   *
+   * Written onto the studio's own root rather than `documentElement`. Two
+   * sheets on one page would otherwise take turns overwriting a single pair of
+   * document-level properties, and each would size itself to the other's
+   * drag — and on a host page we would be writing custom properties into
+   * someone else's document for the duration of a mount.
+   */
   useEffect(() => {
-    const root = document.documentElement;
+    const root = sheetRef.current?.closest('[data-studio-root]');
+    if (!root) return undefined;
+
     root.style.setProperty('--sheet-h', side ? '0px' : `${size * 100}svh`);
     root.style.setProperty('--sheet-w', side ? `${size * 100}vw` : '0px');
     return () => {
@@ -147,6 +158,7 @@ export function StudioSheet({
 
   return (
     <section
+      ref={sheetRef}
       className={cx(
         styles.sheet,
         side ? styles.edgeSide : styles.edgeBottom,

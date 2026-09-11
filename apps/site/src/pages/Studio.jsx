@@ -1,378 +1,99 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Studio as Configurator, COMPACT_WIDTH } from '@inmore/engine';
 import Button from '@/components/ui/Button';
 import cx from '@/lib/utils/cx';
-import ArtworkControls from '@/features/studio/components/ArtworkControls';
-import ArtworkDropzone from '@/features/studio/components/ArtworkDropzone';
-import FlatPreview from '@/features/studio/components/FlatPreview';
-import ProductPicker from '@/features/studio/components/ProductPicker';
-import StockPicker from '@/features/studio/components/StockPicker';
-import StudioStage from '@/features/studio/components/StudioStage';
-import StudioSheet, { SNAP_POINTS } from '@/features/studio/components/StudioSheet';
-import StudioProvider, { useStudio } from '@/features/studio/state/StudioProvider';
-import useArtworkTexture from '@/three/useArtworkTexture';
-import exportProof from '@/lib/artwork/exportProof';
 import usePageMeta from '@/lib/utils/usePageMeta';
-import useMediaQuery, {
-  STUDIO_COMPACT_QUERY,
-  STUDIO_SIDE_PANEL_QUERY,
-} from '@/lib/utils/useMediaQuery';
-import { useContent, useLocale, useLocalizedProduct } from '@/i18n';
+import useMediaQuery from '@/lib/utils/useMediaQuery';
+import { useContent, useLocale } from '@/i18n';
 import { useAppShell } from '@/app/ShellContext';
 import { inmoreBranding, inmoreCatalogue } from '@/tenant';
-import StudioRoot, { studioUtils } from '@/features/studio/StudioRoot';
 import styles from './Studio.module.css';
 
 /**
- * Shared behaviour for both layouts.
+ * The studio page.
  *
- * Texture generation, keyboard shortcuts and proof export belong to the studio
- * regardless of how it is arranged on screen, so they live here and the two
- * layout components below only decide where things sit.
+ * Almost nothing, which is the point. The configurator is a package now, and
+ * this file is one of its hosts — doing what any host does: deciding what the
+ * studio is for on this page, giving it a tenant, and saying what happens when
+ * a visitor finishes.
+ *
+ * What stays here is genuinely the site's:
+ *
+ * - the page's title and description, which are this site's metadata
+ * - the heading and lede above the studio, which are marketing copy
+ * - the call to action, because only this app knows there is a contact page
+ * - whether the studio owns the viewport, which only the page can know
  */
-function useStudioSession() {
-  const studio = useStudio();
-  const product = useLocalizedProduct(studio.product);
-  const { texture } = useArtworkTexture(
-    studio.product,
-    studio.artwork,
-    studio.transform,
-    studio.baseColor
-  );
 
-  useEffect(() => {
-    const onKey = (event) => {
-      const modifier = event.metaKey || event.ctrlKey;
-      if (!modifier || event.key.toLowerCase() !== 'z') return;
-      event.preventDefault();
-      if (event.shiftKey) studio.redo();
-      else studio.undo();
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [studio]);
-
-  const exportCurrentProof = useCallback(
-    () =>
-      exportProof(studio.product, studio.artwork, studio.transform, {
-        stockColor: studio.baseColor,
-      }),
-    [studio.product, studio.artwork, studio.transform, studio.baseColor]
-  );
-
-  return { ...studio, product, texture, exportCurrentProof, commit: () => studio.setTransform({}, true) };
-}
-
-function Step({ index, title, children }) {
-  return (
-    <section className={styles.step}>
-      <header className={styles.stepHeader}>
-        <span className={styles.stepIndex}>{index}</span>
-        <h2 className={styles.stepTitle}>{title}</h2>
-        <span className={styles.stepRule} aria-hidden="true" />
-      </header>
-      {children}
-    </section>
-  );
-}
-
-function Specs({ product, className }) {
-  return (
-    <div className={className ?? styles.specs}>
-      {product.specs.map((spec) => (
-        <div key={spec.label} className={styles.spec}>
-          <span>{spec.label}</span>
-          <span className={styles.specValue}>{spec.value}</span>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-/* --- Pointer layout --------------------------------------------------------- */
-
-function PointerStudio() {
-  const s = useStudioSession();
-  const { ui } = useContent();
-  const t = ui.studio;
-
-  return (
-    <div className={cx(styles.workspace, studioUtils.shell)}>
-      <div className={styles.viewer}>
-        <StudioStage
-          product={s.product}
-          texture={s.texture}
-          baseColor={s.baseColor}
-          autoRotate={s.autoRotate}
-          onInteract={() => s.toggleAutoRotate(false)}
-          onExport={s.exportCurrentProof}
-          canExport={Boolean(s.artwork)}
-        />
-      </div>
-
-      <aside className={styles.panel} aria-label={t.panelLabel}>
-        <Step index="01" title={t.steps.product}>
-          <ProductPicker selectedId={s.product.id} onSelect={s.selectProduct} />
-        </Step>
-
-        <Step index="02" title={t.stock.step}>
-          <StockPicker product={s.product} value={s.baseColor} onChange={s.setBaseColor} />
-        </Step>
-
-        <Step index="03" title={t.steps.artwork}>
-          <ArtworkDropzone
-            artwork={s.artwork}
-            status={s.status}
-            error={s.error}
-            onUpload={s.uploadArtwork}
-            onClear={s.clearArtwork}
-          />
-        </Step>
-
-        <Step index="04" title={t.steps.placement}>
-          <FlatPreview
-            product={s.product}
-            artwork={s.artwork}
-            transform={s.transform}
-            baseColor={s.baseColor}
-            onTransform={s.setTransform}
-            onCommit={s.commit}
-          />
-          <ArtworkControls
-            product={s.product}
-            artwork={s.artwork}
-            transform={s.transform}
-            onTransform={s.setTransform}
-            onCommit={s.commit}
-            onReset={s.resetTransform}
-          />
-          <div className={styles.historyRow}>
-            <Button size="sm" variant="ghost" onClick={s.undo} disabled={!s.canUndo}>
-              {t.undo}
-            </Button>
-            <Button size="sm" variant="ghost" onClick={s.redo} disabled={!s.canRedo}>
-              {t.redo}
-            </Button>
-          </div>
-        </Step>
-
-        <Specs product={s.product} />
-
-        <div className={styles.cta}>
-          <Button to="/contact" variant="primary" block>
-            {t.talkToUs}
-          </Button>
-        </div>
-      </aside>
-    </div>
-  );
-}
-
-/* --- Touch layout ----------------------------------------------------------- */
-
-function TouchStudio() {
-  const s = useStudioSession();
-  const { ui } = useContent();
-  const t = ui.studio;
-  const { isRTL } = useLocale();
-  // Shape, not size, decides which edge the controls dock to — see
-  // STUDIO_SIDE_PANEL_QUERY for the reasoning.
-  const sidePanel = useMediaQuery(STUDIO_SIDE_PANEL_QUERY);
-
-  const [tab, setTab] = useState('product');
-  const [snap, setSnap] = useState('peek');
-
-  // Uploading is the moment the visitor's attention moves to placement, so the
-  // sheet follows them there instead of making them find the next step.
-  useEffect(() => {
-    if (s.artwork) {
-      setTab('placement');
-      setSnap('half');
-    }
-  }, [s.artwork]);
-
-  const openTab = useCallback((next) => {
-    setTab(next);
-    setSnap((current) => (current === 'peek' ? 'half' : current));
-  }, []);
-
-  const tabs = [
-    { id: 'product', label: t.tabs.product, complete: true },
-    { id: 'artwork', label: t.tabs.artwork, complete: Boolean(s.artwork) },
-    { id: 'placement', label: t.tabs.placement, disabled: !s.artwork },
-  ];
-
-  return (
-    <div className={cx(styles.shell, sidePanel && styles.shellSide)}>
-      {/* With the panel on the side the screen is short, and the page title is
-          the one thing on it that neither shows the product nor changes it. */}
-      {!sidePanel && (
-        <div className={styles.shellIntro}>
-          <p className={studioUtils.label}>{t.eyebrow}</p>
-          <h1 className={styles.shellTitle}>{t.heading}</h1>
-        </div>
-      )}
-
-      <div className={styles.shellViewer}>
-        <StudioStage
-          product={s.product}
-          texture={s.texture}
-          baseColor={s.baseColor}
-          autoRotate={s.autoRotate}
-          onInteract={() => s.toggleAutoRotate(false)}
-          onExport={s.exportCurrentProof}
-          canExport={Boolean(s.artwork)}
-          compact
-        />
-      </div>
-
-      <StudioSheet
-        tabs={tabs}
-        activeTab={tab}
-        onTabChange={openTab}
-        snap={snap}
-        onSnapChange={setSnap}
-        gripLabel={t.sheetHandle}
-        edge={sidePanel ? 'inline-end' : 'bottom'}
-        rtl={isRTL}
-        footer={
-          tab === 'placement' && s.artwork ? (
-            <>
-              <Button size="sm" onClick={s.undo} disabled={!s.canUndo}>
-                {t.undo}
-              </Button>
-              <Button size="sm" onClick={s.redo} disabled={!s.canRedo}>
-                {t.redo}
-              </Button>
-              <Button size="sm" variant="primary" onClick={s.exportCurrentProof}>
-                {t.downloadProof}
-              </Button>
-            </>
-          ) : (
-            <Button to="/contact" variant="primary" block size="sm">
-              {t.talkToUs}
-            </Button>
-          )
-        }
-      >
-        {tab === 'product' && (
-          <div className={styles.sheetStep}>
-            <ProductPicker selectedId={s.product.id} onSelect={s.selectProduct} />
-            <p className={styles.sheetHint}>{s.product.summary}</p>
-            <StockPicker product={s.product} value={s.baseColor} onChange={s.setBaseColor} />
-            <Specs product={s.product} />
-          </div>
-        )}
-
-        {tab === 'artwork' && (
-          <div className={styles.sheetStep}>
-            <ArtworkDropzone
-              artwork={s.artwork}
-              status={s.status}
-              error={s.error}
-              onUpload={s.uploadArtwork}
-              onClear={s.clearArtwork}
-              compact
-            />
-            <p className={styles.sheetHint}>{t.lede}</p>
-          </div>
-        )}
-
-        {tab === 'placement' && (
-          <div className={styles.sheetStep}>
-            <FlatPreview
-              product={s.product}
-              artwork={s.artwork}
-              transform={s.transform}
-              baseColor={s.baseColor}
-              onTransform={s.setTransform}
-              onCommit={s.commit}
-            />
-            <ArtworkControls
-              product={s.product}
-              artwork={s.artwork}
-              transform={s.transform}
-              onTransform={s.setTransform}
-              onCommit={s.commit}
-              onReset={s.resetTransform}
-            />
-          </div>
-        )}
-      </StudioSheet>
-    </div>
-  );
-}
-
-/* --- Route ------------------------------------------------------------------ */
-
-function StudioLayout() {
-  const compact = useMediaQuery(STUDIO_COMPACT_QUERY);
-  return compact ? <TouchStudio /> : <PointerStudio />;
-}
+/** Below this the studio takes the whole viewport rather than sitting in a page. */
+const FULLSCREEN_QUERY = `(max-width: ${COMPACT_WIDTH}px)`;
 
 export function Studio() {
   const { ui } = useContent();
   const t = ui.studio;
   const { locale, dir } = useLocale();
-  const compact = useMediaQuery(STUDIO_COMPACT_QUERY);
+  const navigate = useNavigate();
+
+  const fullscreen = useMediaQuery(FULLSCREEN_QUERY);
 
   usePageMeta({ title: t.title, description: t.description });
-  useAppShell(compact);
-
-  // The touch layout is a fixed app shell, so the page behind it must not
-  // scroll underneath the sheet.
-  useEffect(() => {
-    if (!compact) return undefined;
-    const previous = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.body.style.overflow = previous;
-    };
-  }, [compact]);
+  useAppShell(fullscreen);
 
   /*
-   * The site tells the studio how much of the viewport is already spoken for.
-   * The studio has no way to know a header exists — in a host page there may
-   * not be one — so this is the one layout fact that crosses the boundary.
+   * The engine reports a finished configuration; where it goes is ours to
+   * decide. There is no backend yet, so the payload goes to the console and
+   * the visitor goes to the contact page — but the seam is the real one, and
+   * the day there is an endpoint this is the only line that changes.
    */
-  const root = {
-    branding: inmoreBranding,
-    locale,
-    dir,
-    insetBlockStart: 'var(--header-h)',
-  };
+  const handleSubmit = useCallback(
+    (payload) => {
+      if (import.meta.env.DEV) console.info('[studio] submit', payload);
+      navigate('/contact');
+    },
+    [navigate]
+  );
 
-  if (compact) {
-    return (
-      <main id="main">
-        <StudioRoot {...root}>
-          <StudioProvider catalogue={inmoreCatalogue}>
-            <StudioLayout />
-          </StudioProvider>
-        </StudioRoot>
-      </main>
-    );
-  }
+  const renderCta = useCallback(
+    ({ submit, block, size }) => (
+      <Button variant="primary" block={block} size={size} onClick={submit}>
+        {t.talkToUs}
+      </Button>
+    ),
+    [t.talkToUs]
+  );
+
+  const configurator = (
+    <Configurator
+      tenant="inmore"
+      catalogue={inmoreCatalogue}
+      branding={inmoreBranding}
+      locale={locale}
+      dir={dir}
+      fullscreen={fullscreen}
+      insetBlockStart="var(--header-h)"
+      renderCta={renderCta}
+      onSubmit={handleSubmit}
+    />
+  );
+
+  if (fullscreen) return <main id="main">{configurator}</main>;
 
   return (
-    <main id="main">
-      <StudioRoot {...root} className={styles.page}>
-        <div className={styles.intro}>
-          <div className={cx(studioUtils.shell, styles.introInner)}>
-            <div>
-              <p className={studioUtils.label}>{t.eyebrow}</p>
-              <h1 className={styles.title}>{t.heading}</h1>
-            </div>
-            <p className={styles.lede}>{t.lede}</p>
+    <main id="main" className={styles.page}>
+      <div className={styles.intro}>
+        <div className={cx('u-shell', styles.introInner)}>
+          <div>
+            <p className="u-label">{t.eyebrow}</p>
+            <h1 className={styles.title}>{t.heading}</h1>
           </div>
+          <p className={styles.lede}>{t.lede}</p>
         </div>
+      </div>
 
-        <StudioProvider catalogue={inmoreCatalogue}>
-          <StudioLayout />
-        </StudioProvider>
-      </StudioRoot>
+      {configurator}
     </main>
   );
 }
 
-export { SNAP_POINTS };
 export default Studio;

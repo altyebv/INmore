@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
-import Button from '@/components/ui/Button';
-import cx from '@/lib/utils/cx';
-import ProductViewer from '@/three/ProductViewer';
-import useModelAvailability from '@/three/models/useModelAvailability';
-import useMediaQuery, { COARSE_POINTER_QUERY } from '@/lib/utils/useMediaQuery';
-import { useT } from '@/i18n';
+import Button from '../ui/Button';
+import cx from '../utils/cx';
+import ProductViewer from '../three/ProductViewer';
+import useModelAvailability from '../three/models/useModelAvailability';
+import useMediaQuery, { COARSE_POINTER_QUERY } from '../utils/useMediaQuery';
+import { useCopy } from '../i18n';
 import styles from './StudioStage.module.css';
 
 /**
@@ -29,7 +29,7 @@ export function StudioStage({
   const [touched, setTouched] = useState(false);
   const modelStatus = useModelAvailability(product.model.url);
   const coarse = useMediaQuery(COARSE_POINTER_QUERY);
-  const t = useT().studio;
+  const t = useCopy();
 
   useEffect(() => setTouched(false), [product.id]);
 
