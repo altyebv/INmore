@@ -10,14 +10,16 @@
   ],
   "scripts": {
     "dev": "npm run dev --workspace apps/site",
-    "build": "npm run build --workspace apps/site",
+    "build": "npm run build --workspace apps/site && npm run build --workspace apps/embed",
     "preview": "npm run preview --workspace apps/site",
     "test": "npm run test --workspaces --if-present",
     "lint": "npm run lint --workspaces --if-present",
     "models:inspect": "node tools/inspect-models.mjs",
     "models:axis": "node tools/panel-axis.mjs",
     "models:uv": "node tools/uv-map.mjs",
-    "tenants:check": "node tools/check-tenants.mjs"
+    "tenants:check": "node tools/check-tenants.mjs",
+    "build:embed": "npm run build --workspace apps/embed",
+    "preview:embed": "npm run preview --workspace apps/embed"
   },
   "devDependencies": {
     "@gltf-transform/core": "^4.5.0",

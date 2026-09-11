@@ -429,7 +429,7 @@ export function Studio({
         <CopyProvider value={resolvedCopy}>
           <AssetProvider assetBase={assetBase} dracoPath={dracoPath}>
             <LicenseProvider value={license}>
-              <StudioProvider catalogue={catalogue} initialProductId={sku}>
+              <StudioProvider catalogue={catalogue} sku={sku}>
                 <StudioBody
                   shape={shape}
                   rootRef={rootRef}

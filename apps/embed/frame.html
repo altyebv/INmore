@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Product studio</title>
+    <!--
+      The studio's own document.
+
+      An iframe is not a convenience here. A studio has to own a document: it
+      sets direction on its root, pins a sheet to the viewport on touch
+      layouts, and listens for keys. Doing that inside a client's page means
+      fighting a theme we cannot see for control of things we do not own.
+
+      So this document is deliberately bare. Everything the studio looks like
+      it brings with it, which is the property the isolation harness proves.
+    -->
+    <style>
+      html, body { height: 100%; }
+      body { margin: 0; background: transparent; }
+      #root { height: 100%; }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/frame.jsx"></script>
+  </body>
+</html>

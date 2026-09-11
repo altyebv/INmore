@@ -1,4 +1,12 @@
-import { createContext, useCallback, useContext, useMemo, useReducer, useRef } from 'react';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useReducer,
+  useRef,
+} from 'react';
 import { loadArtwork, releaseArtwork, ArtworkError } from '../artwork/loadArtwork';
 import autoTrim from '../artwork/autoTrim';
 import { IDENTITY_CROP } from '../artwork/constants';
@@ -19,14 +27,20 @@ const StudioContext = createContext(null);
  * makes the catalogue a thing the caller owns rather than a thing this module
  * decides.
  *
+ * `sku` is controlled if the caller keeps supplying it: on mount it decides
+ * which product opens, and changing it afterwards selects that product, the
+ * same way clicking the picker would. A host that passes it once and forgets
+ * gets the initial behaviour and nothing more.
+ *
  * @param {{
  *   catalogue: import('../catalogue').Catalogue,
+ *   sku?: string,
  *   initialProductId?: string,
  *   children: React.ReactNode,
  * }} props
  */
-export function StudioProvider({ children, catalogue, initialProductId }) {
-  const openOn = initialProductId ?? catalogue.defaultProductId;
+export function StudioProvider({ children, catalogue, sku, initialProductId }) {
+  const openOn = sku ?? initialProductId ?? catalogue.defaultProductId;
   const initialProduct = catalogue.get(openOn) ?? catalogue.live[0];
 
   if (!initialProduct) {
@@ -63,6 +77,21 @@ export function StudioProvider({ children, catalogue, initialProductId }) {
     },
     [catalogue, placementFor, state.artwork]
   );
+
+  /*
+   * Follow a caller that is controlling which product is shown.
+   *
+   * `sku` used to reach the reducer only as its initial value, so a host
+   * changing it after mount changed nothing — the embed's `setSku()` appeared
+   * to work and quietly did not. Selecting it here routes through exactly the
+   * same path as a click on the picker, so the visitor's artwork carries over
+   * and is re-placed for the new print area rather than being reset.
+   */
+  useEffect(() => {
+    if (!sku || sku === state.productId) return;
+    const target = catalogue.get(sku);
+    if (target) selectProduct(target);
+  }, [sku, state.productId, catalogue, selectProduct]);
 
   const uploadArtwork = useCallback(
     async (file) => {
