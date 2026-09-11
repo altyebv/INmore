@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { paletteFor } from '@/products';
+import { MAX_TEXTURE_EDGE, resolveSurface } from '@/lib/artwork/composeArtwork';
 import { inmoreCatalogue } from './tenant';
 
 /**
@@ -73,9 +74,26 @@ describe('every live product is renderable', () => {
       expect(model.heightM).toBeGreaterThan(0);
       expect(camera.position).toHaveLength(3);
 
-      expect(print.texture.width).toBeGreaterThan(0);
       expect(print.physical.widthMm).toBeGreaterThan(0);
-      expect(print.defaultTransform.scale).toBeGreaterThan(0);
+      expect(print.physical.heightMm).toBeGreaterThan(0);
+      expect(print.defaultTransform.width).toBeGreaterThan(0);
+
+      // Nothing declares a texture any more. The surface is derived from the
+      // millimetres, which is what makes it impossible to declare a print area
+      // whose pixels disagree with its physical shape.
+      expect(print.texture).toBeUndefined();
+
+      const surface = resolveSurface(print);
+      expect(surface.texture.width).toBeGreaterThan(0);
+      expect(Math.max(surface.texture.width, surface.texture.height)).toBeLessThanOrEqual(
+        MAX_TEXTURE_EDGE
+      );
+
+      // The trim rect carries the product's real proportions, on every product.
+      expect(surface.trim.width / surface.trim.height).toBeCloseTo(
+        print.physical.widthMm / print.physical.heightMm,
+        6
+      );
 
       // A decal product builds its own print surface and needs to know which
       // way the panel faces; a texture product reads the authored UVs instead.

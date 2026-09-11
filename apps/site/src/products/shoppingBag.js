@@ -64,13 +64,18 @@ export const shoppingBag = {
       liftMm: 0.4,
     },
 
-    texture: { width: 1600, height: 2048 },
     uv: { x: 0, y: 0, width: 1, height: 1 },
-    physical: { widthMm: 190, heightMm: 240, bleedMm: 3, safeMm: 8 },
+    physical: {
+      widthMm: 190,
+      heightMm: 240,
+      bleedMm: 3,
+      // The handle bar crosses the top of the panel.
+      safeMm: { top: 14, right: 8, bottom: 8, left: 8 },
+    },
     wrap: false,
     stock: 'natural',
     stockPalette: ['natural', 'white', 'sand', 'black', 'forest', 'ink'],
-    defaultTransform: { scale: 0.55, x: 0, y: 0, rotation: 0, repeat: 1 },
+    defaultTransform: { width: 0.55, x: 0, y: 0, rotation: 0, repeat: 1 },
   },
 
   material: { roughness: 0.78, metalness: 0, envMapIntensity: 0.9 },

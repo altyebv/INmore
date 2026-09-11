@@ -56,13 +56,17 @@ export const mailerPackage = {
       liftMm: 0.4,
     },
 
-    texture: { width: 1600, height: 2048 },
     uv: { x: 0, y: 0, width: 1, height: 1 },
-    physical: { widthMm: 180, heightMm: 300, bleedMm: 3, safeMm: 8 },
+    physical: {
+      widthMm: 180,
+      heightMm: 300,
+      bleedMm: 3,
+      safeMm: { top: 8, right: 8, bottom: 8, left: 8 },
+    },
     wrap: false,
     stock: 'natural',
     stockPalette: ['natural', 'white', 'sand', 'clay', 'forest', 'black'],
-    defaultTransform: { scale: 0.6, x: 0, y: -0.1, rotation: 0, repeat: 1 },
+    defaultTransform: { width: 0.6, x: 0, y: -0.1, rotation: 0, repeat: 1 },
   },
 
   material: { roughness: 0.82, metalness: 0, envMapIntensity: 0.85 },

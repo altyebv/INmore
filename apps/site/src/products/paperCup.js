@@ -72,17 +72,24 @@ export const paperCup = {
      */
     mode: 'texture',
 
-    /** Resolution of the generated artwork texture. */
-    texture: { width: 2560, height: 1024 },
-
     /**
      * The printable window inside the mesh's UV space (0–1, origin top-left).
      * Everything outside it is stock colour and cannot receive artwork.
      */
     uv: { x: 0, y: 0.06, width: 1, height: 0.8 },
 
-    /** Real dimensions of the flat, unrolled print area. */
-    physical: { widthMm: 250, heightMm: 92, bleedMm: 3, safeMm: 5 },
+    /**
+     * Real dimensions of the flat, unrolled print area. These are the
+     * coordinate system: the texture's resolution is derived from them, so a
+     * millimetre is a millimetre on both axes.
+     */
+    physical: {
+      widthMm: 250,
+      heightMm: 92,
+      bleedMm: 3,
+      // The rim curl takes more off the top than the base takes off the bottom.
+      safeMm: { top: 7, right: 5, bottom: 5, left: 5 },
+    },
 
     /** The artwork wraps continuously — left and right edges meet at the seam. */
     wrap: true,
@@ -93,8 +100,12 @@ export const paperCup = {
     /** Stocks this product is actually available in, by id. */
     stockPalette: ['white', 'natural', 'sand', 'black', 'forest', 'clay'],
 
-    /** Default placement of freshly uploaded artwork. */
-    defaultTransform: { scale: 0.42, x: 0, y: 0, rotation: 0, repeat: 1 },
+    /**
+     * Fractions of the print area, not millimetres — the one proportion that
+     * is a product's own opinion whatever its real size. Resolved to
+     * millimetres once, when a placement is created.
+     */
+    defaultTransform: { width: 0.42, x: 0, y: 0, rotation: 0, repeat: 1 },
   },
 
   /* --- Surface response ---------------------------------------------------- */

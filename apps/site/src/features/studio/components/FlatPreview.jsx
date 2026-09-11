@@ -1,5 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import composeArtwork, { getPrintRect, getSafeRect } from '@/lib/artwork/composeArtwork';
+import composeArtwork, {
+  getPrintRect,
+  getSafeRect,
+  normaliseSafe,
+} from '@/lib/artwork/composeArtwork';
+import { transformLimitsFor } from '../state/studioReducer';
 import { clamp, roundTo } from '@/lib/utils/math';
 import { useT } from '@/i18n';
 import styles from './FlatPreview.module.css';
@@ -22,8 +27,10 @@ export function FlatPreview({ product, artwork, transform, baseColor, onTransfor
   const t = useT().studio.preview;
 
   const { print } = product;
+  const { physical } = print;
   const rect = getPrintRect(print);
   const safe = getSafeRect(print);
+  const limits = transformLimitsFor(print);
 
   if (!bufferRef.current && typeof document !== 'undefined') {
     bufferRef.current = document.createElement('canvas');
@@ -82,7 +89,7 @@ export function FlatPreview({ product, artwork, transform, baseColor, onTransfor
         const [a, b] = [...pointersRef.current.values()];
         pinchRef.current = {
           distance: Math.hypot(a.x - b.x, a.y - b.y) || 1,
-          scale: transform.scale,
+          widthMm: transform.widthMm,
         };
         dragRef.current = null;
         return;
@@ -91,13 +98,13 @@ export function FlatPreview({ product, artwork, transform, baseColor, onTransfor
       dragRef.current = {
         startX: event.clientX,
         startY: event.clientY,
-        originX: transform.x,
-        originY: transform.y,
+        originX: transform.xMm,
+        originY: transform.yMm,
         width: stage.clientWidth,
         height: stage.clientHeight,
       };
     },
-    [artwork, transform.x, transform.y, transform.scale]
+    [artwork, transform.xMm, transform.yMm, transform.widthMm]
   );
 
   const handlePointerMove = useCallback(
@@ -110,19 +117,32 @@ export function FlatPreview({ product, artwork, transform, baseColor, onTransfor
       if (pinch && pointersRef.current.size === 2) {
         const [a, b] = [...pointersRef.current.values()];
         const distance = Math.hypot(a.x - b.x, a.y - b.y);
-        onTransform({ scale: clamp(pinch.scale * (distance / pinch.distance), 0.05, 2.5) }, false);
+        onTransform(
+          {
+            widthMm: clamp(
+              pinch.widthMm * (distance / pinch.distance),
+              limits.widthMm.min,
+              limits.widthMm.max
+            ),
+          },
+          false
+        );
         return;
       }
 
       const drag = dragRef.current;
       if (!drag) return;
-      // The stage shows exactly the print area, so screen fraction maps
-      // directly onto the -1…1 offset space.
-      const dx = ((event.clientX - drag.startX) / drag.width) * 2;
-      const dy = ((event.clientY - drag.startY) / drag.height) * 2;
-      onTransform({ x: drag.originX + dx, y: drag.originY + dy }, false);
+      /*
+       * The stage shows exactly the print area, so a fraction of the stage is
+       * the same fraction of the product — and because the print area's real
+       * size is known, that fraction converts straight to millimetres. Dragging
+       * a logo 30% across a 250 mm wrap moves it 75 mm, and says so.
+       */
+      const dx = ((event.clientX - drag.startX) / drag.width) * physical.widthMm;
+      const dy = ((event.clientY - drag.startY) / drag.height) * physical.heightMm;
+      onTransform({ xMm: drag.originX + dx, yMm: drag.originY + dy }, false);
     },
-    [onTransform]
+    [onTransform, physical.widthMm, physical.heightMm]
   );
 
   const endDrag = useCallback(
@@ -148,31 +168,55 @@ export function FlatPreview({ product, artwork, transform, baseColor, onTransfor
       if (!artwork) return;
       event.preventDefault();
       const factor = event.deltaY > 0 ? 0.94 : 1.06;
-      onTransform({ scale: clamp(transform.scale * factor, 0.05, 2.5) }, true);
+      onTransform(
+        {
+          widthMm: clamp(
+            transform.widthMm * factor,
+            limits.widthMm.min,
+            limits.widthMm.max
+          ),
+        },
+        true
+      );
     },
-    [artwork, transform.scale, onTransform]
+    [artwork, transform.widthMm, limits, onTransform]
   );
 
   const handleKeyDown = useCallback(
     (event) => {
       if (!artwork) return;
-      const nudge = event.shiftKey ? 0.05 : 0.01;
+      // A millimetre at a time, or five with shift. Real units mean the nudge
+      // is the same physical distance on every product rather than a fraction
+      // that means 2.5 mm on a cup and 12 mm on a bag.
+      const nudge = event.shiftKey ? 5 : 1;
       const moves = {
-        ArrowLeft: { x: transform.x - nudge },
-        ArrowRight: { x: transform.x + nudge },
-        ArrowUp: { y: transform.y - nudge },
-        ArrowDown: { y: transform.y + nudge },
+        ArrowLeft: { xMm: transform.xMm - nudge },
+        ArrowRight: { xMm: transform.xMm + nudge },
+        ArrowUp: { yMm: transform.yMm - nudge },
+        ArrowDown: { yMm: transform.yMm + nudge },
       };
       const patch = moves[event.key];
       if (!patch) return;
       event.preventDefault();
       onTransform(patch, true);
     },
-    [artwork, transform.x, transform.y, onTransform]
+    [artwork, transform.xMm, transform.yMm, onTransform]
   );
 
   const aspect = rect.width / rect.height;
-  const { physical } = print;
+
+  /*
+   * Safe margins are per edge now. A cup's rim curl eats more than its base
+   * does, and a bag's handle bar crosses the top of the panel — one number
+   * could only ever be the worst case applied everywhere. The caption stays a
+   * single figure while the edges agree, and becomes a range when they do not,
+   * because that is the honest summary of four numbers in the width of a line.
+   */
+  const safeEdges = normaliseSafe(physical.safeMm);
+  const safeValues = Object.values(safeEdges);
+  const safeLow = Math.min(...safeValues);
+  const safeHigh = Math.max(...safeValues);
+  const safeCaption = safeLow === safeHigh ? `${safeLow}` : `${safeLow}–${safeHigh}`;
 
   return (
     <div className={styles.wrap}>
@@ -221,12 +265,13 @@ export function FlatPreview({ product, artwork, transform, baseColor, onTransfor
 
       <div className={styles.meta}>
         <span className="u-ltr">
-          {physical.widthMm} × {physical.heightMm} mm · {physical.safeMm} mm
+          {physical.widthMm} × {physical.heightMm} mm · {safeCaption} mm
         </span>
         {artwork && (
           <span className={artwork.isLowResolution ? styles.warn : undefined}>
             <span className="u-ltr">
-              {artwork.width} × {artwork.height} px · {roundTo(transform.scale * 100, 0)}%
+              {artwork.width} × {artwork.height} px ·{' '}
+              {roundTo((transform.widthMm / physical.widthMm) * 100, 0)}%
             </span>
             {artwork.isLowResolution ? ` · ${t.lowForPrint}` : ''}
           </span>

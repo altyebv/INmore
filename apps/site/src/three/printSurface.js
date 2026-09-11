@@ -128,15 +128,36 @@ export function buildDecalGeometry(mesh, projection, toLocal) {
   const spanU = maxU - minU || 1;
   const spanV = maxV - minV || 1;
 
+  /*
+   * The panel's real shape, and the shape the artwork was composed at.
+   *
+   * These are two different things and used not to be treated as such. The
+   * projected bounds were normalised to 0–1 on each axis independently, which
+   * stretches whatever the texture holds to fill whatever the mesh happens to
+   * be — so a square logo came out square only by coincidence, and the
+   * millimetres in the product config described a panel that nothing actually
+   * measured.
+   *
+   * The config is the authority: it says what the panel is in millimetres, and
+   * the artwork is composed at that aspect. So the texture is fitted onto the
+   * panel without distortion and centred, letterboxing on whichever axis has
+   * room to spare. When the two aspects agree — as they should, if the config
+   * is honest about the product — this is the identity and nothing moves.
+   */
+  const panelAspect = spanU / spanV;
+  const targetAspect = projection.targetAspect ?? panelAspect;
+
   // `inset` keeps artwork off the folded edges of a panel.
   const inset = projection.inset ?? 0;
-  const scaleU = 1 / (1 - inset * 2);
-  const scaleV = 1 / (1 - inset * 2);
+  const insetScale = 1 / (1 - inset * 2);
+
+  const fitU = panelAspect > targetAspect ? panelAspect / targetAspect : 1;
+  const fitV = panelAspect > targetAspect ? 1 : targetAspect / panelAspect;
 
   const uvs = new Float32Array(projected.length);
   for (let i = 0; i < projected.length; i += 2) {
-    const u = ((projected[i] - minU) / spanU - 0.5) * scaleU + 0.5;
-    const v = ((projected[i + 1] - minV) / spanV - 0.5) * scaleV + 0.5;
+    const u = ((projected[i] - minU) / spanU - 0.5) * insetScale * fitU + 0.5;
+    const v = ((projected[i + 1] - minV) / spanV - 0.5) * insetScale * fitV + 0.5;
     uvs[i] = u;
     // Canvas textures run top-down; the projection runs bottom-up.
     uvs[i + 1] = v;

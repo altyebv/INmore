@@ -3,9 +3,9 @@ import Button from '@/components/ui/Button';
 import Slider from '@/components/ui/Slider';
 import cx from '@/lib/utils/cx';
 import { roundTo } from '@/lib/utils/math';
-import { getFitScale } from '@/lib/artwork/composeArtwork';
+import { getFitWidthMm } from '@/lib/artwork/composeArtwork';
 import { useT } from '@/i18n';
-import { TRANSFORM_LIMITS } from '../state/studioReducer';
+import { transformLimitsFor } from '../state/studioReducer';
 import CropPanel from './CropPanel';
 import styles from './ArtworkControls.module.css';
 
@@ -19,51 +19,66 @@ export function ArtworkControls({ product, artwork, transform, onTransform, onCo
   const [cropping, setCropping] = useState(false);
   const t = useT().studio.controls;
   const disabled = !artwork;
-  const { scale, offset, rotation, repeat } = TRANSFORM_LIMITS;
+  const { print } = product;
+  const { widthMm, xMm, yMm, rotation, repeat } = transformLimitsFor(print);
+
+  /*
+   * The sliders carry millimetres, because that is what a placement is now.
+   * The readouts stay in the proportions they always showed — a percentage of
+   * the print area, and a signed number for offset — because those are what a
+   * visitor can actually judge. Nobody arranging a logo knows whether 96 mm is
+   * a lot; everybody knows whether 40% is.
+   */
+  const asPercent = (v) => `${roundTo((v / print.physical.widthMm) * 100, 0)}%`;
+  const acrossReadout = (v) => `${roundTo((v / (print.physical.widthMm / 2)) * 100, 0)}`;
+  const upDownReadout = (v) => `${roundTo((-v / (print.physical.heightMm / 2)) * 100, 0)}`;
 
   const fit = (mode) => {
     if (!artwork) return;
-    onTransform({ scale: getFitScale(product.print, artwork, transform, mode), x: 0, y: 0 }, true);
+    onTransform(
+      { widthMm: getFitWidthMm(print, artwork, transform, mode), xMm: 0, yMm: 0 },
+      true
+    );
   };
 
-  const centre = () => onTransform({ x: 0, y: 0 }, true);
+  const centre = () => onTransform({ xMm: 0, yMm: 0 }, true);
 
   return (
     <div className={styles.controls}>
       <div className={cx(styles.controls, disabled && styles.disabled)} aria-disabled={disabled}>
         <Slider
           label={t.size}
-          value={transform.scale}
-          min={scale.min}
-          max={scale.max}
-          step={scale.step}
+          value={transform.widthMm}
+          min={widthMm.min}
+          max={widthMm.max}
+          step={widthMm.step}
           disabled={disabled}
-          format={(v) => `${roundTo(v * 100, 0)}%`}
-          onChange={(v) => onTransform({ scale: v }, false)}
+          format={asPercent}
+          onChange={(v) => onTransform({ widthMm: v }, false)}
           onCommit={onCommit}
         />
 
         <Slider
           label={t.across}
-          value={transform.x}
-          min={offset.min}
-          max={offset.max}
-          step={offset.step}
+          value={transform.xMm}
+          min={xMm.min}
+          max={xMm.max}
+          step={xMm.step}
           disabled={disabled}
-          format={(v) => `${roundTo(v * 100, 0)}`}
-          onChange={(v) => onTransform({ x: v }, false)}
+          format={acrossReadout}
+          onChange={(v) => onTransform({ xMm: v }, false)}
           onCommit={onCommit}
         />
 
         <Slider
           label={t.upDown}
-          value={transform.y}
-          min={offset.min}
-          max={offset.max}
-          step={offset.step}
+          value={transform.yMm}
+          min={yMm.min}
+          max={yMm.max}
+          step={yMm.step}
           disabled={disabled}
-          format={(v) => `${roundTo(-v * 100, 0)}`}
-          onChange={(v) => onTransform({ y: v }, false)}
+          format={upDownReadout}
+          onChange={(v) => onTransform({ yMm: v }, false)}
           onCommit={onCommit}
         />
 
@@ -79,7 +94,7 @@ export function ArtworkControls({ product, artwork, transform, onTransform, onCo
           onCommit={onCommit}
         />
 
-        {product.print.wrap && (
+        {print.wrap && (
           <Slider
             label={t.repeat}
             value={transform.repeat}

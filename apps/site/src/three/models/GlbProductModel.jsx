@@ -130,12 +130,16 @@ export function GlbProductModel({ product, texture, baseColor, onMeasure }) {
     cloned.traverse((child) => {
       if (!child.isMesh || !matches(child)) return;
       const projection = product.print.projection ?? {};
+      const { widthMm, heightMm } = product.print.physical;
       const geometry = buildDecalGeometry(
         child,
         {
           ...projection,
           // 0.4 mm off the surface, converted into this model's own units.
           liftUnits: ((projection.liftMm ?? 0.4) / 1000) / fitScale,
+          // The shape the artwork was composed at. The config is the authority
+          // on what the panel is; the mesh only says where it is.
+          targetAspect: widthMm / heightMm,
         },
         child.matrixWorld
       );
@@ -147,6 +151,36 @@ export function GlbProductModel({ product, texture, baseColor, onMeasure }) {
     // dependency for the handful of triangles involved.
     return geometries[0];
   }, [cloned, printMode, product, fitScale]);
+
+  /*
+   * A decal panel has no dieline, so its millimetres are entered by hand and
+   * nothing checks them. The projection measures the panel the mesh actually
+   * has; if that disagrees with what the config claims, the artwork is
+   * letterboxed to stay undistorted — correct, but a sign the config is
+   * describing a different object than the model is.
+   *
+   * Worth knowing while a product is being onboarded, and worth nothing to a
+   * visitor, so it is a development warning and not a runtime concern.
+   */
+  useLayoutEffect(() => {
+    if (!import.meta.env.DEV || !decal) return;
+
+    const measured = decal.userData.panelAspect;
+    const { widthMm, heightMm } = product.print.physical;
+    const declared = widthMm / heightMm;
+    if (!measured || !declared) return;
+
+    const drift = Math.abs(measured / declared - 1);
+    if (drift > 0.02) {
+      console.warn(
+        `[${product.id}] print.physical says ${widthMm}×${heightMm} mm ` +
+          `(aspect ${declared.toFixed(3)}), but the projected panel measures ` +
+          `${measured.toFixed(3)} — ${(drift * 100).toFixed(0)}% out. Artwork is ` +
+          `letterboxed to stay undistorted; correct the millimetres, or the ` +
+          `projection axis and threshold, to use the whole panel.`
+      );
+    }
+  }, [decal, product]);
 
   useLayoutEffect(() => () => decal?.dispose(), [decal]);
 

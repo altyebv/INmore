@@ -2,7 +2,7 @@ import { createContext, useCallback, useContext, useMemo, useReducer, useRef } f
 import { loadArtwork, releaseArtwork, ArtworkError } from '@/lib/artwork/loadArtwork';
 import autoTrim from '@/lib/artwork/autoTrim';
 import { IDENTITY_CROP } from '@/lib/artwork/constants';
-import { getFitScale } from '@/lib/artwork/composeArtwork';
+import { getFitWidthMm } from '@/lib/artwork/composeArtwork';
 import { useT } from '@/i18n';
 import studioReducer, { createInitialState, createTransform } from './studioReducer';
 
@@ -48,8 +48,8 @@ export function StudioProvider({ children, catalogue, initialProductId }) {
   const placementFor = useCallback((nextProduct, art) => {
     const base = { ...createTransform(nextProduct), crop: art?.crop ?? IDENTITY_CROP };
     if (!art) return base;
-    const fit = getFitScale(nextProduct.print, art, base, 'contain');
-    return { ...base, scale: Math.min(base.scale, fit * 0.82) };
+    const fit = getFitWidthMm(nextProduct.print, art, base, 'contain');
+    return { ...base, widthMm: Math.min(base.widthMm, fit * 0.82) };
   }, []);
 
   const selectProduct = useCallback(
@@ -77,7 +77,7 @@ export function StudioProvider({ children, catalogue, initialProductId }) {
         if (previousArtwork.current) releaseArtwork(previousArtwork.current);
         previousArtwork.current = artwork;
 
-        dispatch({ type: 'artwork-loaded', artwork, transform });
+        dispatch({ type: 'artwork-loaded', artwork, transform, product });
         return artwork;
       } catch (error) {
         // Store the code; the message is resolved below in the active language.
@@ -108,7 +108,8 @@ export function StudioProvider({ children, catalogue, initialProductId }) {
       dispatch,
       uploadArtwork,
       clearArtwork,
-      setTransform: (patch, commit = true) => dispatch({ type: 'transform', patch, commit }),
+      setTransform: (patch, commit = true) =>
+        dispatch({ type: 'transform', patch, commit, product }),
       resetTransform: () => dispatch({ type: 'reset-transform', product }),
       selectProduct,
       setView: (view) => dispatch({ type: 'set-view', view }),

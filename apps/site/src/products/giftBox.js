@@ -67,13 +67,17 @@ export const giftBox = {
       liftMm: 0.4,
     },
 
-    texture: { width: 2048, height: 2048 },
     uv: { x: 0, y: 0, width: 1, height: 1 },
-    physical: { widthMm: 220, heightMm: 220, bleedMm: 3, safeMm: 10 },
+    physical: {
+      widthMm: 220,
+      heightMm: 220,
+      bleedMm: 3,
+      safeMm: { top: 10, right: 10, bottom: 10, left: 10 },
+    },
     wrap: false,
     stock: 'slate',
     stockPalette: ['slate', 'black', 'white', 'clay', 'forest', 'ink'],
-    defaultTransform: { scale: 0.5, x: 0, y: 0, rotation: 0, repeat: 1 },
+    defaultTransform: { width: 0.5, x: 0, y: 0, rotation: 0, repeat: 1 },
   },
 
   material: { roughness: 0.55, metalness: 0, envMapIntensity: 1 },
