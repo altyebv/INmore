@@ -19,7 +19,8 @@
     "models:uv": "node tools/uv-map.mjs",
     "tenants:check": "node tools/check-tenants.mjs",
     "build:embed": "npm run build --workspace apps/embed",
-    "preview:embed": "npm run preview --workspace apps/embed"
+    "preview:embed": "npm run preview --workspace apps/embed",
+    "models:onboard": "node tools/onboard.mjs"
   },
   "devDependencies": {
     "@gltf-transform/core": "^4.5.0",
