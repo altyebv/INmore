@@ -18,6 +18,7 @@ import useMediaQuery, {
 } from '@/lib/utils/useMediaQuery';
 import { useContent, useLocale, useLocalizedProduct } from '@/i18n';
 import { useAppShell } from '@/app/ShellContext';
+import { inmoreCatalogue } from '@/tenant';
 import styles from './Studio.module.css';
 
 /**
@@ -329,7 +330,7 @@ export function Studio() {
   if (compact) {
     return (
       <main id="main">
-        <StudioProvider>
+        <StudioProvider catalogue={inmoreCatalogue}>
           <StudioLayout />
         </StudioProvider>
       </main>
@@ -348,7 +349,7 @@ export function Studio() {
         </div>
       </div>
 
-      <StudioProvider>
+      <StudioProvider catalogue={inmoreCatalogue}>
         <StudioLayout />
       </StudioProvider>
     </main>

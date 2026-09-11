@@ -1,5 +1,4 @@
 import { useMemo } from 'react';
-import { catalogue as rawCatalogue } from '@/products';
 import { useLocale } from './LocaleProvider';
 
 /**
@@ -21,9 +20,21 @@ export function useLocalizedProduct(product) {
   return useMemo(() => localizeProduct(product, locale), [product, locale]);
 }
 
-export function useLocalizedCatalogue() {
+/**
+ * Localise a list of products.
+ *
+ * Takes the products rather than reaching for a module-level catalogue: which
+ * products exist is the caller's business, and two callers on one page may
+ * legitimately disagree about the answer.
+ *
+ * @param {any[]} products
+ */
+export function useLocalizedCatalogue(products) {
   const { locale } = useLocale();
-  return useMemo(() => rawCatalogue.map((p) => localizeProduct(p, locale)), [locale]);
+  return useMemo(
+    () => (products ?? []).map((p) => localizeProduct(p, locale)),
+    [products, locale]
+  );
 }
 
 export default localizeProduct;

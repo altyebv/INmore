@@ -1,10 +1,14 @@
 /**
- * Stock colours.
+ * The board INMORE prints on.
  *
  * A print house does not sell "hex #F7F5F1", it sells board. These are named
  * stocks with the colours they actually come out as, so the studio offers a
  * real choice rather than a colour wheel — and a custom value stays available
  * for a client who is matching an existing brand colour.
+ *
+ * Tenant data, not engine data: a cup printer's stock list is not a gift-box
+ * printer's. Products name these by id and the catalogue resolves them, so
+ * this table is swappable without touching a single product config.
  */
 
 export const STOCKS = {
@@ -17,8 +21,5 @@ export const STOCKS = {
   clay: { id: 'clay', color: '#a8482c', label: 'Clay red' },
   ink: { id: 'ink', color: '#22324f', label: 'Ink blue' },
 };
-
-/** Convenience for building a product's palette from stock ids. */
-export const stockPalette = (...ids) => ids.map((id) => STOCKS[id]);
 
 export default STOCKS;

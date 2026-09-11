@@ -4,6 +4,7 @@ import Section from '@/components/ui/Section';
 import HeroProduct from '@/features/marketing/HeroProduct';
 import HeroShowcase from '@/features/marketing/HeroShowcase';
 import { useContent } from '@/i18n';
+import { inmoreCatalogue } from '@/tenant';
 import usePageMeta from '@/lib/utils/usePageMeta';
 import styles from './Home.module.css';
 
@@ -23,7 +24,7 @@ export function Home() {
           behind it — the depth is the point, so the products are not moved out
           of the way, they are lit through. */}
       <section className={styles.hero}>
-        <HeroShowcase className={styles.heroCanvas} />
+        <HeroShowcase products={inmoreCatalogue.showcase} className={styles.heroCanvas} />
         <div className={styles.heroScrim} aria-hidden="true" />
 
         <div className={'u-shell ' + styles.heroInner}>
@@ -79,7 +80,7 @@ export function Home() {
           </div>
 
           <Reveal className={styles.inviteFrame} delay={120}>
-            <HeroProduct className={styles.frameCanvas} />
+            <HeroProduct product={inmoreCatalogue.live[0]} className={styles.frameCanvas} />
           </Reveal>
         </div>
       </Section>

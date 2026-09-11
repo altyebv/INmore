@@ -1,4 +1,3 @@
-import { stockPalette, STOCKS } from './stock';
 
 /**
  * Paper cup — the first fully implemented product.
@@ -88,11 +87,11 @@ export const paperCup = {
     /** The artwork wraps continuously — left and right edges meet at the seam. */
     wrap: true,
 
-    /** Unprinted stock colour behind the artwork. */
-    stockColor: STOCKS.white.color,
+    /** Default stock, by id. Resolved to a colour by the catalogue. */
+    stock: 'white',
 
-    /** Stocks this product is actually available in. */
-    stockPalette: stockPalette('white', 'natural', 'sand', 'black', 'forest', 'clay'),
+    /** Stocks this product is actually available in, by id. */
+    stockPalette: ['white', 'natural', 'sand', 'black', 'forest', 'clay'],
 
     /** Default placement of freshly uploaded artwork. */
     defaultTransform: { scale: 0.42, x: 0, y: 0, rotation: 0, repeat: 1 },

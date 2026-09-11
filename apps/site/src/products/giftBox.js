@@ -1,4 +1,3 @@
-import { stockPalette, STOCKS } from './stock';
 
 /**
  * Rigid gift box with a ribbon.
@@ -72,8 +71,8 @@ export const giftBox = {
     uv: { x: 0, y: 0, width: 1, height: 1 },
     physical: { widthMm: 220, heightMm: 220, bleedMm: 3, safeMm: 10 },
     wrap: false,
-    stockColor: STOCKS.slate.color,
-    stockPalette: stockPalette('slate', 'black', 'white', 'clay', 'forest', 'ink'),
+    stock: 'slate',
+    stockPalette: ['slate', 'black', 'white', 'clay', 'forest', 'ink'],
     defaultTransform: { scale: 0.5, x: 0, y: 0, rotation: 0, repeat: 1 },
   },
 

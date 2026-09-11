@@ -1,21 +1,22 @@
 import { useLocalizedCatalogue, useT } from '@/i18n';
+import { useStudio } from '../state/StudioProvider';
 import styles from './ProductPicker.module.css';
 
 /**
  * Product selection.
  *
- * Reads straight from the registry, so a newly configured product appears here
- * with no change to this component. Announced-but-unbuilt products are shown
- * as unavailable rather than hidden — the range is real, the models are not
- * all finished.
+ * Reads this studio's catalogue, so a newly configured product appears here
+ * with no change to this component — and two studios on one page each list
+ * their own. Announced-but-unbuilt products are shown as unavailable rather
+ * than hidden: the range is real, the models are not all finished.
  */
 export function ProductPicker({ selectedId, onSelect }) {
-  const catalogue = useLocalizedCatalogue();
+  const products = useLocalizedCatalogue(useStudio().catalogue.all);
   const t = useT().studio;
 
   return (
     <div className={styles.list} role="group" aria-label={t.chooseProduct}>
-      {catalogue.map((product) => {
+      {products.map((product) => {
         const live = product.status === 'live';
         return (
           <button

@@ -1,5 +1,4 @@
 import { createContext, useCallback, useContext, useMemo, useReducer, useRef } from 'react';
-import { getProduct, defaultProductId } from '@/products';
 import { loadArtwork, releaseArtwork, ArtworkError } from '@/lib/artwork/loadArtwork';
 import autoTrim from '@/lib/artwork/autoTrim';
 import { IDENTITY_CROP } from '@/lib/artwork/constants';
@@ -13,14 +12,32 @@ const StudioContext = createContext(null);
  * Owns all studio interaction state and the side effects around file loading.
  * Rendering components read from here; none of them touch the file system,
  * the compositor or the reducer directly.
+ *
+ * The catalogue arrives as a prop rather than being imported. Two providers on
+ * one page then hold two independent studios over two different product sets,
+ * which is the property the whole extraction rests on — and it is also what
+ * makes the catalogue a thing the caller owns rather than a thing this module
+ * decides.
+ *
+ * @param {{
+ *   catalogue: import('@/products').Catalogue,
+ *   initialProductId?: string,
+ *   children: React.ReactNode,
+ * }} props
  */
-export function StudioProvider({ children, initialProductId = defaultProductId }) {
-  const initialProduct = getProduct(initialProductId) ?? getProduct(defaultProductId);
+export function StudioProvider({ children, catalogue, initialProductId }) {
+  const openOn = initialProductId ?? catalogue.defaultProductId;
+  const initialProduct = catalogue.get(openOn) ?? catalogue.live[0];
+
+  if (!initialProduct) {
+    throw new Error('StudioProvider was given a catalogue with no live products.');
+  }
+
   const [state, dispatch] = useReducer(studioReducer, initialProduct, createInitialState);
   const previousArtwork = useRef(null);
   const errorCopy = useT().studio.errors;
 
-  const product = getProduct(state.productId) ?? initialProduct;
+  const product = catalogue.get(state.productId) ?? initialProduct;
 
   /**
    * Size and place existing artwork for a product's print area.
@@ -37,14 +54,14 @@ export function StudioProvider({ children, initialProductId = defaultProductId }
 
   const selectProduct = useCallback(
     (next) => {
-      const target = getProduct(next.id) ?? next;
+      const target = catalogue.get(next.id) ?? next;
       dispatch({
         type: 'select-product',
         product: target,
         transform: placementFor(target, state.artwork),
       });
     },
-    [placementFor, state.artwork]
+    [catalogue, placementFor, state.artwork]
   );
 
   const uploadArtwork = useCallback(
@@ -85,6 +102,9 @@ export function StudioProvider({ children, initialProductId = defaultProductId }
       ...state,
       error: state.error ? errorCopy[state.error] ?? errorCopy.unknown : null,
       product,
+      // Passed down rather than imported, so a picker shows this studio's
+      // products and not whatever some module decided were the products.
+      catalogue,
       dispatch,
       uploadArtwork,
       clearArtwork,
@@ -99,7 +119,7 @@ export function StudioProvider({ children, initialProductId = defaultProductId }
       canUndo: state.history.length > 0,
       canRedo: state.future.length > 0,
     }),
-    [state, product, errorCopy, uploadArtwork, clearArtwork, selectProduct]
+    [state, product, catalogue, errorCopy, uploadArtwork, clearArtwork, selectProduct]
   );
 
   return <StudioContext.Provider value={value}>{children}</StudioContext.Provider>;

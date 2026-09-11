@@ -1,5 +1,4 @@
 import { Suspense, lazy } from 'react';
-import { paperCup } from '@/products';
 
 /**
  * The hero object.
@@ -12,12 +11,14 @@ const ProductViewer = lazy(() => import('@/three/ProductViewer'));
 /** Slightly wider framing than the studio: the hero shows the whole object. */
 const HERO_CAMERA = { position: [0.5, 0.28, 1], fov: 26, framing: 1.95 };
 
-export function HeroProduct({ className, autoRotate = true }) {
+export function HeroProduct({ product, className, autoRotate = true }) {
+  if (!product) return <div className={className} />;
+
   return (
     <div className={className}>
       <Suspense fallback={null}>
         <ProductViewer
-          product={paperCup}
+          product={product}
           texture={null}
           autoRotate={autoRotate}
           camera={HERO_CAMERA}

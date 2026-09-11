@@ -1,4 +1,3 @@
-import { stockPalette, STOCKS } from './stock';
 
 /**
  * Flat-bottom takeaway package.
@@ -61,8 +60,8 @@ export const mailerPackage = {
     uv: { x: 0, y: 0, width: 1, height: 1 },
     physical: { widthMm: 180, heightMm: 300, bleedMm: 3, safeMm: 8 },
     wrap: false,
-    stockColor: STOCKS.natural.color,
-    stockPalette: stockPalette('natural', 'white', 'sand', 'clay', 'forest', 'black'),
+    stock: 'natural',
+    stockPalette: ['natural', 'white', 'sand', 'clay', 'forest', 'black'],
     defaultTransform: { scale: 0.6, x: 0, y: -0.1, rotation: 0, repeat: 1 },
   },
 

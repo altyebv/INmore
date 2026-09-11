@@ -1,5 +1,5 @@
 import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { paletteFor, showcaseProducts } from '@/products';
+import { paletteFor } from '@/products';
 import { useContent, useLocale } from '@/i18n';
 import { localizeProduct } from '@/i18n/localizeProduct';
 import useMediaQuery from '@/lib/utils/useMediaQuery';
@@ -41,7 +41,7 @@ const RESUME_AFTER_MS = 9000;
 /** Horizontal drag, as a fraction of the viewport, that advances one product. */
 const DRAG_TRAVEL = 0.22;
 
-export function HeroShowcase({ className }) {
+export function HeroShowcase({ products: source = [], className }) {
   const { ui } = useContent();
   const copy = ui.home;
   const { locale, isRTL } = useLocale();
@@ -52,8 +52,8 @@ export function HeroShowcase({ className }) {
   // `localizeProduct` swaps only the readable fields, so what reaches the rail
   // is still a complete product config.
   const products = useMemo(
-    () => showcaseProducts.map((product) => localizeProduct(product, locale)),
-    [locale]
+    () => source.map((product) => localizeProduct(product, locale)),
+    [source, locale]
   );
   const count = products.length;
 

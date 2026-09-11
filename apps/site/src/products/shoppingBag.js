@@ -1,4 +1,3 @@
-import { stockPalette, STOCKS } from './stock';
 
 /**
  * Kraft shopping bag with twisted handles.
@@ -69,8 +68,8 @@ export const shoppingBag = {
     uv: { x: 0, y: 0, width: 1, height: 1 },
     physical: { widthMm: 190, heightMm: 240, bleedMm: 3, safeMm: 8 },
     wrap: false,
-    stockColor: STOCKS.natural.color,
-    stockPalette: stockPalette('natural', 'white', 'sand', 'black', 'forest', 'ink'),
+    stock: 'natural',
+    stockPalette: ['natural', 'white', 'sand', 'black', 'forest', 'ink'],
     defaultTransform: { scale: 0.55, x: 0, y: 0, rotation: 0, repeat: 1 },
   },
 
