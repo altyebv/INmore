@@ -7,6 +7,8 @@ import composeArtwork, {
 import { transformLimitsFor } from '../state/studioReducer';
 import { clamp, roundTo } from '@/lib/utils/math';
 import { useT } from '@/i18n';
+import cx from '@/lib/utils/cx';
+import { studioUtils } from '../StudioRoot';
 import styles from './FlatPreview.module.css';
 
 /**
@@ -264,12 +266,12 @@ export function FlatPreview({ product, artwork, transform, baseColor, onTransfor
       </div>
 
       <div className={styles.meta}>
-        <span className="u-ltr">
+        <span className={studioUtils.ltr}>
           {physical.widthMm} × {physical.heightMm} mm · {safeCaption} mm
         </span>
         {artwork && (
           <span className={artwork.isLowResolution ? styles.warn : undefined}>
-            <span className="u-ltr">
+            <span className={studioUtils.ltr}>
               {artwork.width} × {artwork.height} px ·{' '}
               {roundTo((transform.widthMm / physical.widthMm) * 100, 0)}%
             </span>

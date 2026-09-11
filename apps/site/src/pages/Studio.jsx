@@ -18,7 +18,8 @@ import useMediaQuery, {
 } from '@/lib/utils/useMediaQuery';
 import { useContent, useLocale, useLocalizedProduct } from '@/i18n';
 import { useAppShell } from '@/app/ShellContext';
-import { inmoreCatalogue } from '@/tenant';
+import { inmoreBranding, inmoreCatalogue } from '@/tenant';
+import StudioRoot, { studioUtils } from '@/features/studio/StudioRoot';
 import styles from './Studio.module.css';
 
 /**
@@ -95,7 +96,7 @@ function PointerStudio() {
   const t = ui.studio;
 
   return (
-    <div className={styles.workspace + ' u-shell'}>
+    <div className={cx(styles.workspace, studioUtils.shell)}>
       <div className={styles.viewer}>
         <StudioStage
           product={s.product}
@@ -206,7 +207,7 @@ function TouchStudio() {
           the one thing on it that neither shows the product nor changes it. */}
       {!sidePanel && (
         <div className={styles.shellIntro}>
-          <p className="u-label">{t.eyebrow}</p>
+          <p className={studioUtils.label}>{t.eyebrow}</p>
           <h1 className={styles.shellTitle}>{t.heading}</h1>
         </div>
       )}
@@ -311,6 +312,7 @@ function StudioLayout() {
 export function Studio() {
   const { ui } = useContent();
   const t = ui.studio;
+  const { locale, dir } = useLocale();
   const compact = useMediaQuery(STUDIO_COMPACT_QUERY);
 
   usePageMeta({ title: t.title, description: t.description });
@@ -327,31 +329,47 @@ export function Studio() {
     };
   }, [compact]);
 
+  /*
+   * The site tells the studio how much of the viewport is already spoken for.
+   * The studio has no way to know a header exists — in a host page there may
+   * not be one — so this is the one layout fact that crosses the boundary.
+   */
+  const root = {
+    branding: inmoreBranding,
+    locale,
+    dir,
+    insetBlockStart: 'var(--header-h)',
+  };
+
   if (compact) {
     return (
       <main id="main">
-        <StudioProvider catalogue={inmoreCatalogue}>
-          <StudioLayout />
-        </StudioProvider>
+        <StudioRoot {...root}>
+          <StudioProvider catalogue={inmoreCatalogue}>
+            <StudioLayout />
+          </StudioProvider>
+        </StudioRoot>
       </main>
     );
   }
 
   return (
-    <main id="main" className={styles.page}>
-      <div className={styles.intro}>
-        <div className={'u-shell ' + styles.introInner}>
-          <div>
-            <p className="u-label">{t.eyebrow}</p>
-            <h1 className={styles.title}>{t.heading}</h1>
+    <main id="main">
+      <StudioRoot {...root} className={styles.page}>
+        <div className={styles.intro}>
+          <div className={cx(studioUtils.shell, styles.introInner)}>
+            <div>
+              <p className={studioUtils.label}>{t.eyebrow}</p>
+              <h1 className={styles.title}>{t.heading}</h1>
+            </div>
+            <p className={styles.lede}>{t.lede}</p>
           </div>
-          <p className={styles.lede}>{t.lede}</p>
         </div>
-      </div>
 
-      <StudioProvider catalogue={inmoreCatalogue}>
-        <StudioLayout />
-      </StudioProvider>
+        <StudioProvider catalogue={inmoreCatalogue}>
+          <StudioLayout />
+        </StudioProvider>
+      </StudioRoot>
     </main>
   );
 }

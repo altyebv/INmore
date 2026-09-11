@@ -14,22 +14,32 @@ const LocaleContext = createContext(null);
  * fallbacks: a missing translation is then a build-time shape mismatch we can
  * see, not a silent English string leaking into an Arabic page.
  */
-export function LocaleProvider({ children, initialLocale }) {
+export function LocaleProvider({ children, initialLocale, ownsDocument = true }) {
   const [locale, setLocaleState] = useState(
     () => (isLocale(initialLocale) ? initialLocale : resolveInitialLocale())
   );
 
   const meta = LOCALES[locale] ?? LOCALES[DEFAULT_LOCALE];
 
-  // The document element carries language and direction for the whole app:
-  // CSS logical properties, text selection, form controls and screen readers
-  // all take their cue from it.
+  /*
+   * The document element carries language and direction for the whole app:
+   * CSS logical properties, text selection, form controls and screen readers
+   * all take their cue from it.
+   *
+   * `ownsDocument` exists because only one provider on a page can be right
+   * about that. The site's root provider is; a provider wrapping a studio
+   * embedded in someone else's page is not, and writing `dir` from there flips
+   * the host's layout. The studio sets direction on its own root element
+   * instead — see StudioRoot — so an Arabic studio can sit inside an English
+   * page without either lying about the other.
+   */
   useEffect(() => {
+    if (!ownsDocument) return;
     const root = document.documentElement;
     root.lang = meta.htmlLang;
     root.dir = meta.dir;
     root.dataset.locale = meta.code;
-  }, [meta]);
+  }, [meta, ownsDocument]);
 
   const setLocale = useCallback((next) => {
     if (!isLocale(next)) return;

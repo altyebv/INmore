@@ -3,6 +3,8 @@ import Button from '@/components/ui/Button';
 import { ACCEPTED_EXTENSIONS } from '@/lib/artwork/constants';
 import { formatBytes } from '@/lib/utils/format';
 import { useT } from '@/i18n';
+import cx from '@/lib/utils/cx';
+import { studioUtils } from '../StudioRoot';
 import styles from './ArtworkDropzone.module.css';
 
 /**
@@ -39,7 +41,7 @@ export function ArtworkDropzone({ artwork, status, error, onUpload, onClear, com
           <span className={styles.name} title={artwork.name}>
             {artwork.name}
           </span>
-          <span className={`${styles.detail} u-ltr`}>
+          <span className={cx(styles.detail, studioUtils.ltr)}>
             {artwork.width} × {artwork.height} · {formatBytes(artwork.size)}
           </span>
         </div>
@@ -51,7 +53,7 @@ export function ArtworkDropzone({ artwork, status, error, onUpload, onClear, com
         </Button>
         <input
           ref={inputRef}
-          className="u-visually-hidden"
+          className={studioUtils.visuallyHidden}
           type="file"
           accept={ACCEPTED_EXTENSIONS}
           onChange={(event) => handleFiles(event.target.files)}
@@ -90,7 +92,7 @@ export function ArtworkDropzone({ artwork, status, error, onUpload, onClear, com
           ) : (
             <>
               <span className={styles.title}>{compact ? t.titleTouch : t.title}</span>
-              <span className={`${styles.hint} u-ltr`}>{t.hint}</span>
+              <span className={cx(styles.hint, studioUtils.ltr)}>{t.hint}</span>
             </>
           )}
         </div>

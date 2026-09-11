@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { paletteFor } from '@/products';
 import { useT } from '@/i18n';
 import cx from '@/lib/utils/cx';
+import { studioUtils } from '../StudioRoot';
 import styles from './StockPicker.module.css';
 
 /**
@@ -42,7 +43,7 @@ export function StockPicker({ product, value, onChange }) {
               <path d="M7 1v12M1 7h12" stroke="currentColor" strokeWidth="1.4" />
             </svg>
           </span>
-          <span className="u-visually-hidden">{t.custom}</span>
+          <span className={studioUtils.visuallyHidden}>{t.custom}</span>
           <input
             type="color"
             className={styles.customInput}
@@ -54,7 +55,7 @@ export function StockPicker({ product, value, onChange }) {
 
       <p className={styles.caption}>
         <span className={styles.name}>{active ? localised(active) : t.custom}</span>
-        <span className={cx(styles.value, 'u-ltr')}>{value}</span>
+        <span className={cx(styles.value, studioUtils.ltr)}>{value}</span>
       </p>
     </div>
   );

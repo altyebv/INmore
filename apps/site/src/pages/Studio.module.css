@@ -7,7 +7,7 @@
 
 .page {
   min-height: 100svh;
-  padding-top: var(--header-h);
+  padding-top: var(--studio-inset-block-start);
   display: flex;
   flex-direction: column;
 }
@@ -51,10 +51,10 @@
   border: 1px solid var(--line);
   border-radius: var(--radius-lg);
   background: var(--ink-800);
-  max-height: calc(100svh - var(--header-h) - 6rem);
+  max-height: calc(100svh - var(--studio-inset-block-start) - 6rem);
   overflow-y: auto;
   position: sticky;
-  top: calc(var(--header-h) + 1rem);
+  top: calc(var(--studio-inset-block-start) + 1rem);
 }
 
 .step { display: grid; gap: var(--space-3); }
@@ -112,7 +112,7 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  padding-top: var(--header-h);
+  padding-top: var(--studio-inset-block-start);
   /* Whatever the sheet reports, the product keeps a floor: no drag can squeeze
      it out of existence. */
   padding-bottom: min(calc(var(--sheet-h, 30svh) + var(--space-3)), 72svh);

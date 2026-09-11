@@ -19,7 +19,7 @@ export async function exportProof(
   product,
   artwork,
   transform,
-  { withGuides = true, stockColor, dpi = DEFAULT_PRINT_DPI } = {}
+  { withGuides = true, stockColor, dpi = DEFAULT_PRINT_DPI, guideColors } = {}
 ) {
   const { print } = product;
   const options = { stockColor, dpi, bleed: true };
@@ -29,6 +29,18 @@ export async function exportProof(
 
   const surface = resolveSurface(print, options);
 
+  /*
+   * Guide colours come from the tenant, not from this module. They used to be
+   * INMORE's accent and ink written as literals here — a second, invisible copy
+   * of the brand, in the one output a client actually sends to a printer.
+   */
+  const guides = {
+    safe: 'rgba(226, 72, 31, 0.85)',
+    trim: 'rgba(11, 11, 10, 0.45)',
+    bleed: 'rgba(11, 11, 10, 0.22)',
+    ...guideColors,
+  };
+
   if (withGuides) {
     const ctx = canvas.getContext('2d');
     const { trim, safe, bleed } = surface;
@@ -37,18 +49,18 @@ export async function exportProof(
     ctx.lineWidth = Math.max(2, canvas.width * 0.0012);
 
     // Safe area: everything inside is guaranteed to survive the cut.
-    ctx.strokeStyle = 'rgba(226, 72, 31, 0.85)';
+    ctx.strokeStyle = guides.safe;
     ctx.setLineDash([ctx.lineWidth * 6, ctx.lineWidth * 5]);
     ctx.strokeRect(safe.x, safe.y, safe.width, safe.height);
 
     // Trim: where the blade is meant to land.
     ctx.setLineDash([]);
-    ctx.strokeStyle = 'rgba(11, 11, 10, 0.45)';
+    ctx.strokeStyle = guides.trim;
     ctx.strokeRect(trim.x, trim.y, trim.width, trim.height);
 
     // Bleed: how far artwork must run past it.
     if (print.physical.bleedMm) {
-      ctx.strokeStyle = 'rgba(11, 11, 10, 0.22)';
+      ctx.strokeStyle = guides.bleed;
       ctx.setLineDash([ctx.lineWidth * 2, ctx.lineWidth * 3]);
       ctx.strokeRect(bleed.x, bleed.y, bleed.width, bleed.height);
     }

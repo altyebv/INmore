@@ -28,7 +28,7 @@
 
 /* --- Docked to the trailing side ------------------------------------------- */
 .edgeSide {
-  inset-block: var(--header-h) 0;
+  inset-block: var(--studio-inset-block-start) 0;
   inset-inline-end: 0;
   width: var(--sheet-extent);
   border-inline-start: 1px solid var(--line-strong);
