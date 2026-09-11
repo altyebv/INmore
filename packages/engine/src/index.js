@@ -36,7 +36,7 @@ export {
 } from './i18n';
 
 /* --- Assets ------------------------------------------------------------------ */
-export { resolveAsset, useAsset, useAssetBase } from './assets';
+export { resolveAsset, useAsset, useAssetBase, useDracoPath } from './assets';
 
 /* --- Licensing --------------------------------------------------------------- */
 export { domainLicense, permissiveLicense, useLicense } from './license';
@@ -77,6 +77,5 @@ export { default as ProductViewer } from './three/ProductViewer';
 export { default as ProductModel } from './three/ProductModel';
 export { default as Stage } from './three/Stage';
 export { default as resolveCamera } from './three/framing';
-export { preloadProductModel } from './three/models/loader';
-export { preloadGlbModels } from './three/models/preloadModels';
+export { preloadProductModel, DEFAULT_DRACO_PATH } from './three/models/loader';
 export { default as useModelAvailability } from './three/models/useModelAvailability';

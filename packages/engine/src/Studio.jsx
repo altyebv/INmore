@@ -13,7 +13,7 @@ import StudioRoot, { studioUtils } from './StudioRoot';
 import useArtworkTexture from './three/useArtworkTexture';
 import exportProof from './artwork/exportProof';
 import buildSubmitPayload from './artwork/submitPayload';
-import { AssetBaseProvider } from './assets';
+import { AssetProvider } from './assets';
 import { localizeProduct } from './catalogue';
 import { LicenseProvider, permissiveLicense, useLicense } from './license';
 import {
@@ -384,6 +384,7 @@ export function Studio({
   locale = 'en',
   dir,
   assetBase = '',
+  dracoPath,
   license = permissiveLicense,
   copy,
   tenant = 'unknown',
@@ -426,7 +427,7 @@ export function Studio({
     >
       <LocaleContextProvider value={localeValue}>
         <CopyProvider value={resolvedCopy}>
-          <AssetBaseProvider value={assetBase}>
+          <AssetProvider assetBase={assetBase} dracoPath={dracoPath}>
             <LicenseProvider value={license}>
               <StudioProvider catalogue={catalogue} initialProductId={sku}>
                 <StudioBody
@@ -439,7 +440,7 @@ export function Studio({
                 />
               </StudioProvider>
             </LicenseProvider>
-          </AssetBaseProvider>
+          </AssetProvider>
         </CopyProvider>
       </LocaleContextProvider>
     </StudioRoot>

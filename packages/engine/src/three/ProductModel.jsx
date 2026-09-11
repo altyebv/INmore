@@ -4,6 +4,7 @@ import { PROXY_REGISTRY } from './models/PaperCupProxy';
 import GlbProductModel from './models/GlbProductModel';
 import GlbLoadBoundary from './models/GlbLoadBoundary';
 import useModelAvailability from './models/useModelAvailability';
+import { useAsset } from '../assets';
 
 /**
  * Resolve a product configuration into geometry.
@@ -19,7 +20,14 @@ import useModelAvailability from './models/useModelAvailability';
 export function ProductModel({ product, texture, baseColor, autoRotate = false, onMeasure }) {
   const group = useRef();
   const Proxy = PROXY_REGISTRY[product.model.proxy];
-  const availability = useModelAvailability(Proxy ? product.model.url : null);
+
+  /*
+   * A config names a path; where that path lives is the host's business. This
+   * is the single point where the two meet for the 3-D layer — resolve once
+   * here and every consumer below works in absolute URLs.
+   */
+  const url = useAsset(product.model.url);
+  const availability = useModelAvailability(Proxy ? url : null);
 
   /*
    * With a proxy available, use it until the GLB is confirmed present —
@@ -55,9 +63,10 @@ export function ProductModel({ product, texture, baseColor, autoRotate = false, 
   const content = useProxy ? (
     proxyContent
   ) : (
-    <GlbLoadBoundary url={product.model.url} fallback={proxyContent}>
+    <GlbLoadBoundary url={url} fallback={proxyContent}>
       <Suspense fallback={null}>
         <GlbProductModel
+          url={url}
           product={product}
           texture={texture}
           baseColor={baseColor}

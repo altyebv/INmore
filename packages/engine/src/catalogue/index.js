@@ -35,7 +35,13 @@
  * @property {(id: string) => boolean} isLive
  */
 
-/** A stock that is not in the table is a typo, and silence would ship it. */
+/**
+ * A stock that is not in the table is a typo, and silence would ship it.
+ *
+ * The id is stamped on from the key rather than read out of the value. In a
+ * config the key already says which stock this is, and asking for it twice is
+ * an invitation to have the two disagree.
+ */
 function resolveStock(id, stocks, product) {
   const stock = stocks[id];
   if (!stock) {
@@ -44,7 +50,7 @@ function resolveStock(id, stocks, product) {
       `Product "${product.id}" names stock "${id}", which this tenant does not offer. Known stocks: ${known}.`
     );
   }
-  return stock;
+  return { ...stock, id };
 }
 
 /**
@@ -100,17 +106,42 @@ export function createCatalogue({ products = [], stocks = {} } = {}) {
 }
 
 /**
+ * Fields of a product whose value may differ by language.
+ *
+ * Everything else on a product — geometry, print area, camera, materials — is
+ * the same object in every language, because it describes one physical thing.
+ */
+const LOCALIZED_FIELDS = ['name', 'shortName', 'category', 'summary', 'specs', 'guidance'];
+
+/**
  * Resolve a product's display strings for the active locale.
  *
- * Product configs stay single objects — geometry, print area, camera and
- * translations together — because they describe one physical thing. Only the
- * readable fields are swapped, and a product with no translation for a
- * language keeps its base strings rather than disappearing.
+ * Each localizable field is either one value used everywhere or a map of
+ * locale to value. The second shape used to be a single `translations` block
+ * holding a whole language at once; per-field maps replaced it when configs
+ * became JSON, because a validator can then say exactly which field in which
+ * language is missing rather than "a translation block is incomplete" — and it
+ * matches how stock labels already worked.
+ *
+ * A field with no value for the requested language falls back rather than
+ * disappearing: a half-translated config should read oddly, not break.
  */
-export function localizeProduct(product, locale) {
-  const translation = product?.translations?.[locale];
-  if (!translation) return product;
-  return { ...product, ...translation };
+export function localizeProduct(product, locale, fallback = 'en') {
+  if (!product) return product;
+
+  let changed = false;
+  const out = { ...product };
+
+  for (const field of LOCALIZED_FIELDS) {
+    const value = product[field];
+    if (value == null || typeof value === 'string' || Array.isArray(value)) continue;
+    if (typeof value !== 'object') continue;
+
+    out[field] = value[locale] ?? value[fallback] ?? Object.values(value)[0];
+    changed = true;
+  }
+
+  return changed ? out : product;
 }
 
 /**

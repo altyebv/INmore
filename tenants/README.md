@@ -1,20 +1,31 @@
 # Tenant configs
 
-One JSON file per client. A file here plus a CDN prefix of GLBs and dielines
-is the whole of onboarding — nothing in `packages/engine` should need to change
-to add a client.
+One JSON file per client. A file here plus a CDN prefix of models is the whole
+of onboarding — nothing in `packages/engine` changes to add a client.
 
-Empty until the config shape is settled. That happens after placement moves
-from texture pixels into millimetres, because the move changes what a
-decoration zone has to declare; writing configs before then would mean
-rewriting them after.
+```bash
+npm run tenants:check            # validate every config
+npm run tenants:check acme.json  # just one
+```
 
-What will live here:
-
-| File | Purpose |
+| File | |
 |---|---|
-| `inmore.json` | The existing client, extracted from `apps/site/src/products/*.js`. Proves the separation works. |
-| `_example.json` | A documented reference config for a new client. |
+| `inmore.json` | The existing client. Generated from the modules it replaced, so it is provably the same configuration. |
+| `_example.json` | A documented reference. Copy it, rename it, delete what you do not need. |
 
-Validated at load by `@inmore/config-schema`. A config that fails validation
-must produce a readable error naming the offending path, not a blank studio.
+## What to know before editing
+
+**Millimetres are the coordinate system.** Nothing declares a texture size. The
+studio derives resolution from `print.physical`, at one density on both axes,
+so a print area cannot describe pixels that disagree with its physical shape.
+
+**Most models need `decal`, not `texture`.** A model authored for print has
+flat unrolled UVs and can use `texture` with a `uv` window. A model from an
+asset library usually cannot — its atlas was built for a photograph, and often
+every face shares one patch, so artwork applied through it lands on all six
+sides at once. Run `npm run models:uv` to find out which you have, then
+`npm run models:axis` for the projection axis.
+
+**A bad config fails loudly.** `assertValidTenantConfig` throws at load with
+every problem named and located. That is deliberate: this file decides whether
+a client's studio works at all, and it is edited by hand.

@@ -22,8 +22,8 @@ import buildDecalGeometry from '../printSurface';
  *    UVs, or — for models whose UV atlas is not a print layout — a projected
  *    decal is generated and laid over the panel. See `printSurface.js`.
  */
-export function GlbProductModel({ product, texture, baseColor, onMeasure }) {
-  const { scene } = useProductGLTF(product.model.url);
+export function GlbProductModel({ url, product, texture, baseColor, onMeasure }) {
+  const { scene } = useProductGLTF(url ?? product.model.url);
   const groupRef = useRef();
 
   // Clone so two viewers (hero and studio) never fight over one scene graph.

@@ -4,6 +4,7 @@ import cx from '../utils/cx';
 import ProductViewer from '../three/ProductViewer';
 import useModelAvailability from '../three/models/useModelAvailability';
 import useMediaQuery, { COARSE_POINTER_QUERY } from '../utils/useMediaQuery';
+import { useAsset } from '../assets';
 import { useCopy } from '../i18n';
 import styles from './StudioStage.module.css';
 
@@ -27,7 +28,7 @@ export function StudioStage({
   compact = false,
 }) {
   const [touched, setTouched] = useState(false);
-  const modelStatus = useModelAvailability(product.model.url);
+  const modelStatus = useModelAvailability(useAsset(product.model.url));
   const coarse = useMediaQuery(COARSE_POINTER_QUERY);
   const t = useCopy();
 

@@ -16,7 +16,8 @@
     "lint": "npm run lint --workspaces --if-present",
     "models:inspect": "node tools/inspect-models.mjs",
     "models:axis": "node tools/panel-axis.mjs",
-    "models:uv": "node tools/uv-map.mjs"
+    "models:uv": "node tools/uv-map.mjs",
+    "tenants:check": "node tools/check-tenants.mjs"
   },
   "devDependencies": {
     "@gltf-transform/core": "^4.5.0",
