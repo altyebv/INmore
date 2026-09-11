@@ -1,32 +1,32 @@
 {
-  "name": "inmore-web",
+  "name": "inmore-studio",
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "description": "INMORE \u2014 advertising, branding, design and production. Web experience.",
+  "description": "Product configurator engine, the tenant configs that drive it, and the surfaces it ships on.",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview",
-    "lint": "eslint .",
+    "dev": "npm run dev --workspace apps/site",
+    "build": "npm run build --workspace apps/site && npm run build --workspace apps/embed",
+    "preview": "npm run preview --workspace apps/site",
+    "test": "npm run test --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present",
     "models:inspect": "node tools/inspect-models.mjs",
     "models:axis": "node tools/panel-axis.mjs",
-    "models:uv": "node tools/uv-map.mjs"
-  },
-  "dependencies": {
-    "@react-three/drei": "^9.114.3",
-    "@react-three/fiber": "^8.17.10",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "react-router-dom": "^6.28.0",
-    "three": "^0.169.0"
+    "models:uv": "node tools/uv-map.mjs",
+    "tenants:check": "node tools/check-tenants.mjs",
+    "build:embed": "npm run build --workspace apps/embed",
+    "preview:embed": "npm run preview --workspace apps/embed",
+    "models:onboard": "node tools/onboard.mjs"
   },
   "devDependencies": {
     "@gltf-transform/core": "^4.5.0",
     "@gltf-transform/extensions": "^4.5.0",
     "@gltf-transform/functions": "^4.5.0",
-    "@vitejs/plugin-react": "^4.3.3",
     "draco3dgltf": "^1.5.7",
-    "vite": "^5.4.10"
+    "vitest": "^2.1.8"
   }
 }

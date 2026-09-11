@@ -1,0 +1,169 @@
+/* ---------------------------------------------------------------------------
+   Studio sheet
+   The controls live here on touch layouts. The sheet docks to the bottom on
+   upright screens and to the trailing side on wide short ones; its extent is
+   published as --sheet-h / --sheet-w so the product viewer can reserve exactly
+   that much and shrink as the sheet moves. That is the whole point: the
+   product never disappears behind the controls.
+   --------------------------------------------------------------------------- */
+
+.sheet {
+  position: fixed;
+  z-index: var(--z-overlay);
+  display: flex;
+  flex-direction: column;
+  background: var(--ink-800);
+  box-shadow: var(--shadow-lg);
+  overscroll-behavior: contain;
+}
+
+/* --- Docked to the bottom -------------------------------------------------- */
+.edgeBottom {
+  inset-inline: 0;
+  bottom: 0;
+  height: var(--sheet-extent);
+  border-top: 1px solid var(--line-strong);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+}
+
+/* --- Docked to the trailing side ------------------------------------------- */
+.edgeSide {
+  inset-block: var(--studio-inset-block-start) 0;
+  inset-inline-end: 0;
+  width: var(--sheet-extent);
+  border-inline-start: 1px solid var(--line-strong);
+  border-radius: var(--radius-lg) 0 0 var(--radius-lg);
+}
+
+/* Only animate between stops, never while a finger is on the grip. */
+.settling.edgeBottom { transition: height var(--dur-base) var(--ease-out); }
+.settling.edgeSide { transition: width var(--dur-base) var(--ease-out); }
+
+/* --- Grip ------------------------------------------------------------------ */
+.grip {
+  flex: none;
+  display: grid;
+  place-items: center;
+  touch-action: none;
+  cursor: grab;
+  background: none;
+  border: none;
+  padding: 0;
+}
+.grip:active { cursor: grabbing; }
+
+.gripBar {
+  border-radius: var(--radius-pill);
+  background: var(--line-strong);
+  transition: background var(--dur-fast) var(--ease-out);
+}
+.grip:hover .gripBar,
+.grip:focus-visible .gripBar { background: var(--fg-faint); }
+
+/* The grip lies along the edge the sheet is dragged from, so it reads as the
+   thing you pull — horizontal on a bottom sheet, vertical on a side one. */
+.edgeBottom .grip {
+  width: 100%;
+  padding: var(--space-3) 0 var(--space-2);
+}
+.edgeBottom .gripBar {
+  width: 2.5rem;
+  height: 4px;
+}
+
+.edgeSide .grip {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 0;
+  width: var(--space-4);
+  padding: 0;
+}
+.edgeSide .gripBar {
+  width: 4px;
+  height: 2.5rem;
+}
+
+/* The side sheet's grip is an overlay on its leading edge, so the content
+   inside has to step clear of it. */
+.edgeSide .tabs,
+.edgeSide .body,
+.edgeSide .footerBar { padding-inline-start: var(--space-5); }
+
+/* --- Tabs ------------------------------------------------------------------ */
+.tabs {
+  flex: none;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  gap: var(--space-1);
+  padding: var(--space-3) var(--space-4) var(--space-3);
+}
+
+.edgeBottom .tabs { padding-top: 0; }
+
+.tab {
+  position: relative;
+  min-height: 2.75rem;
+  padding: 0 var(--space-2);
+  border: none;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--fg-faint);
+  font-size: var(--step--1);
+  font-weight: 500;
+  transition: color var(--dur-fast) var(--ease-out), background var(--dur-fast) var(--ease-out);
+}
+
+.tab[aria-selected='true'] {
+  color: var(--fg);
+  background: var(--ink-700);
+}
+
+.tab:disabled { opacity: 0.45; }
+
+.tabDone {
+  position: absolute;
+  top: 0.45rem;
+  inset-inline-end: 0.55rem;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+/* --- Body ------------------------------------------------------------------ */
+.body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  padding: 0 var(--space-4) calc(var(--space-6) + env(safe-area-inset-bottom, 0px));
+  display: grid;
+  gap: var(--space-5);
+  align-content: start;
+}
+
+/* A side sheet is short and narrow, so its content sits closer together and
+   does not need to clear a home indicator at the bottom of a phone. */
+.edgeSide .body {
+  gap: var(--space-4);
+  padding-bottom: var(--space-5);
+}
+
+.footerBar {
+  flex: none;
+  display: grid;
+  grid-auto-flow: column;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4) calc(var(--space-3) + env(safe-area-inset-bottom, 0px));
+  border-top: 1px solid var(--line);
+  background: var(--ink-800);
+}
+
+/* Three buttons across a narrow side panel would each be a few characters
+   wide, so they stack instead. */
+.edgeSide .footerBar {
+  grid-auto-flow: row;
+  padding-bottom: var(--space-3);
+}

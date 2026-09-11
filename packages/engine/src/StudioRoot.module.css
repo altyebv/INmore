@@ -1,0 +1,305 @@
+/* ---------------------------------------------------------------------------
+   The studio's own ground.
+
+   Every token the studio reads is defined here, on the element the studio
+   mounts into — not on `:root`. That distinction is the whole point of this
+   file. The class names in the studio's stylesheets were always scoped, so
+   they never leaked; the *tokens* were not, and without them every colour,
+   size and spacing in the studio resolves to nothing. Mounted in a page that
+   does not happen to import the site's stylesheet, it rendered as unstyled
+   markup, and nobody would have found that out until it was on a client's
+   site.
+
+   So these are defaults, deliberately neutral rather than INMORE's. A tenant's
+   branding is written over them as inline custom properties on this same
+   element, which is why the palette below is expressed as a few decisions
+   (ink, paper, accent) with everything else derived from them: a tenant that
+   sets three colours gets a coherent studio, not three correct colours and
+   forty wrong ones.
+
+   Nothing here uses `:root`, `html`, `body`, or a bare element selector, and
+   nothing may. The studio does not own the page it is mounted in.
+   --------------------------------------------------------------------------- */
+
+.root {
+  /* --- Brand surface: the three decisions a tenant actually makes ---------- */
+  --studio-ink: #0b0b0a;
+  --studio-paper: #f7f5f1;
+  --studio-accent: #e2481f;
+
+  /* --- Derived ink ranges -------------------------------------------------- */
+  --ink-900: var(--studio-ink);
+  --ink-800: color-mix(in srgb, var(--studio-ink) 94%, var(--studio-paper));
+  --ink-700: color-mix(in srgb, var(--studio-ink) 88%, var(--studio-paper));
+  --ink-600: color-mix(in srgb, var(--studio-ink) 82%, var(--studio-paper));
+  --ink-500: color-mix(in srgb, var(--studio-ink) 74%, var(--studio-paper));
+  --ink-400: color-mix(in srgb, var(--studio-ink) 62%, var(--studio-paper));
+
+  --paper-000: #ffffff;
+  --paper-100: var(--studio-paper);
+  --paper-200: color-mix(in srgb, var(--studio-paper) 88%, var(--studio-ink));
+  --paper-300: color-mix(in srgb, var(--studio-paper) 74%, var(--studio-ink));
+  --paper-400: color-mix(in srgb, var(--studio-paper) 56%, var(--studio-ink));
+
+  --accent: var(--studio-accent);
+  --accent-soft: color-mix(in srgb, var(--studio-accent) 80%, var(--studio-paper));
+  --accent-dim: color-mix(in srgb, var(--studio-accent) 16%, transparent);
+
+  /* --- Semantic surfaces ---------------------------------------------------- */
+  --bg: var(--ink-900);
+  --bg-raised: var(--ink-800);
+  --bg-inset: var(--ink-700);
+  --line: color-mix(in srgb, var(--studio-paper) 11%, transparent);
+  --line-strong: color-mix(in srgb, var(--studio-paper) 22%, transparent);
+
+  --fg: var(--paper-100);
+  --fg-muted: color-mix(in srgb, var(--studio-paper) 62%, transparent);
+  --fg-faint: color-mix(in srgb, var(--studio-paper) 38%, transparent);
+
+  --focus: #f6b23d;
+
+  /* --- Typography ----------------------------------------------------------- */
+  --studio-font: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --studio-font-mono: ui-monospace, 'SFMono-Regular', 'Menlo', monospace;
+  --font-sans: var(--studio-font);
+  --font-mono: var(--studio-font-mono);
+
+  --step--2: clamp(0.69rem, 0.67rem + 0.09vw, 0.75rem);
+  --step--1: clamp(0.8rem, 0.77rem + 0.15vw, 0.89rem);
+  --step-0: clamp(1rem, 0.96rem + 0.2vw, 1.13rem);
+  --step-1: clamp(1.25rem, 1.18rem + 0.36vw, 1.5rem);
+  --step-2: clamp(1.56rem, 1.44rem + 0.62vw, 2rem);
+  --step-3: clamp(1.95rem, 1.74rem + 1.05vw, 2.66rem);
+
+  --tracking-tight: -0.03em;
+  --tracking-label: 0.16em;
+
+  /* --- Space ---------------------------------------------------------------- */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+
+  --gutter: clamp(1.25rem, 4vw, 4rem);
+
+  /*
+   * How far down the viewport the studio may start.
+   *
+   * The touch layout pins itself to the viewport, and on the standalone site a
+   * fixed header sits above it. The studio cannot know that — it might be in a
+   * host page with no header at all, or a taller one — so the host sets this
+   * and the default is the honest one: nothing above us.
+   */
+  --studio-inset-block-start: 0px;
+
+  /* --- Radius & elevation --------------------------------------------------- */
+  --radius-sm: 2px;
+  --radius-md: 4px;
+  --radius-lg: 10px;
+  --radius-pill: 999px;
+
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.5);
+  --shadow-md: 0 12px 32px -12px rgb(0 0 0 / 0.7);
+  --shadow-lg: 0 40px 80px -40px rgb(0 0 0 / 0.85);
+
+  /* --- Motion --------------------------------------------------------------- */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-fast: 160ms;
+  --dur-base: 320ms;
+  --dur-slow: 720ms;
+
+  --z-canvas: 1;
+  --z-content: 10;
+  --z-overlay: 200;
+
+  /* The studio's own text settings, so a host page's body rules do not decide
+     them. Scoped to this subtree; nothing above it is touched. */
+  color: var(--fg);
+  font-family: var(--font-sans);
+  font-size: var(--step-0);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---------------------------------------------------------------------------
+   A reset, scoped to the subtree.
+
+   Tokens were only half the dependency. The studio also leaned on the site's
+   global reset — and it was `button { color: inherit }` that mattered most,
+   because without it a browser's default `buttontext` wins and every product
+   name in the picker renders black on a near-black panel. It was invisible
+   until the studio was mounted in a page that had no such reset, which is
+   precisely the situation it is being built for.
+
+   So the studio brings its own. Every selector is a descendant of `.root`: a
+   host page's own buttons, lists and links are none of our business, and the
+   one thing worse than inheriting a host's reset is imposing ours on it.
+   --------------------------------------------------------------------------- */
+
+.root,
+.root *,
+.root *::before,
+.root *::after {
+  /* A theme setting `content-box` globally would break every padded panel. */
+  box-sizing: border-box;
+}
+
+.root button,
+.root input,
+.root select,
+.root textarea {
+  font: inherit;
+  color: inherit;
+  letter-spacing: inherit;
+}
+
+/*
+ * Only the inherited properties are reset, which is what the site's global
+ * reset did too. Resetting `background`, `border` and `padding` here looks
+ * tempting as a defence against a host theme styling bare `button`, but
+ * `.root button` out-specifies a CSS-module class and strips the studio's own
+ * panels instead — which is what happened the first time this was written.
+ *
+ * Every studio button sets its own surface, so a host's `button {}` rule only
+ * reaches parts nothing else styles. Closing that last gap is not a
+ * specificity fight worth having; it is what the embed's iframe is for.
+ */
+.root button {
+  cursor: pointer;
+}
+
+.root h1,
+.root h2,
+.root h3,
+.root h4 {
+  margin: 0;
+  font-weight: 500;
+  line-height: 1.02;
+  letter-spacing: var(--tracking-tight);
+}
+
+.root p {
+  margin: 0;
+}
+
+.root ul,
+.root ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.root a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/*
+ * A theme styling bare `canvas` or `img` is common enough to be worth
+ * neutralising — the harness's green canvas border came from exactly such a
+ * rule. No engine module styles these directly, so this cannot out-specify
+ * anything of ours.
+ *
+ * A host using `!important` still wins, and no reset can change that. That is
+ * the argument for the iframe, not for an escalation here.
+ */
+.root img,
+.root canvas,
+.root svg {
+  display: block;
+  max-width: 100%;
+  border: 0;
+}
+
+/* A theme forcing `img { width: 100% !important }` must not stretch the 3-D
+   canvas or a swatch; an explicit height keeps the aspect the studio set. */
+.root canvas {
+  height: auto;
+}
+
+.root :focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
+  border-radius: var(--radius-sm);
+}
+
+/*
+ * Arabic has no uppercase and a taller x-height, so tracked-out uppercase
+ * labels and tight display letter-spacing actively hurt. The scale is retuned
+ * rather than the font simply swapped.
+ *
+ * Keyed off an attribute on this element rather than `:root[lang]`, so two
+ * studios on one page can be in two languages, and an Arabic studio works
+ * inside an English host page.
+ */
+.root[data-locale='ar'] {
+  --font-sans: var(--studio-font-arabic, var(--studio-font));
+  --font-mono: var(--studio-font-arabic, var(--studio-font));
+  --tracking-tight: 0;
+  --tracking-label: 0;
+  line-height: 1.75;
+}
+
+.root[data-locale='ar'] .label,
+.root[data-locale='ar'] [class*='label'],
+.root[data-locale='ar'] [class*='eyebrow'],
+.root[data-locale='ar'] [class*='category'],
+.root[data-locale='ar'] [class*='Title'] {
+  text-transform: none;
+}
+
+/* ---------------------------------------------------------------------------
+   Utilities, scoped.
+
+   These were global `.u-*` classes. They are used inside the studio, so they
+   come with it.
+   --------------------------------------------------------------------------- */
+
+.label {
+  font-family: var(--font-mono);
+  font-size: var(--step--2);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--fg-faint);
+}
+
+/* Latin runs inside Arabic text — emails, dimensions, hex values — need an
+   explicit direction or the surrounding RTL context reorders their punctuation. */
+.ltr {
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+.shell {
+  width: 100%;
+  max-width: var(--studio-max, 88rem);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .root *,
+  .root *::before,
+  .root *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+

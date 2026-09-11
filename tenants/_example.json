@@ -1,0 +1,244 @@
+{
+  "$comment": [
+    "A reference tenant config, with every field the schema understands.",
+    "",
+    "Copy this, rename it after the client, and delete what you do not need —",
+    "most of it is optional and the engine has workable defaults. Check your",
+    "work with `npm run tenants:check`, which names and locates every problem",
+    "rather than stopping at the first.",
+    "",
+    "Two things are worth understanding before editing:",
+    "",
+    "1. MILLIMETRES ARE THE COORDINATE SYSTEM. Nothing declares a texture size.",
+    "   The studio derives its resolution from `print.physical`, at one density",
+    "   on both axes, so a print area cannot describe pixels that disagree with",
+    "   its physical shape. Get the millimetres right and everything else",
+    "   follows.",
+    "",
+    "2. MOST MODELS NEED `decal`, NOT `texture`. A model authored for print has",
+    "   flat unrolled UVs, one island per panel, and can use `texture` with a",
+    "   `uv` window. A model from an asset library almost never does — its UV",
+    "   atlas was built for a photograph, and often every face shares the same",
+    "   patch, so artwork applied through it appears on all six sides at once.",
+    "   Those need `decal`, which projects a print surface onto the panel. Run",
+    "   `npm run models:uv` to find out which you have."
+  ],
+
+  "tenant": "example",
+  "locales": ["en", "ar"],
+  "defaultLocale": "en",
+
+  "$comment_assetBase": [
+    "Where this client's models live. Empty means the page's own origin, which",
+    "is right when the host serves them itself. A CDN prefix is the usual",
+    "answer: https://cdn.example.com/t/example/",
+    "",
+    "The Draco decoder is NOT here. It is the same wasm for every client and is",
+    "served by the host, not from a client's bucket."
+  ],
+  "assetBase": "",
+
+  "$comment_branding": [
+    "Three colours and a few fonts are enough. The studio derives its ink and",
+    "paper ramps from `ink` and `paper`, so a client who supplies little still",
+    "gets a coherent result rather than three right colours and forty wrong",
+    "ones.",
+    "",
+    "`tokens` is the escape hatch, for a brand that is a designed ramp rather",
+    "than a rule. It writes CSS custom properties verbatim and wins over",
+    "everything above it. Most clients should not need it."
+  ],
+  "branding": {
+    "ink": "#0b0b0a",
+    "paper": "#f7f5f1",
+    "accent": "#e2481f",
+    "font": "'Inter', ui-sans-serif, system-ui, sans-serif",
+    "fontMono": "ui-monospace, 'SFMono-Regular', Menlo, monospace",
+    "fontArabic": "'IBM Plex Sans Arabic', 'Noto Sans Arabic', sans-serif",
+    "radius": "10px",
+    "maxWidth": "88rem",
+    "tokens": {}
+  },
+
+  "$comment_stocks": [
+    "The board this client actually prints on. A print house does not sell hex",
+    "values, it sells stock — so these are named materials with the colour they",
+    "come out as, and the studio offers a real choice rather than a colour",
+    "wheel. Products name them by the key.",
+    "",
+    "Labels may be one string or a map of locale to string. They are the",
+    "client's own words for their own materials, which is why they live here",
+    "and not in a translation file."
+  ],
+  "stocks": {
+    "white": {
+      "color": "#f7f5f1",
+      "label": { "en": "White art board", "ar": "كرتون فني أبيض" }
+    },
+    "kraft": {
+      "color": "#c8ab84",
+      "label": { "en": "Natural kraft", "ar": "كرافت طبيعي" }
+    }
+  },
+
+  "products": [
+    {
+      "$comment": "A product whose model was authored for print: flat unrolled UVs.",
+      "id": "paper-cup-8oz",
+      "slug": "paper-cup",
+      "status": "live",
+      "order": 10,
+
+      "name": { "en": "Double-wall paper cup", "ar": "كوب ورقي مزدوج الجدار" },
+      "shortName": { "en": "Paper cup", "ar": "كوب ورقي" },
+      "category": { "en": "Beverage packaging", "ar": "تغليف المشروبات" },
+      "summary": {
+        "en": "Food-grade double-wall stock, offset printed and die-cut flat, then rolled and seamed.",
+        "ar": "خامة ورقية آمنة غذائيًا مزدوجة الجدار، تُطبع أوفست وتُقص مسطحة ثم تُلف وتُلحم."
+      },
+
+      "specs": {
+        "en": [
+          { "label": "Volume", "value": "8 oz / 240 ml" },
+          { "label": "Minimum run", "value": "1,000 units" }
+        ],
+        "ar": [
+          { "label": "السعة", "value": "8 أونصات / 240 مل" },
+          { "label": "أقل كمية", "value": "1,000 وحدة" }
+        ]
+      },
+
+      "guidance": {
+        "en": ["Keep logos clear of the seam — the left and right edges meet on the back."],
+        "ar": ["أبعِد الشعار عن الوصلة — تلتقي حافتا تصميمك عند الظهر."]
+      },
+
+      "model": {
+        "$comment": "Paths are relative to assetBase. Run models:inspect for the names.",
+        "url": "models/paper-cup.glb",
+        "printMeshName": "CupBody",
+        "stockMeshes": ["CupBody"],
+        "hiddenMeshes": [],
+        "heightM": 0.11,
+        "scale": 1,
+        "yOffset": -0.005
+      },
+
+      "camera": {
+        "$comment": "A viewing direction, not a distance. Distance is computed from heightM.",
+        "position": [0.5, 0.3, 1],
+        "target": [0, 0, 0],
+        "fov": 26,
+        "framing": 1.7,
+        "minPolarAngle": 0.35,
+        "maxPolarAngle": 1.95
+      },
+
+      "print": {
+        "mode": "texture",
+
+        "$comment_uv": "The printable window inside the mesh's UV space. Outside it is bare stock.",
+        "uv": { "x": 0, "y": 0.06, "width": 1, "height": 0.8 },
+
+        "$comment_physical": [
+          "The finished size of the flat print area. safeMm may be one number or",
+          "one per edge — per-edge is usually right, since a cup's rim curl eats",
+          "more than its base does."
+        ],
+        "physical": {
+          "widthMm": 250,
+          "heightMm": 92,
+          "bleedMm": 3,
+          "safeMm": { "top": 7, "right": 5, "bottom": 5, "left": 5 }
+        },
+
+        "$comment_dpi": "Screen resolution is capped by a texture budget; press resolution is not.",
+        "renderDpi": 200,
+        "printDpi": 300,
+
+        "$comment_wrap": "Left and right edges are the same seam, so artwork crossing one reappears.",
+        "wrap": true,
+
+        "stock": "white",
+        "stockPalette": ["white", "kraft"],
+
+        "$comment_defaultTransform": "Fractions of the print area, resolved to millimetres on load.",
+        "defaultTransform": { "width": 0.42, "x": 0, "y": 0, "rotation": 0, "repeat": 1 }
+      },
+
+      "material": { "roughness": 0.62, "metalness": 0, "envMapIntensity": 0.8 }
+    },
+
+    {
+      "$comment": [
+        "A product from an asset library, whose UVs are not a print layout.",
+        "The studio builds its own print surface by projecting the panel."
+      ],
+      "id": "shopping-bag",
+      "slug": "shopping-bag",
+      "status": "live",
+      "order": 20,
+
+      "name": { "en": "Shopping bag", "ar": "كيس تسوّق" },
+      "category": { "en": "Retail packaging", "ar": "تغليف التجزئة" },
+
+      "model": {
+        "url": "models/bag.glb",
+        "printMeshName": "paper_material",
+        "stockMeshes": ["paper_material"],
+        "heightM": 0.34
+      },
+
+      "camera": { "position": [0.4, 0.25, 1], "fov": 26, "framing": 1.5 },
+
+      "print": {
+        "mode": "decal",
+
+        "$comment_projection": [
+          "Which way the printed panel faces, in world space after the model's",
+          "own rotations. `npm run models:axis` reports it — the front face in",
+          "the file is rarely the front face in the scene.",
+          "",
+          "threshold: how square-on a triangle must be to count. Raise it to",
+          "keep print off gussets and curves.",
+          "inset: fraction held back from the folded edges."
+        ],
+        "projection": {
+          "axis": "z",
+          "up": "y",
+          "threshold": 0.8,
+          "inset": 0.06,
+          "liftMm": 0.4
+        },
+
+        "physical": {
+          "widthMm": 190,
+          "heightMm": 240,
+          "bleedMm": 3,
+          "safeMm": { "top": 14, "right": 8, "bottom": 8, "left": 8 }
+        },
+
+        "wrap": false,
+        "stock": "kraft",
+        "stockPalette": ["kraft", "white"],
+        "defaultTransform": { "width": 0.55, "x": 0, "y": 0, "rotation": 0, "repeat": 1 }
+      },
+
+      "material": { "roughness": 0.8, "metalness": 0, "envMapIntensity": 0.9 }
+    },
+
+    {
+      "$comment": [
+        "Announced but not yet modelled. It appears in the picker as",
+        "unavailable, which communicates the range honestly rather than",
+        "pretending it is complete. Needs nothing but a name and a status."
+      ],
+      "id": "canvas-tote",
+      "slug": "canvas-tote",
+      "status": "coming-soon",
+      "order": 90,
+      "name": { "en": "Canvas tote", "ar": "حقيبة قماش" },
+      "category": { "en": "Merchandise", "ar": "المنتجات الترويجية" }
+    }
+  ]
+}

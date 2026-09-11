@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Curated Goods — Double-wall paper cup</title>
+
+    <!--
+      A client's product page.
+
+      Written the way a real one is: a theme with opinions about every element,
+      its own fonts, its own buttons, and no knowledge of us whatsoever. If the
+      embed behaves here it will behave on a WooCommerce store.
+
+      Four studios, because each tests something the others cannot:
+
+        1  the snippet, exactly as documented — lazy, one script tag
+        2  eager, a second tenant's SKU, driven by the host's own controls
+        3  a SKU that does not exist, to see the fallback
+        4  a tenant that does not exist, to see the other fallback
+    -->
+    <style>
+      * { box-sizing: content-box; }
+      body {
+        margin: 0;
+        padding: 0 0 6rem;
+        background: #fffdf8;
+        color: #2b2b26;
+        font-family: Georgia, 'Times New Roman', serif;
+        font-size: 18px;
+        line-height: 1.7;
+      }
+      header {
+        display: flex; justify-content: space-between; align-items: baseline;
+        padding: 1rem 2rem; border-bottom: 3px double #2b2b26;
+      }
+      header b { font-size: 1.3rem; letter-spacing: .12em; text-transform: uppercase; }
+      nav a { margin-left: 1.5rem; color: #7a4a1f; }
+      main { max-width: 70rem; margin: 0 auto; padding: 0 2rem; }
+      h1 { font-size: 2.2rem; margin: 2rem 0 .5rem; }
+      .price { font-size: 1.4rem; color: #7a4a1f; }
+      section { margin: 3rem 0; }
+      h2 { font-size: 1rem; letter-spacing: .18em; text-transform: uppercase; color: #8a8a80; }
+
+      /* The sort of thing themes do to everything on the page. */
+      button {
+        background: #ffe58a; border: 2px dashed #b8860b; padding: 14px 20px;
+        font-family: inherit; font-size: 16px; border-radius: 0;
+      }
+      img { width: 100% !important; height: auto !important; }
+      canvas { border: 4px solid limegreen; }
+      iframe { border: 6px ridge #b8860b; }
+      ul { list-style: square; padding-left: 3em; }
+      a { color: magenta; text-decoration: underline; }
+
+      .host-controls { display: flex; gap: .75rem; flex-wrap: wrap; margin: 1rem 0; }
+      .log {
+        font-family: ui-monospace, Menlo, monospace; font-size: 13px; line-height: 1.5;
+        background: #2b2b26; color: #e8e4d8; padding: 1rem; border-radius: 4px;
+        max-height: 14rem; overflow: auto; white-space: pre-wrap;
+      }
+      .log:empty::before { content: 'nothing yet'; opacity: .5; }
+    </style>
+  </head>
+
+  <body>
+    <header>
+      <b>Curated Goods</b>
+      <nav><a href="#">Shop</a><a href="#">Journal</a><a href="#">Basket (0)</a></nav>
+    </header>
+
+    <main>
+      <h1>Double-wall paper cup</h1>
+      <p class="price">QAR 0.85 each · minimum 1,000</p>
+      <p>
+        Food-grade double-wall stock, offset printed and die-cut flat, then rolled
+        and seamed. Put your own artwork on it below.
+      </p>
+
+      <section>
+        <h2>1 — the snippet, as documented</h2>
+        <p>Lazy by default: nothing 3-D is downloaded until the button is pressed.</p>
+        <div id="studio" data-sku="paper-cup-8oz"></div>
+      </section>
+
+      <section>
+        <h2>2 — eager, and driven by the host</h2>
+        <p>The page opens it immediately and controls it with its own buttons.</p>
+        <div class="host-controls">
+          <button type="button" data-cmd="ar">Switch to Arabic</button>
+          <button type="button" data-cmd="en">Switch to English</button>
+          <button type="button" data-cmd="bag">Show the shopping bag</button>
+          <button type="button" data-cmd="destroy">Remove the studio</button>
+        </div>
+        <div
+          id="studio-eager"
+          data-sku="gift-box-rigid"
+          data-open="eager"
+          data-height="620px"
+        ></div>
+        <h2>what the host heard</h2>
+        <div class="log" id="log"></div>
+      </section>
+
+      <section>
+        <h2>3 — a SKU that is not configured</h2>
+        <div id="studio-bad-sku" data-sku="not-a-real-product" data-open="eager" data-height="240px"></div>
+      </section>
+
+      <section>
+        <h2>4 — a tenant that does not exist</h2>
+        <div
+          id="studio-bad-tenant"
+          data-sku="paper-cup-8oz"
+          data-tenant="nosuchclient"
+          data-open="eager"
+          data-height="240px"
+        ></div>
+      </section>
+    </main>
+
+    <script src="/embed.js" data-tenant="inmore"></script>
+
+    <script>
+      // Everything below is the host's code, written against the documented API.
+      const log = document.getElementById('log');
+      const write = (line) => {
+        log.textContent += line + '\n';
+        log.scrollTop = log.scrollHeight;
+      };
+
+      const studio = InmoreStudio.get('#studio-eager');
+
+      studio.on('ready', (d) => write(`ready — ${d.tenant} / ${d.sku ?? '(default)'} / ${d.locale}`));
+      studio.on('configChange', (d) => write(`change — ${d.name} ${JSON.stringify(d.data)}`));
+      studio.on('error', (d) => write(`error — ${d.code}`));
+      studio.on('submit', (payload) => {
+        write('submit — ' + JSON.stringify(payload, null, 2));
+        // This is where a real shop would add to its basket.
+      });
+
+      document.querySelectorAll('[data-cmd]').forEach((button) => {
+        button.addEventListener('click', () => {
+          const cmd = button.dataset.cmd;
+          if (cmd === 'ar' || cmd === 'en') studio.setLocale(cmd);
+          if (cmd === 'bag') studio.setSku('shopping-bag-paper');
+          if (cmd === 'destroy') studio.destroy();
+          write(`host → ${cmd}`);
+        });
+      });
+    </script>
+  </body>
+</html>

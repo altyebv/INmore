@@ -1,0 +1,761 @@
+{
+  "tenant": "inmore",
+  "locales": [
+    "en",
+    "ar"
+  ],
+  "defaultLocale": "en",
+  "assetBase": "",
+  "stocks": {
+    "white": {
+      "color": "#f7f5f1",
+      "label": {
+        "en": "White art board",
+        "ar": "كرتون فني أبيض"
+      }
+    },
+    "natural": {
+      "color": "#c8ab84",
+      "label": {
+        "en": "Natural kraft",
+        "ar": "كرافت طبيعي"
+      }
+    },
+    "sand": {
+      "color": "#e0cdb2",
+      "label": {
+        "en": "Sand board",
+        "ar": "كرتون رملي"
+      }
+    },
+    "slate": {
+      "color": "#5c6068",
+      "label": {
+        "en": "Slate board",
+        "ar": "كرتون رمادي"
+      }
+    },
+    "black": {
+      "color": "#1c1b19",
+      "label": {
+        "en": "Black board",
+        "ar": "كرتون أسود"
+      }
+    },
+    "forest": {
+      "color": "#2f4a3c",
+      "label": {
+        "en": "Deep green",
+        "ar": "أخضر داكن"
+      }
+    },
+    "clay": {
+      "color": "#a8482c",
+      "label": {
+        "en": "Clay red",
+        "ar": "أحمر طيني"
+      }
+    },
+    "ink": {
+      "color": "#22324f",
+      "label": {
+        "en": "Ink blue",
+        "ar": "أزرق حبري"
+      }
+    }
+  },
+  "products": [
+    {
+      "id": "paper-cup-8oz",
+      "slug": "paper-cup",
+      "status": "live",
+      "order": 10,
+      "name": {
+        "en": "Double-wall paper cup",
+        "ar": "كوب ورقي مزدوج الجدار"
+      },
+      "shortName": {
+        "en": "Paper cup",
+        "ar": "كوب ورقي"
+      },
+      "category": {
+        "en": "Beverage packaging",
+        "ar": "تغليف المشروبات"
+      },
+      "summary": {
+        "en": "Food-grade double-wall stock, offset printed and die-cut flat, then rolled and seamed. The print wraps the full body between the rim curl and the base.",
+        "ar": "خامة ورقية آمنة غذائيًا مزدوجة الجدار، تُطبع أوفست وتُقص مسطحة ثم تُلف وتُلحم. تلتف الطباعة حول الجسم كاملًا بين حافة الفم والقاعدة."
+      },
+      "specs": {
+        "en": [
+          {
+            "label": "Volume",
+            "value": "8 oz / 240 ml"
+          },
+          {
+            "label": "Stock",
+            "value": "Double wall, 300 gsm"
+          },
+          {
+            "label": "Print",
+            "value": "Offset, up to 6 colours"
+          },
+          {
+            "label": "Finish",
+            "value": "Matte or gloss lamination"
+          },
+          {
+            "label": "Minimum run",
+            "value": "1,000 units"
+          }
+        ],
+        "ar": [
+          {
+            "label": "السعة",
+            "value": "8 أونصات / 240 مل"
+          },
+          {
+            "label": "الخامة",
+            "value": "جدار مزدوج، 300 جم/م²"
+          },
+          {
+            "label": "الطباعة",
+            "value": "أوفست، حتى 6 ألوان"
+          },
+          {
+            "label": "التشطيب",
+            "value": "تغليف مطفي أو لامع"
+          },
+          {
+            "label": "أقل كمية",
+            "value": "1,000 وحدة"
+          }
+        ]
+      },
+      "guidance": {
+        "en": [
+          "Keep logos clear of the seam — the left and right edges of your artwork meet on the back of the cup.",
+          "Anything inside the dotted guide is guaranteed to print.",
+          "Upload at 300 dpi or better for a true-to-press result."
+        ],
+        "ar": [
+          "أبعِد الشعار عن الوصلة — تلتقي حافتا تصميمك عند ظهر الكوب.",
+          "كل ما يقع داخل الإطار المنقّط مضمون الطباعة.",
+          "ارفع الملف بدقة 300 نقطة/بوصة أو أعلى للحصول على نتيجة مطابقة للمطبعة."
+        ]
+      },
+      "model": {
+        "url": "/models/paper-cup.glb",
+        "stockMeshes": [
+          "CupBody"
+        ],
+        "printMeshName": "CupBody",
+        "proxy": "paper-cup-proxy",
+        "scale": 1,
+        "yOffset": -0.005,
+        "heightM": 0.11
+      },
+      "camera": {
+        "position": [
+          0.5,
+          0.3,
+          1
+        ],
+        "target": [
+          0,
+          0,
+          0
+        ],
+        "fov": 26,
+        "framing": 1.7,
+        "minPolarAngle": 0.35,
+        "maxPolarAngle": 1.95
+      },
+      "print": {
+        "mode": "texture",
+        "uv": {
+          "x": 0,
+          "y": 0.06,
+          "width": 1,
+          "height": 0.8
+        },
+        "physical": {
+          "widthMm": 250,
+          "heightMm": 92,
+          "bleedMm": 3,
+          "safeMm": {
+            "top": 7,
+            "right": 5,
+            "bottom": 5,
+            "left": 5
+          }
+        },
+        "wrap": true,
+        "stock": "white",
+        "stockPalette": [
+          "white",
+          "natural",
+          "sand",
+          "black",
+          "forest",
+          "clay"
+        ],
+        "defaultTransform": {
+          "width": 0.42,
+          "x": 0,
+          "y": 0,
+          "rotation": 0,
+          "repeat": 1
+        }
+      },
+      "material": {
+        "roughness": 0.62,
+        "metalness": 0,
+        "envMapIntensity": 0.8,
+        "sheen": 0.18
+      }
+    },
+    {
+      "id": "shopping-bag-paper",
+      "slug": "paper-bag",
+      "status": "live",
+      "order": 20,
+      "name": {
+        "en": "Twisted-handle shopping bag",
+        "ar": "كيس تسوّق بمقبض مجدول"
+      },
+      "shortName": {
+        "en": "Shopping bag",
+        "ar": "كيس تسوّق"
+      },
+      "category": {
+        "en": "Retail packaging",
+        "ar": "تغليف التجزئة"
+      },
+      "summary": {
+        "en": "Kraft or art-card bag with twisted paper handles, printed flat and glued. The front and back panels each take a full print.",
+        "ar": "كيس كرافت أو ورق فني بمقابض ورقية مجدولة، يُطبع مسطحًا ثم يُلصق. الوجه الأمامي والخلفي يستقبل كل منهما طباعة كاملة."
+      },
+      "specs": {
+        "en": [
+          {
+            "label": "Size",
+            "value": "190 × 240 × 90 mm"
+          },
+          {
+            "label": "Stock",
+            "value": "Kraft or art card, 170 gsm"
+          },
+          {
+            "label": "Print",
+            "value": "Offset, up to 6 colours"
+          },
+          {
+            "label": "Handle",
+            "value": "Twisted paper, colour matched"
+          },
+          {
+            "label": "Minimum run",
+            "value": "500 units"
+          }
+        ],
+        "ar": [
+          {
+            "label": "المقاس",
+            "value": "190 × 240 × 90 مم"
+          },
+          {
+            "label": "الخامة",
+            "value": "كرافت أو ورق فني، 170 جم/م²"
+          },
+          {
+            "label": "الطباعة",
+            "value": "أوفست، حتى 6 ألوان"
+          },
+          {
+            "label": "المقبض",
+            "value": "ورق مجدول، مطابق للون"
+          },
+          {
+            "label": "أقل كمية",
+            "value": "500 وحدة"
+          }
+        ]
+      },
+      "guidance": {
+        "en": [
+          "The front panel is the print area — the back panel repeats it.",
+          "Keep artwork inside the dotted guide; the edges of the panel are folds.",
+          "Handles are colour matched separately, so they do not need to be in your file."
+        ],
+        "ar": [
+          "الوجه الأمامي هو مساحة الطباعة — والوجه الخلفي يكرّرها.",
+          "أبقِ التصميم داخل الإطار المنقّط؛ حواف الوجه هي مواضع الطي.",
+          "يُطابَق لون المقابض على حدة، فلا حاجة لإدراجها في ملفك."
+        ]
+      },
+      "model": {
+        "url": "/models/bag.glb",
+        "printMeshName": "paper_cardboard_material8",
+        "stockMeshes": [
+          "paper_cardboard_material8"
+        ],
+        "proxy": null,
+        "scale": 1,
+        "yOffset": 0,
+        "heightM": 0.34
+      },
+      "camera": {
+        "position": [
+          0.45,
+          0.28,
+          1
+        ],
+        "target": [
+          0,
+          0,
+          0
+        ],
+        "fov": 26,
+        "framing": 1.5,
+        "minPolarAngle": 0.3,
+        "maxPolarAngle": 1.9
+      },
+      "print": {
+        "mode": "decal",
+        "projection": {
+          "axis": "z",
+          "up": "y",
+          "threshold": 0.8,
+          "inset": 0.06,
+          "liftMm": 0.4
+        },
+        "uv": {
+          "x": 0,
+          "y": 0,
+          "width": 1,
+          "height": 1
+        },
+        "physical": {
+          "widthMm": 190,
+          "heightMm": 240,
+          "bleedMm": 3,
+          "safeMm": {
+            "top": 14,
+            "right": 8,
+            "bottom": 8,
+            "left": 8
+          }
+        },
+        "wrap": false,
+        "stock": "natural",
+        "stockPalette": [
+          "natural",
+          "white",
+          "sand",
+          "black",
+          "forest",
+          "ink"
+        ],
+        "defaultTransform": {
+          "width": 0.55,
+          "x": 0,
+          "y": 0,
+          "rotation": 0,
+          "repeat": 1
+        }
+      },
+      "material": {
+        "roughness": 0.78,
+        "metalness": 0,
+        "envMapIntensity": 0.9
+      }
+    },
+    {
+      "id": "gift-box-rigid",
+      "slug": "gift-box",
+      "status": "live",
+      "order": 30,
+      "name": {
+        "en": "Rigid gift box",
+        "ar": "علبة هدايا صلبة"
+      },
+      "shortName": {
+        "en": "Gift box",
+        "ar": "علبة هدايا"
+      },
+      "category": {
+        "en": "Presentation packaging",
+        "ar": "تغليف العرض"
+      },
+      "summary": {
+        "en": "Two-piece rigid board box, wrapped and finished, with a fabric ribbon. The lid carries the print.",
+        "ar": "علبة من قطعتين بكرتون صلب، مغلَّفة ومشطَّبة، مع شريط قماشي. الغطاء هو ما يحمل الطباعة."
+      },
+      "specs": {
+        "en": [
+          {
+            "label": "Size",
+            "value": "220 × 220 × 150 mm"
+          },
+          {
+            "label": "Construction",
+            "value": "Two-piece rigid board, 1.5 mm grey board"
+          },
+          {
+            "label": "Wrap",
+            "value": "Printed art paper, matte laminated"
+          },
+          {
+            "label": "Finish",
+            "value": "Optional foil, spot UV or ribbon"
+          },
+          {
+            "label": "Minimum run",
+            "value": "250 units"
+          }
+        ],
+        "ar": [
+          {
+            "label": "المقاس",
+            "value": "220 × 220 × 150 مم"
+          },
+          {
+            "label": "التركيب",
+            "value": "قطعتان من الكرتون الصلب، 1.5 مم"
+          },
+          {
+            "label": "الغلاف",
+            "value": "ورق فني مطبوع، تغليف مطفي"
+          },
+          {
+            "label": "التشطيب",
+            "value": "تذهيب أو ورنيش موضعي أو شريط، اختياري"
+          },
+          {
+            "label": "أقل كمية",
+            "value": "250 وحدة"
+          }
+        ]
+      },
+      "guidance": {
+        "en": [
+          "The lid is the print area — it is what the customer sees first.",
+          "Ribbon is a finishing option, chosen and priced separately.",
+          "Foil and spot UV are applied over this artwork, not instead of it."
+        ],
+        "ar": [
+          "الغطاء هو مساحة الطباعة — وهو أول ما يراه العميل.",
+          "الشريط خيار تشطيب يُختار ويُسعَّر على حدة.",
+          "يُضاف التذهيب والورنيش الموضعي فوق هذا التصميم، لا بديلًا عنه."
+        ]
+      },
+      "model": {
+        "url": "/models/gift-box.glb",
+        "printMeshName": "gift_cap",
+        "stockMeshes": [
+          "gift_main",
+          "gift_cap"
+        ],
+        "hiddenMeshes": [
+          "tape"
+        ],
+        "proxy": null,
+        "scale": 1,
+        "yOffset": 0,
+        "heightM": 0.19
+      },
+      "camera": {
+        "position": [
+          0.55,
+          0.62,
+          1
+        ],
+        "target": [
+          0,
+          0,
+          0
+        ],
+        "fov": 26,
+        "framing": 1.9,
+        "minPolarAngle": 0.25,
+        "maxPolarAngle": 1.4
+      },
+      "print": {
+        "mode": "decal",
+        "projection": {
+          "axis": "y",
+          "up": "-z",
+          "threshold": 0.85,
+          "inset": 0.1,
+          "liftMm": 0.4
+        },
+        "uv": {
+          "x": 0,
+          "y": 0,
+          "width": 1,
+          "height": 1
+        },
+        "physical": {
+          "widthMm": 220,
+          "heightMm": 220,
+          "bleedMm": 3,
+          "safeMm": {
+            "top": 10,
+            "right": 10,
+            "bottom": 10,
+            "left": 10
+          }
+        },
+        "wrap": false,
+        "stock": "slate",
+        "stockPalette": [
+          "slate",
+          "black",
+          "white",
+          "clay",
+          "forest",
+          "ink"
+        ],
+        "defaultTransform": {
+          "width": 0.5,
+          "x": 0,
+          "y": 0,
+          "rotation": 0,
+          "repeat": 1
+        }
+      },
+      "material": {
+        "roughness": 0.55,
+        "metalness": 0,
+        "envMapIntensity": 1
+      }
+    },
+    {
+      "id": "takeaway-package",
+      "slug": "takeaway-package",
+      "status": "live",
+      "order": 40,
+      "name": {
+        "en": "Flat-bottom takeaway package",
+        "ar": "كيس طعام بقاعدة مسطحة"
+      },
+      "shortName": {
+        "en": "Takeaway package",
+        "ar": "كيس طعام"
+      },
+      "category": {
+        "en": "Food packaging",
+        "ar": "تغليف الأغذية"
+      },
+      "summary": {
+        "en": "Greaseproof-lined flat-bottom bag for food service. Printed on the roll before forming, so the artwork runs edge to edge.",
+        "ar": "كيس بقاعدة مسطحة مبطَّن ومقاوم للدهون لخدمات الطعام. يُطبع على البكرة قبل التشكيل، فتمتد الطباعة من حافة إلى حافة."
+      },
+      "specs": {
+        "en": [
+          {
+            "label": "Size",
+            "value": "180 × 300 × 110 mm"
+          },
+          {
+            "label": "Stock",
+            "value": "Kraft with greaseproof liner"
+          },
+          {
+            "label": "Print",
+            "value": "Flexo, up to 4 colours"
+          },
+          {
+            "label": "Food safe",
+            "value": "Yes — direct contact approved"
+          },
+          {
+            "label": "Minimum run",
+            "value": "2,000 units"
+          }
+        ],
+        "ar": [
+          {
+            "label": "المقاس",
+            "value": "180 × 300 × 110 مم"
+          },
+          {
+            "label": "الخامة",
+            "value": "كرافت ببطانة مقاومة للدهون"
+          },
+          {
+            "label": "الطباعة",
+            "value": "فلكسو، حتى 4 ألوان"
+          },
+          {
+            "label": "آمن غذائيًا",
+            "value": "نعم — معتمد للتلامس المباشر"
+          },
+          {
+            "label": "أقل كمية",
+            "value": "2,000 وحدة"
+          }
+        ]
+      },
+      "guidance": {
+        "en": [
+          "Flexo printing holds solid colour well and fine detail less well — keep type above 6 pt.",
+          "The bottom third of the panel is folded under when the bag stands, so keep logos high.",
+          "Anything inside the dotted guide is guaranteed to print."
+        ],
+        "ar": [
+          "طباعة الفلكسو تجيد الألوان الصلبة أكثر من التفاصيل الدقيقة — أبقِ حجم الخط فوق 6 نقاط.",
+          "الثلث السفلي من الوجه ينطوي عند وقوف الكيس، فارفع الشعار للأعلى.",
+          "كل ما يقع داخل الإطار المنقّط مضمون الطباعة."
+        ]
+      },
+      "model": {
+        "url": "/models/package1.glb",
+        "printMeshName": "material_0",
+        "stockMeshes": [
+          "material_0"
+        ],
+        "proxy": null,
+        "scale": 1,
+        "yOffset": 0,
+        "heightM": 0.3
+      },
+      "camera": {
+        "position": [
+          0.45,
+          0.26,
+          1
+        ],
+        "target": [
+          0,
+          0,
+          0
+        ],
+        "fov": 26,
+        "framing": 1.5,
+        "minPolarAngle": 0.3,
+        "maxPolarAngle": 1.9
+      },
+      "print": {
+        "mode": "decal",
+        "projection": {
+          "axis": "z",
+          "up": "y",
+          "threshold": 0.75,
+          "inset": 0.05,
+          "liftMm": 0.4
+        },
+        "uv": {
+          "x": 0,
+          "y": 0,
+          "width": 1,
+          "height": 1
+        },
+        "physical": {
+          "widthMm": 180,
+          "heightMm": 300,
+          "bleedMm": 3,
+          "safeMm": {
+            "top": 8,
+            "right": 8,
+            "bottom": 8,
+            "left": 8
+          }
+        },
+        "wrap": false,
+        "stock": "natural",
+        "stockPalette": [
+          "natural",
+          "white",
+          "sand",
+          "clay",
+          "forest",
+          "black"
+        ],
+        "defaultTransform": {
+          "width": 0.6,
+          "x": 0,
+          "y": -0.1,
+          "rotation": 0,
+          "repeat": 1
+        }
+      },
+      "material": {
+        "roughness": 0.82,
+        "metalness": 0,
+        "envMapIntensity": 0.85
+      }
+    },
+    {
+      "id": "mailer-box",
+      "slug": "mailer-box",
+      "status": "coming-soon",
+      "order": 50,
+      "name": {
+        "en": "Corrugated mailer box",
+        "ar": "علبة شحن مضلعة"
+      },
+      "shortName": {
+        "en": "Mailer box",
+        "ar": "علبة شحن"
+      },
+      "category": {
+        "en": "Shipping",
+        "ar": "الشحن"
+      },
+      "summary": {
+        "en": "E-flute mailer with full outer print and an optional printed interior.",
+        "ar": "علبة كرتون مضلع بطباعة خارجية كاملة، مع طباعة داخلية اختيارية."
+      }
+    },
+    {
+      "id": "tote-canvas",
+      "slug": "canvas-tote",
+      "status": "coming-soon",
+      "order": 60,
+      "name": {
+        "en": "Canvas tote",
+        "ar": "حقيبة قماش"
+      },
+      "shortName": {
+        "en": "Canvas tote",
+        "ar": "حقيبة قماش"
+      },
+      "category": {
+        "en": "Merchandise",
+        "ar": "المنتجات الترويجية"
+      },
+      "summary": {
+        "en": "10 oz cotton canvas, screen printed one or two positions.",
+        "ar": "قماش قطني 10 أونصات، طباعة شاشة حريرية في موضع أو موضعين."
+      }
+    }
+  ],
+  "branding": {
+    "ink": "#0b0b0a",
+    "paper": "#f7f5f1",
+    "accent": "#e2481f",
+    "font": "'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif",
+    "fontMono": "'JetBrains Mono', ui-monospace, 'SFMono-Regular', 'Menlo', monospace",
+    "fontArabic": "'IBM Plex Sans Arabic', 'Noto Sans Arabic', 'Segoe UI', Tahoma, sans-serif",
+    "radius": "10px",
+    "maxWidth": "88rem",
+    "tokens": {
+      "--ink-800": "#121211",
+      "--ink-700": "#1a1a18",
+      "--ink-600": "#232320",
+      "--ink-500": "#2f2f2b",
+      "--ink-400": "#494943",
+      "--paper-200": "#ece8e1",
+      "--paper-300": "#d9d3c9",
+      "--paper-400": "#b4aca0",
+      "--accent-soft": "#f26a44",
+      "--accent-dim": "rgba(226, 72, 31, 0.16)",
+      "--line": "rgba(247, 245, 241, 0.11)",
+      "--line-strong": "rgba(247, 245, 241, 0.22)",
+      "--fg-muted": "rgba(247, 245, 241, 0.62)",
+      "--fg-faint": "rgba(247, 245, 241, 0.38)"
+    }
+  }
+}

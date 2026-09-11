@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Studio isolation harness</title>
+
+    <!--
+      A deliberately hostile host page.
+
+      No site stylesheet, no design tokens, no fonts, no reset — and a few
+      rules of the kind a real WordPress theme will happily apply to
+      everything on the page. If the studio renders correctly in here, its
+      styling is genuinely self-contained; if it does not, it was relying on
+      something the host was never going to provide.
+
+      Served in development only. Vite builds index.html and nothing else.
+    -->
+    <style>
+      body {
+        margin: 0;
+        background: #ffffff;
+        color: #003300;
+        font-family: Georgia, 'Times New Roman', serif;
+        font-size: 19px;
+        line-height: 2.1;
+      }
+
+      /* The sort of thing themes do. */
+      * { box-sizing: content-box; }
+      img { width: 100% !important; height: auto !important; }
+      button { background: yellow; border: 3px dashed red; padding: 12px; }
+      ul, ol { list-style: square; padding-left: 3em; }
+      a { color: magenta; text-decoration: underline; }
+      canvas { border: 4px solid limegreen; }
+
+      .host-chrome {
+        padding: 16px 24px;
+        border-bottom: 2px solid #003300;
+        font-weight: bold;
+      }
+      .host-note { padding: 16px 24px; max-width: 60ch; }
+      .harness-slot { border: 1px solid #ccc; margin: 24px; }
+      .harness-slot > h2 {
+        margin: 0;
+        padding: 8px 12px;
+        background: #003300;
+        color: #fff;
+        font-size: 14px;
+        font-family: monospace;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="host-chrome">A client's product page — none of this is ours</div>
+    <div class="host-note">
+      The studio below is mounted with no site stylesheet and no design tokens.
+      Everything it looks like, it brought with it.
+    </div>
+    <div id="harness"></div>
+    <script type="module" src="/src/isolation.jsx"></script>
+  </body>
+</html>

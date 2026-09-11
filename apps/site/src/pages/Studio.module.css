@@ -1,0 +1,31 @@
+/* ===========================================================================
+   The studio page
+   Page chrome only — the heading and lede above the studio, and the column
+   the studio sits in. Everything inside the studio is the engine's own.
+   =========================================================================== */
+/* The header height is the site's own fact; the studio is told it separately. */
+.page {
+  min-height: 100svh;
+  padding-top: var(--header-h);
+  display: flex;
+  flex-direction: column;
+}
+
+.intro { padding-block: clamp(1.5rem, 4vw, 3rem) var(--space-5); }
+
+.introInner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.title { font-size: var(--step-3); }
+
+.lede {
+  font-size: var(--step--1);
+  color: var(--fg-muted);
+  max-width: 44ch;
+}
+
