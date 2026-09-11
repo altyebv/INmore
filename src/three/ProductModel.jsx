@@ -2,6 +2,7 @@ import { Suspense, useLayoutEffect, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { PROXY_REGISTRY } from './models/PaperCupProxy';
 import GlbProductModel from './models/GlbProductModel';
+import GlbLoadBoundary from './models/GlbLoadBoundary';
 import useModelAvailability from './models/useModelAvailability';
 
 /**
@@ -37,20 +38,33 @@ export function ProductModel({ product, texture, baseColor, autoRotate = false, 
     if (useProxy && Proxy?.radiusM) onMeasure?.(Proxy.radiusM);
   }, [useProxy, Proxy, onMeasure]);
 
-  const content = useProxy ? (
+  const proxyContent = Proxy ? (
     <Proxy
       texture={texture}
       material={{ ...product.material, stockColor: baseColor ?? product.print.stockColor }}
     />
+  ) : null;
+
+  /*
+   * The GLB is attempted optimistically, before the HEAD check has necessarily
+   * answered, so a missing or corrupt asset can throw before the probe has had
+   * a chance to redirect us to the proxy. The boundary catches that and lands
+   * on the same geometry the probe would have chosen — a failed load costs
+   * fidelity, never the whole canvas.
+   */
+  const content = useProxy ? (
+    proxyContent
   ) : (
-    <Suspense fallback={null}>
-      <GlbProductModel
-        product={product}
-        texture={texture}
-        baseColor={baseColor}
-        onMeasure={onMeasure}
-      />
-    </Suspense>
+    <GlbLoadBoundary url={product.model.url} fallback={proxyContent}>
+      <Suspense fallback={null}>
+        <GlbProductModel
+          product={product}
+          texture={texture}
+          baseColor={baseColor}
+          onMeasure={onMeasure}
+        />
+      </Suspense>
+    </GlbLoadBoundary>
   );
 
   return (
