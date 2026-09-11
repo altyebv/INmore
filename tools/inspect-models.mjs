@@ -4,7 +4,7 @@
  * Run against any GLB before writing its product configuration — the numbers
  * it reports are exactly what `heightM`, `printMeshName` and `print.uv` need.
  *
- *   node tools/inspect-models.mjs public/models/*.glb
+ *   node tools/inspect-models.mjs apps/site/public/models/*.glb
  */
 import { NodeIO } from '@gltf-transform/core';
 import { ALL_EXTENSIONS } from '@gltf-transform/extensions';

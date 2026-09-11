@@ -1,0 +1,12 @@
+{
+  "name": "@inmore/engine",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "description": "The configurator itself. React + R3F, zero tenant knowledge.",
+  "main": "src/index.js",
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "scripts": {}
+}

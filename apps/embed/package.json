@@ -1,0 +1,8 @@
+{
+  "name": "@inmore/embed",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "description": "The host-page snippet: script tag, iframe, and the postMessage bridge.",
+  "scripts": {}
+}

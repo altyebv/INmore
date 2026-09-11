@@ -1,0 +1,12 @@
+{
+  "name": "@inmore/config-schema",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "description": "Tenant config shape, runtime validator and defaults.",
+  "main": "src/index.js",
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "scripts": {}
+}
