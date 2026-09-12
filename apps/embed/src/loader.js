@@ -105,19 +105,18 @@ function createInstance(element, options) {
   let ready = false;
   const queued = [];
 
-  const emit = (event, payload) => {
-    for (const fn of listeners.get(event) ?? []) {
-      try {
-        fn(payload);
-      } catch (error) {
-        // A host's callback throwing is the host's problem, not ours — but it
-        // must not take the studio down with it.
-        console.error('[inmore-studio] listener for', event, 'threw:', error);
-      }
+  const call = (event, fn, payload) => {
+    try {
+      fn(payload);
+    } catch (error) {
+      // A host's callback throwing is the host's problem, not ours — but it
+      // must not take the studio down with it.
+      console.error('[inmore-studio] listener for', event, 'threw:', error);
     }
   };
 
   const send = (type, payload) => {
+  let readyPayload = null;
     const message = hostMessage(type, payload);
     if (!ready || !frame?.contentWindow) {
       queued.push(message);
@@ -132,6 +131,10 @@ function createInstance(element, options) {
     if (!isOurMessage(event, FROM_STUDIO, origin)) return;
 
     const { type, payload } = event.data;
+  const emit = (event, payload) => {
+    for (const fn of listeners.get(event) ?? []) call(event, fn, payload);
+  };
+
 
     if (type === STUDIO_EVENTS.READY) {
       ready = true;
@@ -150,6 +153,7 @@ function createInstance(element, options) {
     emit(type, payload);
   };
 
+      readyPayload = payload;
   /** Replace the target's contents. The host gave us this element to fill. */
   const render = (node) => {
     element.textContent = '';
@@ -242,6 +246,19 @@ function createInstance(element, options) {
 
     setSku(sku) {
       send(HOST_COMMANDS.SET_SKU, { sku });
+
+      /*
+       * `ready` fires once, so a host that subscribes after it has fired would
+       * wait forever — which is what happens to any script that loads slower
+       * than the studio does. A late subscriber is told straight away instead,
+       * asynchronously, so on() behaves the same whichever came first.
+       */
+      if (event === STUDIO_EVENTS.READY && ready) {
+        Promise.resolve().then(() => {
+          if (listeners.get(event)?.has(handler)) call(event, handler, readyPayload);
+        });
+      }
+
       return api;
     },
 
