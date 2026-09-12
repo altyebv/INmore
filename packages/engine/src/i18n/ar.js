@@ -7,11 +7,21 @@
 
 export default {
   panelLabel: 'إعدادات المنتج',
-  steps: { product: 'المنتج', artwork: 'تصميمك', placement: 'الموضع' },
-  tabs: { product: 'المنتج', artwork: 'التصميم', placement: 'الموضع' },
+  sections: {
+    stock: 'الخامة',
+    artwork: 'تصميمك',
+    placement: 'الموضع',
+    details: 'التفاصيل',
+  },
+  rail: { stock: 'اللون', artwork: 'الشعار', placement: 'الموضع', details: 'معلومات' },
+  drawer: {
+    label: 'أدوات الاستوديو',
+    show: 'إظهار أدوات التحكم',
+    hide: 'إخفاء أدوات التحكم',
+    close: 'إغلاق اللوحة',
+  },
   stock: {
     label: 'الخامة',
-    step: 'الخامة',
     custom: 'لون مخصص',
   },
   chooseProduct: 'اختر منتجًا',
@@ -23,9 +33,9 @@ export default {
   orbitHintTouch: 'اسحب للتدوير · اقرص للتقريب',
   undo: 'تراجع',
   redo: 'إعادة',
-  sheetHandle: 'اسحب لتغيير حجم لوحة التحكم',
-  expand: 'توسيع',
-  collapse: 'تصغير',
+  placementEmpty: 'أضف تصميمك لتحديد موضعه على المنتج.',
+  specs: 'المواصفات',
+  guidance: 'إرشادات الطباعة',
   dropzone: {
     title: 'أفلت شعارك هنا',
     titleTouch: 'أضف شعارك',

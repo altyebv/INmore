@@ -135,16 +135,30 @@ function reads the path segment and nothing else in the app changes.
 
 ## The studio on touch
 
-Below 1080px the studio switches from a page with a side panel to an app
-shell: the product is pinned to the upper screen and the controls live in a
-bottom sheet with three snap points and Product · Artwork · Place tabs.
+Below 1080px wide the studio switches from a page with a side panel to an app
+shell: the product takes the whole stage, and the controls live in a drawer on
+its side with three states.
 
-The reason is specific. In a scrolling layout the controls and the product are
-never on screen together, so a visitor drags a slider and cannot see what it
-did — which removes the only thing the studio is for. The sheet publishes its
-height as `--sheet-h`, the viewer reserves exactly that much room, and the
-product resizes as the sheet moves. The top snap stops well short of full
-height, and the viewer has a floor, so the product can never be buried.
+- **Hidden** — a tab at the edge and nothing else.
+- **Peek** — a slim rail of sections: Colour · Logo · Place · Info, floating in
+  the product's margin.
+- **Open** — one section's panel beside the rail, floating over the product.
+  On an upright screen the panel is a card along the bottom; on a wide one it
+  runs the height of the side.
+
+The product is full size in all three. The reason is specific: the product is
+the thing the studio is for, and the bottom sheet this replaced always spent
+part of the screen's height on controls, so a phone never showed the product at
+full size. The open panel is translucent glass over the stage rather than a
+share of it, so the product stays in view behind the controls and never changes
+size as panels open and close.
+
+Swipe towards the edge to put the controls away and away from it to bring them
+back; every swipe also has a button. Uploading artwork opens Placement. The
+product switcher is a strip of chips across the top of the stage in both
+layouts. The drawer is positioned inside the studio's own shell, never against
+the viewport, so it behaves the same pinned to a phone, inside the embed's
+iframe, and in a column on someone else's page.
 
 Other touch affordances: pinch to resize the artwork and one finger to move it
 in the print preview, a wheel gesture for the same on pointer devices, 44px
@@ -152,7 +166,7 @@ minimum targets under `@media (pointer: coarse)`, and the stage hiding its own
 labels via a container query once it gets short.
 
 Both layouts render the same components with the same state — `PointerStudio`
-and `TouchStudio` in `src/pages/Studio.jsx` decide arrangement only.
+and `TouchStudio` in `packages/engine/src/Studio.jsx` decide arrangement only.
 
 ## Design tokens
 

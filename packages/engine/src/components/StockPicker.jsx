@@ -6,6 +6,23 @@ import { studioUtils } from '../StudioRoot';
 import styles from './StockPicker.module.css';
 
 /**
+ * The name of the stock a colour belongs to, in the visitor's language — or
+ * "Custom colour" when it matches none of them.
+ *
+ * Board names are the client's, not the engine's — "Natural kraft" is what
+ * this print house calls it, and the next one may not stock it at all. So a
+ * stock carries its own label, either as a plain string or as a map of locale
+ * to string, and the engine only chooses between what it was given.
+ */
+export function useStockName(product, value) {
+  const t = useCopy().stock;
+  const { locale } = useStudioLocale();
+  const palette = useMemo(() => paletteFor(product), [product]);
+  const active = palette.find((stock) => stock.color.toLowerCase() === value?.toLowerCase());
+  return active ? localize(active.label, locale) : t.custom;
+}
+
+/**
  * Choose the stock the product is made from.
  *
  * Offered as named board and paper stocks rather than a colour wheel, because
@@ -13,20 +30,16 @@ import styles from './StockPicker.module.css';
  * custom swatch stays available for a client matching an existing brand
  * colour — they can pick anything, and we tell them at quote stage whether it
  * is a stock or a printed flood.
+ *
+ * `caption` shows the chosen stock's name and value under the swatches. A
+ * layout with a heading to put that in turns it off rather than spend a line.
  */
-export function StockPicker({ product, value, onChange }) {
+export function StockPicker({ product, value, onChange, caption = true }) {
   const t = useCopy().stock;
   const { locale } = useStudioLocale();
   const palette = useMemo(() => paletteFor(product), [product]);
+  const name = useStockName(product, value);
 
-  const active = palette.find((stock) => stock.color.toLowerCase() === value?.toLowerCase());
-
-  /*
-   * Board names are the client's, not the engine's — "Natural kraft" is what
-   * this print house calls it, and the next one may not stock it at all. So a
-   * stock carries its own label, either as a plain string or as a map of
-   * locale to string, and the engine only chooses between what it was given.
-   */
   const localised = (stock) => localize(stock.label, locale);
 
   return (
@@ -61,10 +74,12 @@ export function StockPicker({ product, value, onChange }) {
         </label>
       </div>
 
-      <p className={styles.caption}>
-        <span className={styles.name}>{active ? localised(active) : t.custom}</span>
-        <span className={cx(styles.value, studioUtils.ltr)}>{value}</span>
-      </p>
+      {caption && (
+        <p className={styles.caption}>
+          <span className={styles.name}>{name}</span>
+          <span className={cx(styles.value, studioUtils.ltr)}>{value}</span>
+        </p>
+      )}
     </div>
   );
 }

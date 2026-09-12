@@ -57,15 +57,17 @@ export {
 } from './artwork/composeArtwork';
 
 /* --- Layout thresholds, for a host deciding how much room to give us --------- */
-export { COMPACT_WIDTH, SIDE_PANEL_RATIO } from './utils/useElementShape';
+export { COMPACT_WIDTH } from './utils/useElementShape';
 
 /* --- Pieces, for a host composing its own arrangement ------------------------ */
 export { default as Button } from './ui/Button';
+export { default as IconButton } from './ui/IconButton';
 export { default as Slider } from './ui/Slider';
-export { SNAP_POINTS, SIDE_SNAP_POINTS } from './components/StudioSheet';
+export { default as StudioDrawer, DRAWER_MODES } from './components/StudioDrawer';
 export { default as StudioProvider, useStudio } from './state/StudioProvider';
 export { transformLimitsFor, createTransform } from './state/studioReducer';
 export { default as ProductPicker } from './components/ProductPicker';
+export { default as ProductDetails } from './components/ProductDetails';
 export { default as StockPicker } from './components/StockPicker';
 export { default as ArtworkDropzone } from './components/ArtworkDropzone';
 export { default as ArtworkControls } from './components/ArtworkControls';

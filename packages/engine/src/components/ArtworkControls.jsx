@@ -14,8 +14,23 @@ import styles from './ArtworkControls.module.css';
  *
  * The language here is deliberately physical — size, across, up, turn, repeat.
  * Nothing about textures, UV space or materials reaches the visitor.
+ *
+ * The sliders flow into as many columns as the space allows. Stacked one per
+ * row they were the tallest thing in the panel, and a slider does not need a
+ * panel's full width to be precise.
+ *
+ * `showGuidance` exists for hosts that lay the studio out themselves. The
+ * engine's own layouts show guidance with the product's details instead.
  */
-export function ArtworkControls({ product, artwork, transform, onTransform, onCommit, onReset }) {
+export function ArtworkControls({
+  product,
+  artwork,
+  transform,
+  onTransform,
+  onCommit,
+  onReset,
+  showGuidance = true,
+}) {
   const [cropping, setCropping] = useState(false);
   const t = useCopy().controls;
   const disabled = !artwork;
@@ -45,7 +60,7 @@ export function ArtworkControls({ product, artwork, transform, onTransform, onCo
 
   return (
     <div className={styles.controls}>
-      <div className={cx(styles.controls, disabled && styles.disabled)} aria-disabled={disabled}>
+      <div className={cx(styles.sliders, disabled && styles.disabled)} aria-disabled={disabled}>
         <Slider
           label={t.size}
           value={transform.widthMm}
@@ -55,6 +70,18 @@ export function ArtworkControls({ product, artwork, transform, onTransform, onCo
           disabled={disabled}
           format={asPercent}
           onChange={(v) => onTransform({ widthMm: v }, false)}
+          onCommit={onCommit}
+        />
+
+        <Slider
+          label={t.turn}
+          value={transform.rotation}
+          min={rotation.min}
+          max={rotation.max}
+          step={rotation.step}
+          disabled={disabled}
+          format={(v) => `${v}°`}
+          onChange={(v) => onTransform({ rotation: v }, false)}
           onCommit={onCommit}
         />
 
@@ -82,18 +109,6 @@ export function ArtworkControls({ product, artwork, transform, onTransform, onCo
           onCommit={onCommit}
         />
 
-        <Slider
-          label={t.turn}
-          value={transform.rotation}
-          min={rotation.min}
-          max={rotation.max}
-          step={rotation.step}
-          disabled={disabled}
-          format={(v) => `${v}°`}
-          onChange={(v) => onTransform({ rotation: v }, false)}
-          onCommit={onCommit}
-        />
-
         {print.wrap && (
           <Slider
             label={t.repeat}
@@ -107,39 +122,42 @@ export function ArtworkControls({ product, artwork, transform, onTransform, onCo
             onCommit={onCommit}
           />
         )}
-
-        <div className={styles.row}>
-          <Button size="sm" onClick={() => fit('contain')} disabled={disabled}>
-            {t.fitHeight}
-          </Button>
-          <Button size="sm" onClick={centre} disabled={disabled}>
-            {t.centre}
-          </Button>
-          <Button size="sm" onClick={() => setCropping((v) => !v)} disabled={disabled}>
-            {cropping ? t.doneCropping : t.crop}
-          </Button>
-          <Button size="sm" variant="ghost" onClick={onReset} disabled={disabled}>
-            {t.reset}
-          </Button>
-        </div>
-
-        {cropping && artwork && (
-          <CropPanel
-            artwork={artwork}
-            crop={transform.crop}
-            onChange={(crop, commit) => onTransform({ crop }, commit)}
-            onCommit={onCommit}
-          />
-        )}
       </div>
 
-      <div className={styles.divider} />
+      <div className={cx(styles.row, disabled && styles.disabled)}>
+        <Button size="sm" onClick={() => fit('contain')} disabled={disabled}>
+          {t.fitHeight}
+        </Button>
+        <Button size="sm" onClick={centre} disabled={disabled}>
+          {t.centre}
+        </Button>
+        <Button size="sm" onClick={() => setCropping((v) => !v)} disabled={disabled}>
+          {cropping ? t.doneCropping : t.crop}
+        </Button>
+        <Button size="sm" variant="ghost" onClick={onReset} disabled={disabled}>
+          {t.reset}
+        </Button>
+      </div>
 
-      <ul className={styles.guidance}>
-        {product.guidance.map((line) => (
-          <li key={line}>{line}</li>
-        ))}
-      </ul>
+      {cropping && artwork && (
+        <CropPanel
+          artwork={artwork}
+          crop={transform.crop}
+          onChange={(crop, commit) => onTransform({ crop }, commit)}
+          onCommit={onCommit}
+        />
+      )}
+
+      {showGuidance && product.guidance?.length > 0 && (
+        <>
+          <div className={styles.divider} />
+          <ul className={styles.guidance}>
+            {product.guidance.map((line) => (
+              <li key={line}>{line}</li>
+            ))}
+          </ul>
+        </>
+      )}
     </div>
   );
 }

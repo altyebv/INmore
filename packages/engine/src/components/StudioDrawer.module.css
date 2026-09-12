@@ -1,0 +1,276 @@
+/* ---------------------------------------------------------------------------
+   Studio drawer
+   A rail on the inline end, a panel that opens beside it, and a tab that
+   brings both back. Positioned inside the studio's shell and never against the
+   viewport, so the same drawer works pinned to a phone screen, filling an
+   iframe, and in a column on someone else's page — where a fixed-position
+   panel would have covered the host's own content.
+   --------------------------------------------------------------------------- */
+
+.drawer {
+  --rail-w: 4rem;
+  --edge-inline: max(var(--space-3), env(safe-area-inset-right, 0px));
+  --edge-block: calc(var(--space-3) + env(safe-area-inset-bottom, 0px));
+
+  position: absolute;
+  inset: 0;
+  z-index: var(--z-overlay);
+  pointer-events: none;
+}
+
+.drawer[data-rtl] {
+  --edge-inline: max(var(--space-3), env(safe-area-inset-left, 0px));
+}
+
+/* --- Rail ------------------------------------------------------------------ */
+.rail {
+  position: absolute;
+  inset-inline-end: var(--edge-inline);
+  inset-block-end: var(--edge-block);
+  width: var(--rail-w);
+  max-height: calc(100% - var(--space-3) - var(--edge-block));
+  overflow-y: auto;
+  scrollbar-width: none;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--space-1);
+  border: 1px solid var(--line-strong);
+  border-radius: calc(var(--radius-lg) + var(--space-1));
+  background: color-mix(in srgb, var(--ink-800) 84%, transparent);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  box-shadow: var(--shadow-md);
+  pointer-events: auto;
+  /* Vertical scrolling stays the browser's; sideways movement is a swipe. */
+  touch-action: pan-y;
+  transition:
+    translate var(--dur-base) var(--ease-out),
+    opacity var(--dur-base) var(--ease-out),
+    visibility 0s;
+}
+
+.rail::-webkit-scrollbar { display: none; }
+
+.drawer[data-mode='hidden'] .rail {
+  translate: calc(100% + var(--edge-inline)) 0;
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    translate var(--dur-base) var(--ease-out),
+    opacity var(--dur-base) var(--ease-out),
+    visibility 0s linear var(--dur-base);
+}
+
+.drawer[data-mode='hidden'][data-rtl] .rail {
+  translate: calc(-100% - var(--edge-inline)) 0;
+}
+
+.railItem {
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: 0.2rem;
+  min-height: 3.5rem;
+  padding: var(--space-2) 2px;
+  border: 0;
+  border-radius: var(--radius-lg);
+  background: transparent;
+  color: var(--fg-muted);
+  transition:
+    background var(--dur-fast) var(--ease-out),
+    color var(--dur-fast) var(--ease-out);
+}
+
+.railItem:hover:not(:disabled) {
+  color: var(--fg);
+  background: var(--line);
+}
+
+.railItem[aria-expanded='true'] {
+  color: var(--fg);
+  background: var(--ink-600);
+}
+
+.railItem:disabled {
+  opacity: 0.38;
+  cursor: not-allowed;
+}
+
+.railIcon {
+  display: grid;
+  place-items: center;
+  width: 1.6rem;
+  height: 1.6rem;
+  font-size: 1.2rem;
+}
+
+.railLabel {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.66rem;
+  font-weight: 500;
+  line-height: 1.1;
+}
+
+.railHide {
+  min-height: 2.5rem;
+  color: var(--fg-faint);
+}
+
+/* A chevron points the way its control moves things. */
+.awayFromEdge { transform: scaleX(-1); }
+.drawer[data-rtl] .towardsEdge { transform: scaleX(-1); }
+.drawer[data-rtl] .awayFromEdge { transform: none; }
+
+/* --- Handle: all that is left when the drawer is hidden --------------------- */
+.handle {
+  position: absolute;
+  inset-inline-end: 0;
+  inset-block-end: calc(var(--edge-block) + var(--space-4));
+  display: grid;
+  place-items: center;
+  width: 1.9rem;
+  height: 4.5rem;
+  padding: 0;
+  border: 1px solid var(--line-strong);
+  border-inline-end: 0;
+  border-start-start-radius: var(--radius-lg);
+  border-end-start-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--ink-800) 88%, transparent);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  box-shadow: var(--shadow-md);
+  color: var(--fg);
+  touch-action: pan-y;
+  pointer-events: none;
+  opacity: 0;
+  translate: 100% 0;
+  transition:
+    translate var(--dur-base) var(--ease-out),
+    opacity var(--dur-base) var(--ease-out);
+}
+
+.drawer[data-rtl] .handle { translate: -100% 0; }
+
+.drawer[data-mode='hidden'] .handle {
+  pointer-events: auto;
+  opacity: 1;
+  translate: 0 0;
+}
+
+/* A 30 px tab is easy to see and hard to hit, so its target reaches further
+   in than the tab itself does. */
+.handle::before {
+  content: '';
+  position: absolute;
+  inset-block: -0.75rem;
+  inset-inline: -1rem 0;
+}
+
+/* --- Panel ----------------------------------------------------------------- */
+.panel {
+  position: absolute;
+  inset-block-end: var(--edge-block);
+  inset-inline-end: calc(var(--edge-inline) + var(--rail-w) + var(--space-2));
+  width: min(calc(100% - var(--edge-inline) * 2 - var(--rail-w) - var(--space-2)), 26rem);
+  max-height: min(62%, 36rem);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--line-strong);
+  border-radius: calc(var(--radius-lg) + var(--space-1));
+  /* Floats over the product rather than beside it, so it is glass: opaque
+     enough to read controls against a white cup, clear enough that the
+     product still shows through and nobody wonders where it went. */
+  background: color-mix(in srgb, var(--ink-800) 82%, transparent);
+  -webkit-backdrop-filter: blur(20px) saturate(1.2);
+  backdrop-filter: blur(20px) saturate(1.2);
+  box-shadow: var(--shadow-lg);
+  pointer-events: auto;
+  opacity: 0;
+  visibility: hidden;
+  translate: var(--space-4) 0;
+  transition:
+    opacity var(--dur-fast) var(--ease-out),
+    translate var(--dur-base) var(--ease-out),
+    visibility 0s linear var(--dur-base);
+}
+
+.drawer[data-rtl] .panel { translate: calc(-1 * var(--space-4)) 0; }
+
+.drawer[data-mode='open'] .panel {
+  opacity: 1;
+  visibility: visible;
+  translate: 0 0;
+  transition:
+    opacity var(--dur-base) var(--ease-out),
+    translate var(--dur-base) var(--ease-out),
+    visibility 0s;
+}
+
+/* On a wide screen the side has height to spare: the panel takes all of it. */
+.drawer[data-orientation='landscape'] .panel {
+  inset-block-start: var(--space-3);
+  width: min(24rem, 50%);
+  max-height: none;
+}
+
+.panelHeader {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  min-height: 3rem;
+  padding-block: var(--space-1);
+  padding-inline: var(--space-4) var(--space-1);
+  border-bottom: 1px solid var(--line);
+  touch-action: pan-y;
+}
+
+.panelTitle {
+  font-family: var(--font-mono);
+  font-size: var(--step--2);
+  font-weight: 500;
+  line-height: 1.2;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--fg-muted);
+}
+
+.panelActions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.panelBody {
+  /* The print preview is capped by height, since a portrait print area at
+     full panel width would be taller than the panel. */
+  --preview-max-h: 6.5rem;
+
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  display: grid;
+  gap: var(--space-4);
+  align-content: start;
+  padding: var(--space-4);
+}
+
+.drawer[data-orientation='landscape'] .panelBody { --preview-max-h: 8rem; }
+
+.panelFooter {
+  flex: none;
+  display: flex;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border-top: 1px solid var(--line);
+}
+
+.panelFooter > * { flex: 1 1 auto; }

@@ -1,13 +1,24 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Button from './ui/Button';
+import IconButton from './ui/IconButton';
+import {
+  ChevronIcon,
+  DownloadIcon,
+  InfoIcon,
+  MoveIcon,
+  RedoIcon,
+  UndoIcon,
+  UploadIcon,
+} from './ui/icons';
 import cx from './utils/cx';
 import ArtworkControls from './components/ArtworkControls';
 import ArtworkDropzone from './components/ArtworkDropzone';
 import FlatPreview from './components/FlatPreview';
+import ProductDetails from './components/ProductDetails';
 import ProductPicker from './components/ProductPicker';
-import StockPicker from './components/StockPicker';
+import StockPicker, { useStockName } from './components/StockPicker';
+import StudioDrawer from './components/StudioDrawer';
 import StudioStage from './components/StudioStage';
-import StudioSheet from './components/StudioSheet';
 import StudioProvider, { useStudio } from './state/StudioProvider';
 import StudioRoot, { studioUtils } from './StudioRoot';
 import useArtworkTexture from './three/useArtworkTexture';
@@ -24,7 +35,7 @@ import {
   useCopy,
   useStudioLocale,
 } from './i18n';
-import { COMPACT_WIDTH, SIDE_PANEL_RATIO, useElementShape } from './utils/useElementShape';
+import { COMPACT_WIDTH, useElementShape } from './utils/useElementShape';
 import styles from './Studio.module.css';
 
 /**
@@ -105,33 +116,6 @@ function useStudioSession({ rootRef, onSubmit, onEvent, tenant }) {
   };
 }
 
-function Step({ index, title, children }) {
-  return (
-    <section className={styles.step}>
-      <header className={styles.stepHeader}>
-        <span className={styles.stepIndex}>{index}</span>
-        <h2 className={styles.stepTitle}>{title}</h2>
-        <span className={styles.stepRule} aria-hidden="true" />
-      </header>
-      {children}
-    </section>
-  );
-}
-
-function Specs({ product, className }) {
-  if (!product.specs?.length) return null;
-  return (
-    <div className={className ?? styles.specs}>
-      {product.specs.map((spec) => (
-        <div key={spec.label} className={styles.spec}>
-          <span>{spec.label}</span>
-          <span className={styles.specValue}>{spec.value}</span>
-        </div>
-      ))}
-    </div>
-  );
-}
-
 /**
  * The call to action.
  *
@@ -147,10 +131,87 @@ function Cta({ session, renderCta, block, size }) {
   return renderCta({ submit: session.submit, disabled: unlicensed, block, size });
 }
 
+function HistoryButtons({ session: s, variant }) {
+  const t = useCopy();
+  return (
+    <>
+      <IconButton label={t.undo} variant={variant} mirror onClick={s.undo} disabled={!s.canUndo}>
+        <UndoIcon />
+      </IconButton>
+      <IconButton label={t.redo} variant={variant} mirror onClick={s.redo} disabled={!s.canRedo}>
+        <RedoIcon />
+      </IconButton>
+    </>
+  );
+}
+
+/**
+ * The print area, and the controls that move artwork within it.
+ *
+ * With no artwork there is nothing to position, so the controls are left out
+ * rather than shown disabled — five dead sliders are the tallest possible way
+ * of saying "not yet" — and the empty print area says what it is waiting for.
+ */
+function Placement({ session: s }) {
+  const t = useCopy();
+  return (
+    <>
+      <FlatPreview
+        product={s.product}
+        artwork={s.artwork}
+        transform={s.transform}
+        baseColor={s.baseColor}
+        onTransform={s.setTransform}
+        onCommit={s.commit}
+      />
+      {s.artwork ? (
+        <ArtworkControls
+          product={s.product}
+          artwork={s.artwork}
+          transform={s.transform}
+          onTransform={s.setTransform}
+          onCommit={s.commit}
+          onReset={s.resetTransform}
+          showGuidance={false}
+        />
+      ) : (
+        <p className={styles.empty}>{t.placementEmpty}</p>
+      )}
+    </>
+  );
+}
+
+function ProductSwitcher({ session: s }) {
+  return <ProductPicker selectedId={s.product.id} onSelect={s.selectProduct} />;
+}
+
 /* --- Pointer layout --------------------------------------------------------- */
 
+function Section({ index, title, meta, children }) {
+  return (
+    <section className={styles.section}>
+      <header className={styles.sectionHeader}>
+        <span className={styles.sectionIndex}>{index}</span>
+        <h2 className={styles.sectionTitle}>{title}</h2>
+        <span className={styles.sectionRule} aria-hidden="true" />
+        {meta && <span className={styles.sectionMeta}>{meta}</span>}
+      </header>
+      {children}
+    </section>
+  );
+}
+
+/**
+ * The product beside a panel.
+ *
+ * The panel is built to fit rather than to scroll. It carries only what a
+ * visitor changes — stock, artwork, placement — in that order; which product
+ * to look at lives on the stage, history and the proof download sit over the
+ * product they act on, and reference material waits behind a disclosure.
+ */
 function PointerStudio({ session: s, renderCta }) {
   const t = useCopy();
+  const stockName = useStockName(s.product, s.baseColor);
 
   return (
     <div className={cx(styles.workspace, studioUtils.shell)}>
@@ -163,60 +224,52 @@ function PointerStudio({ session: s, renderCta }) {
           onInteract={() => s.toggleAutoRotate(false)}
           onExport={s.exportCurrentProof}
           canExport={Boolean(s.artwork)}
+          header={<ProductSwitcher session={s} />}
+          actions={<HistoryButtons session={s} variant="glass" />}
         />
       </div>
 
       <aside className={styles.panel} aria-label={t.panelLabel}>
-        <Step index="01" title={t.steps.product}>
-          <ProductPicker selectedId={s.product.id} onSelect={s.selectProduct} />
-        </Step>
+        <div className={styles.panelBody}>
+          <Section index="01" title={t.sections.stock} meta={stockName}>
+            <StockPicker
+              product={s.product}
+              value={s.baseColor}
+              onChange={s.setBaseColor}
+              caption={false}
+            />
+          </Section>
 
-        <Step index="02" title={t.stock.step}>
-          <StockPicker product={s.product} value={s.baseColor} onChange={s.setBaseColor} />
-        </Step>
+          <Section index="02" title={t.sections.artwork}>
+            <ArtworkDropzone
+              artwork={s.artwork}
+              status={s.status}
+              error={s.error}
+              onUpload={s.uploadArtwork}
+              onClear={s.clearArtwork}
+            />
+          </Section>
 
-        <Step index="03" title={t.steps.artwork}>
-          <ArtworkDropzone
-            artwork={s.artwork}
-            status={s.status}
-            error={s.error}
-            onUpload={s.uploadArtwork}
-            onClear={s.clearArtwork}
-          />
-        </Step>
+          <Section index="03" title={t.sections.placement}>
+            <Placement session={s} />
+          </Section>
 
-        <Step index="04" title={t.steps.placement}>
-          <FlatPreview
-            product={s.product}
-            artwork={s.artwork}
-            transform={s.transform}
-            baseColor={s.baseColor}
-            onTransform={s.setTransform}
-            onCommit={s.commit}
-          />
-          <ArtworkControls
-            product={s.product}
-            artwork={s.artwork}
-            transform={s.transform}
-            onTransform={s.setTransform}
-            onCommit={s.commit}
-            onReset={s.resetTransform}
-          />
-          <div className={styles.historyRow}>
-            <Button size="sm" variant="ghost" onClick={s.undo} disabled={!s.canUndo}>
-              {t.undo}
-            </Button>
-            <Button size="sm" variant="ghost" onClick={s.redo} disabled={!s.canRedo}>
-              {t.redo}
-            </Button>
-          </div>
-        </Step>
-
-        <Specs product={s.product} />
-
-        <div className={styles.cta}>
-          <Cta session={s} renderCta={renderCta} block />
+          <details className={styles.details}>
+            <summary className={styles.detailsSummary}>
+              <span>{t.sections.details}</span>
+              <ChevronIcon className={styles.detailsChevron} />
+            </summary>
+            <div className={styles.detailsBody}>
+              <ProductDetails product={s.product} />
+            </div>
+          </details>
         </div>
+
+        {renderCta && (
+          <div className={styles.panelFooter}>
+            <Cta session={s} renderCta={renderCta} block />
+          </div>
+        )}
       </aside>
     </div>
   );
@@ -224,118 +277,129 @@ function PointerStudio({ session: s, renderCta }) {
 
 /* --- Touch layout ----------------------------------------------------------- */
 
-function TouchStudio({ session: s, renderCta, sidePanel }) {
+/**
+ * The product on the whole stage, with its controls in a drawer at the side.
+ * See `StudioDrawer` for the states and why the product gets the screen.
+ */
+function TouchStudio({ session: s, renderCta }) {
   const t = useCopy();
   const { isRTL } = useStudioLocale();
 
-  const [tab, setTab] = useState('product');
-  const [snap, setSnap] = useState('peek');
+  // The shell's own shape, since the root is zero pixels tall when pinned.
+  const shellRef = useRef(null);
+  const shape = useElementShape(shellRef);
 
-  // Uploading is the moment the visitor's attention moves to placement, so the
-  // sheet follows them there instead of making them find the next step.
+  const [section, setSection] = useState('stock');
+  const [mode, setMode] = useState('peek');
+
+  /*
+   * Uploading is the moment attention moves to placement, so the drawer
+   * follows the visitor there rather than making them find the next step.
+   * Only on a new upload: arriving in this layout with artwork already placed
+   * — a window narrowed past the breakpoint — opens nothing by itself.
+   */
+  const seenArtwork = useRef(s.artwork);
   useEffect(() => {
+    if (s.artwork === seenArtwork.current) return;
+    seenArtwork.current = s.artwork;
     if (s.artwork) {
-      setTab('placement');
-      setSnap('half');
+      setSection('placement');
+      setMode('open');
+    } else {
+      setSection((current) => (current === 'placement' ? 'artwork' : current));
     }
   }, [s.artwork]);
 
-  const openTab = useCallback((next) => {
-    setTab(next);
-    setSnap((current) => (current === 'peek' ? 'half' : current));
-  }, []);
-
-  const tabs = [
-    { id: 'product', label: t.tabs.product, complete: true },
-    { id: 'artwork', label: t.tabs.artwork, complete: Boolean(s.artwork) },
-    { id: 'placement', label: t.tabs.placement, disabled: !s.artwork },
+  const sections = [
+    {
+      id: 'stock',
+      label: t.rail.stock,
+      title: t.sections.stock,
+      icon: <span className={styles.railSwatch} style={{ '--swatch': s.baseColor }} />,
+    },
+    {
+      id: 'artwork',
+      label: t.rail.artwork,
+      title: t.sections.artwork,
+      icon: s.artwork ? (
+        <img className={styles.railThumb} src={s.artwork.objectUrl} alt="" />
+      ) : (
+        <UploadIcon />
+      ),
+    },
+    {
+      id: 'placement',
+      label: t.rail.placement,
+      title: t.sections.placement,
+      icon: <MoveIcon />,
+      disabled: !s.artwork,
+    },
+    { id: 'details', label: t.rail.details, title: t.sections.details, icon: <InfoIcon /> },
   ];
 
+  const current =
+    sections.find((entry) => entry.id === section && !entry.disabled) ?? sections[0];
+  const open = mode === 'open';
+
+  const footer =
+    current.id === 'placement' ? (
+      <Button size="sm" onClick={s.exportCurrentProof}>
+        <DownloadIcon />
+        {t.downloadProof}
+      </Button>
+    ) : renderCta ? (
+      <Cta session={s} renderCta={renderCta} block size="sm" />
+    ) : null;
+
   return (
-    <div className={cx(styles.shell, sidePanel && styles.shellSide)}>
-      <div className={styles.shellViewer}>
+    <div ref={shellRef} className={styles.shell}>
+      <div className={styles.shellStage}>
         <StudioStage
+          compact
           product={s.product}
           texture={s.texture}
           baseColor={s.baseColor}
           autoRotate={s.autoRotate}
           onInteract={() => s.toggleAutoRotate(false)}
-          onExport={s.exportCurrentProof}
-          canExport={Boolean(s.artwork)}
-          compact
+          header={<ProductSwitcher session={s} />}
+          // With the panel open its footer carries the call to action instead.
+          footer={!open && renderCta ? <Cta session={s} renderCta={renderCta} size="sm" /> : null}
         />
       </div>
 
-      <StudioSheet
-        tabs={tabs}
-        activeTab={tab}
-        onTabChange={openTab}
-        snap={snap}
-        onSnapChange={setSnap}
-        gripLabel={t.sheetHandle}
-        edge={sidePanel ? 'inline-end' : 'bottom'}
+      <StudioDrawer
+        sections={sections}
+        active={current.id}
+        onSectionChange={setSection}
+        mode={mode}
+        onModeChange={setMode}
+        orientation={shape.landscape ? 'landscape' : 'portrait'}
         rtl={isRTL}
-        footer={
-          tab === 'placement' && s.artwork ? (
-            <>
-              <Button size="sm" onClick={s.undo} disabled={!s.canUndo}>
-                {t.undo}
-              </Button>
-              <Button size="sm" onClick={s.redo} disabled={!s.canRedo}>
-                {t.redo}
-              </Button>
-              <Button size="sm" variant="primary" onClick={s.exportCurrentProof}>
-                {t.downloadProof}
-              </Button>
-            </>
-          ) : (
-            <Cta session={s} renderCta={renderCta} block size="sm" />
-          )
+        labels={t.drawer}
+        title={current.title}
+        headerActions={
+          current.id === 'stock' || current.id === 'placement' ? (
+            <HistoryButtons session={s} />
+          ) : null
         }
+        footer={footer}
       >
-        {tab === 'product' && (
-          <div className={styles.sheetStep}>
-            <ProductPicker selectedId={s.product.id} onSelect={s.selectProduct} />
-            <p className={styles.sheetHint}>{s.product.summary}</p>
-            <StockPicker product={s.product} value={s.baseColor} onChange={s.setBaseColor} />
-            <Specs product={s.product} />
-          </div>
+        {current.id === 'stock' && (
+          <StockPicker product={s.product} value={s.baseColor} onChange={s.setBaseColor} />
         )}
-
-        {tab === 'artwork' && (
-          <div className={styles.sheetStep}>
-            <ArtworkDropzone
-              artwork={s.artwork}
-              status={s.status}
-              error={s.error}
-              onUpload={s.uploadArtwork}
-              onClear={s.clearArtwork}
-              compact
-            />
-          </div>
+        {current.id === 'artwork' && (
+          <ArtworkDropzone
+            artwork={s.artwork}
+            status={s.status}
+            error={s.error}
+            onUpload={s.uploadArtwork}
+            onClear={s.clearArtwork}
+            compact
+          />
         )}
-
-        {tab === 'placement' && (
-          <div className={styles.sheetStep}>
-            <FlatPreview
-              product={s.product}
-              artwork={s.artwork}
-              transform={s.transform}
-              baseColor={s.baseColor}
-              onTransform={s.setTransform}
-              onCommit={s.commit}
-            />
-            <ArtworkControls
-              product={s.product}
-              artwork={s.artwork}
-              transform={s.transform}
-              onTransform={s.setTransform}
-              onCommit={s.commit}
-              onReset={s.resetTransform}
-            />
-          </div>
-        )}
-      </StudioSheet>
+        {current.id === 'placement' && <Placement session={s} />}
+        {current.id === 'details' && <ProductDetails product={s.product} />}
+      </StudioDrawer>
     </div>
   );
 }
@@ -344,8 +408,13 @@ function TouchStudio({ session: s, renderCta, sidePanel }) {
 function StudioBody({ shape, rootRef, renderCta, onSubmit, onEvent, tenant }) {
   const session = useStudioSession({ rootRef, onSubmit, onEvent, tenant });
 
+  // Nothing until the studio knows its size. It is measured before the first
+  // paint, so this is never a frame anyone sees — and it means a phone never
+  // briefly mounts the desktop layout and a renderer it is about to discard.
+  if (!shape.measured) return null;
+
   return shape.compact ? (
-    <TouchStudio session={session} renderCta={renderCta} sidePanel={shape.sidePanel} />
+    <TouchStudio session={session} renderCta={renderCta} />
   ) : (
     <PointerStudio session={session} renderCta={renderCta} />
   );
@@ -447,5 +516,5 @@ export function Studio({
   );
 }
 
-export { COMPACT_WIDTH, SIDE_PANEL_RATIO };
+export { COMPACT_WIDTH };
 export default Studio;
