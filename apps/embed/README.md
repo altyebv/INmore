@@ -14,11 +14,11 @@ when a visitor presses it.
 
 | | |
 |---|---|
-| `embed.js` | **4.7 kB** (2.2 kB gzipped) — all a product page ever downloads |
+| `embed.js` | **5.0 kB** (2.3 kB gzipped) — all a product page ever downloads |
 | the frame | 158 kB, when the studio is opened |
-| the studio | 1.02 MB, only after WebGL, config, SKU and licence all pass |
+| the studio | 1.03 MB, only after WebGL, config, SKU and licence all pass |
 
-A page with a studio on it that nobody opens pays 2.2 kB. A studio that cannot
+A page with a studio on it that nobody opens pays 2.3 kB. A studio that cannot
 run — no WebGL, a SKU that is not configured, a tenant that does not exist —
 costs the frame and a JSON file, and never the renderer. That ordering is the
 design; see the comment at the top of `src/frame.jsx`.
@@ -34,7 +34,7 @@ element (applies to that one). The element wins.
 | `data-sku` | — | **Required, on the element.** Which product to open. |
 | `data-locale` | the tenant's default | |
 | `data-open` | `lazy` | `eager` skips the button and loads immediately. |
-| `data-height` | `640px` | |
+| `data-height` | `min(640px, 92svh)` | Never taller than the screen, so a phone held sideways can see the whole studio. Any CSS length. |
 | `data-label` | `Customise this product` | The button's text. |
 | `data-title` | `Product studio` | The iframe's accessible name. |
 
@@ -45,12 +45,14 @@ const studio = InmoreStudio.get('#studio');
 
 studio.on('ready',        ({ tenant, sku, locale }) => {});
 studio.on('submit',       (payload) => addToBasket(payload));
+studio.on('state',        (payload) => {});  // the answer to requestState()
 studio.on('configChange', ({ name, data }) => {});
 studio.on('error',        ({ code, message }) => {});
 
 studio.mount();                       // open it yourself
 studio.setLocale('ar');
 studio.setSku('shopping-bag-paper');
+studio.requestState();                // the submit payload, without submitting
 studio.destroy();
 ```
 
@@ -58,8 +60,15 @@ studio.destroy();
 finished loading — it enhances the element if the loader has not reached it
 yet, so a host's own script does not have to wait for `DOMContentLoaded`.
 
-`ready` fires once. Commands sent before it are queued and delivered when the
-studio is up, so a host never has to ask whether it is safe to call something.
+`ready` fires once, and a listener added after it has fired is called straight
+away. Commands sent before it are queued and delivered when the studio is up,
+so a host never has to ask whether it is safe to call something.
+
+`setSku()` shows that product; it does not lock the studio to it. The visitor
+can still pick another, and each pick arrives as
+`configChange` `{ name: 'product:select', data: { sku } }`. A SKU the tenant
+does not have is refused with an `error` (`unknown-sku`) rather than ignored.
+The other `configChange` names are `proof:download` and `submit`.
 
 ## The submit payload
 
@@ -83,8 +92,8 @@ it. See `packages/engine/src/artwork/submitPayload.js`.
 
 Not for CSS isolation — the studio's styles are self-contained and proven so by
 `apps/site/isolation.html`. It is because a studio has to own a *document*: it
-sets direction on its root, pins a sheet to the viewport on touch layouts, and
-listens for keys. Doing that inside a client's page means fighting a theme we
+sets direction on its root, lays its touch layout out against the viewport it
+is given, and listens for keys. Doing that inside a client's page means fighting a theme we
 cannot see for control of things we do not own.
 
 The cost is a message bridge instead of a function call, and two consequences
