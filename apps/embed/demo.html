@@ -90,6 +90,8 @@
           <button type="button" data-cmd="ar">Switch to Arabic</button>
           <button type="button" data-cmd="en">Switch to English</button>
           <button type="button" data-cmd="bag">Show the shopping bag</button>
+          <button type="button" data-cmd="cup">Show the paper cup</button>
+          <button type="button" data-cmd="state">Ask for the current state</button>
           <button type="button" data-cmd="destroy">Remove the studio</button>
         </div>
         <div
@@ -134,6 +136,7 @@
       studio.on('ready', (d) => write(`ready — ${d.tenant} / ${d.sku ?? '(default)'} / ${d.locale}`));
       studio.on('configChange', (d) => write(`change — ${d.name} ${JSON.stringify(d.data)}`));
       studio.on('error', (d) => write(`error — ${d.code}`));
+      studio.on('state', (payload) => write('state — ' + JSON.stringify(payload)));
       studio.on('submit', (payload) => {
         write('submit — ' + JSON.stringify(payload, null, 2));
         // This is where a real shop would add to its basket.
@@ -144,6 +147,8 @@
           const cmd = button.dataset.cmd;
           if (cmd === 'ar' || cmd === 'en') studio.setLocale(cmd);
           if (cmd === 'bag') studio.setSku('shopping-bag-paper');
+          if (cmd === 'cup') studio.setSku('paper-cup-8oz');
+          if (cmd === 'state') studio.requestState();
           if (cmd === 'destroy') studio.destroy();
           write(`host → ${cmd}`);
         });

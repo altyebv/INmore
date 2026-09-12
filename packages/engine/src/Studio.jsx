@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
 import Button from './ui/Button';
 import IconButton from './ui/IconButton';
 import {
@@ -41,11 +41,12 @@ import styles from './Studio.module.css';
 /**
  * Shared behaviour for both layouts.
  *
- * Texture generation, keyboard shortcuts and proof export belong to the studio
- * regardless of how it is arranged on screen, so they live here and the two
- * layout components below only decide where things sit.
+ * Texture generation, keyboard shortcuts, proof export and what the host is
+ * told belong to the studio regardless of how it is arranged on screen, so
+ * they live here and the two layout components below only decide where
+ * things sit.
  */
-function useStudioSession({ rootRef, onSubmit, onEvent, tenant }) {
+function useStudioSession({ rootRef, apiRef, onSubmit, onEvent, tenant }) {
   const studio = useStudio();
   const { locale } = useStudioLocale();
   const product = useMemo(
@@ -92,19 +93,48 @@ function useStudioSession({ rootRef, onSubmit, onEvent, tenant }) {
     });
   }, [studio.product, studio.artwork, studio.transform, studio.baseColor, onEvent]);
 
+  const buildPayload = useCallback(
+    () =>
+      buildSubmitPayload({
+        tenant,
+        locale,
+        product: studio.product,
+        artwork: studio.artwork,
+        transform: studio.transform,
+        baseColor: studio.baseColor,
+      }),
+    [tenant, locale, studio.product, studio.artwork, studio.transform, studio.baseColor]
+  );
+
   const submit = useCallback(() => {
-    const payload = buildSubmitPayload({
-      tenant,
-      locale,
-      product: studio.product,
-      artwork: studio.artwork,
-      transform: studio.transform,
-      baseColor: studio.baseColor,
-    });
+    const payload = buildPayload();
     onEvent?.('submit', { sku: payload.sku });
     onSubmit?.(payload);
     return payload;
-  }, [tenant, locale, studio.product, studio.artwork, studio.transform, studio.baseColor, onSubmit, onEvent]);
+  }, [buildPayload, onSubmit, onEvent]);
+
+  /*
+   * Tell the host when the visitor changes product.
+   *
+   * A host that sets `sku` needs to know when the visitor has moved on from
+   * it: that is how it keeps its own copy in step, and so how a later request
+   * for the original product is a change the studio acts on rather than a
+   * repeat of a value it already holds. Not reported for the product the
+   * studio opened on — the host chose that one.
+   */
+  const reportedProduct = useRef(studio.product.id);
+  useEffect(() => {
+    if (reportedProduct.current === studio.product.id) return;
+    reportedProduct.current = studio.product.id;
+    onEvent?.('product:select', { sku: studio.product.id });
+  }, [studio.product.id, onEvent]);
+
+  /*
+   * What a host can ask for without the visitor pressing anything — the
+   * embed's `requestState()`. The same payload a submit produces, so a host
+   * never reconciles two descriptions of one configuration.
+   */
+  useImperativeHandle(apiRef, () => ({ getState: buildPayload }), [buildPayload]);
 
   return {
     ...studio,
@@ -405,8 +435,8 @@ function TouchStudio({ session: s, renderCta }) {
 }
 
 /** Chooses a layout from the room it has, then renders it. */
-function StudioBody({ shape, rootRef, renderCta, onSubmit, onEvent, tenant }) {
-  const session = useStudioSession({ rootRef, onSubmit, onEvent, tenant });
+function StudioBody({ shape, rootRef, apiRef, renderCta, onSubmit, onEvent, tenant }) {
+  const session = useStudioSession({ rootRef, apiRef, onSubmit, onEvent, tenant });
 
   // Nothing until the studio knows its size. It is measured before the first
   // paint, so this is never a frame anyone sees — and it means a phone never
@@ -441,6 +471,7 @@ function StudioBody({ shape, rootRef, renderCta, onSubmit, onEvent, tenant }) {
  *   fullscreen?: boolean,
  *   insetBlockStart?: string,
  *   className?: string,
+ *   apiRef?: React.Ref<{ getState: () => object }>,
  *   renderCta?: (api: { submit: () => object, disabled: boolean }) => React.ReactNode,
  *   onSubmit?: (payload: object) => void,
  *   onEvent?: (name: string, data: object) => void,
@@ -460,6 +491,7 @@ export function Studio({
   fullscreen = false,
   insetBlockStart,
   className,
+  apiRef,
   renderCta,
   onSubmit,
   onEvent,
@@ -502,6 +534,7 @@ export function Studio({
                 <StudioBody
                   shape={shape}
                   rootRef={rootRef}
+                  apiRef={apiRef}
                   renderCta={renderCta}
                   onSubmit={onSubmit}
                   onEvent={onEvent}

@@ -30,8 +30,13 @@ export const STUDIO_EVENTS = {
   READY: 'ready',
   /** The visitor finished. Payload: the submit payload. */
   SUBMIT: 'submit',
-  /** Something the visitor changed. Payload: { name, data }. */
+  /**
+   * Something the visitor did. Payload: { name, data }, where name is one of
+   * 'product:select' ({ sku }), 'proof:download' ({ sku }) or 'submit' ({ sku }).
+   */
   CONFIG_CHANGE: 'configChange',
+  /** The answer to requestState. Payload: the submit payload, or null. */
+  STATE: 'state',
   /** The studio could not start. Payload: { code, message }. */
   ERROR: 'error',
   /** The studio wants a different height. Payload: { height }. */

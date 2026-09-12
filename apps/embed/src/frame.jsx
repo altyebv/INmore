@@ -1,4 +1,4 @@
-import { StrictMode, Suspense, lazy, useCallback, useEffect, useState } from 'react';
+import { StrictMode, Suspense, lazy, useCallback, useEffect, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { assertValidTenantConfig } from '@inmore/config-schema';
 import { Fallback, developerHint, hasWebGL } from './fallback';
@@ -65,7 +65,8 @@ function post(type, payload) {
   parent?.postMessage(studioMessage(type, payload), parentOrigin);
 }
 
-function fail(code, detail) {
+/** Tell the host — and the developer reading its console — what went wrong. */
+function report(code, detail) {
   const hint = developerHint(code, { ...request, ...detail });
   if (hint) console.error(`[inmore-studio] ${hint}`);
   post(STUDIO_EVENTS.ERROR, { code, message: hint ?? code });
@@ -96,12 +97,19 @@ async function resolveTenant() {
   try {
     config = assertValidTenantConfig(raw, { label: `${request.tenant}.json` });
   } catch (error) {
+}
+
+function fail(code, detail) {
+  report(code, detail);
     return fail(ERROR_CODES.CONFIG_INVALID, { detail: error.message });
   }
 
-  const live = config.products.filter((p) => p.status === 'live');
-  if (request.sku && !live.some((p) => p.id === request.sku)) {
-    return fail(ERROR_CODES.UNKNOWN_SKU, { known: live.map((p) => p.id) });
+const liveSkus = (config) =>
+  config.products.filter((p) => p.status === 'live').map((p) => p.id);
+
+  const live = liveSkus(config);
+  if (request.sku && !live.includes(request.sku)) {
+    return fail(ERROR_CODES.UNKNOWN_SKU, { known: live });
   }
   if (!live.length) {
     return fail(ERROR_CODES.UNKNOWN_SKU, { known: [] });
@@ -143,7 +151,6 @@ function Frame() {
     resolveTenant().then((result) => {
       if (cancelled) return;
       setState(result);
-      if (result.status === 'ready') setLocale(result.locale);
     });
     return () => {
       cancelled = true;
@@ -157,7 +164,27 @@ function Frame() {
       const { type, payload } = event.data;
 
       if (type === HOST_COMMANDS.SET_LOCALE && payload?.locale) setLocale(payload.locale);
-      if (type === HOST_COMMANDS.SET_SKU && payload?.sku) setSku(payload.sku);
+
+      if (type === HOST_COMMANDS.SET_SKU && payload?.sku) {
+        /*
+         * A sku the tenant does not have used to be dropped without a word:
+         * the host's button did nothing and nobody was told why. It is the
+         * same mistake as a typo in data-sku, and gets the same answer.
+         */
+        const config = configRef.current;
+        const known = config ? liveSkus(config) : [];
+        if (config && !known.includes(payload.sku)) {
+          report(ERROR_CODES.UNKNOWN_SKU, { sku: payload.sku, known });
+          return;
+        }
+        setSku(payload.sku);
+      }
+
+      if (type === HOST_COMMANDS.REQUEST_STATE) {
+        // Commands are held by the loader until the studio is ready, so the
+        // handle is normally set; null says honestly that there is no studio.
+        post(STUDIO_EVENTS.STATE, studioApi.current?.getState() ?? null);
+      }
     };
 
     window.addEventListener('message', onMessage);
@@ -165,10 +192,19 @@ function Frame() {
   }, []);
 
   const dir = locale === 'ar' ? 'rtl' : 'ltr';
+  /** The mounted studio's handle, for answering requestState. */
+  const studioApi = useRef(null);
+  /** The resolved config, readable from the message listener without re-subscribing it. */
+  const configRef = useRef(null);
+
 
   // The frame owns this document, so here it is allowed to set these.
   useEffect(() => {
     document.documentElement.lang = locale;
+      if (result.status === 'ready') {
+        configRef.current = result.config;
+        setLocale(result.locale);
+      }
     document.documentElement.dir = dir;
   }, [locale, dir]);
 
@@ -187,10 +223,17 @@ function Frame() {
   );
 
   const onSubmit = useCallback((payload) => post(STUDIO_EVENTS.SUBMIT, payload), []);
-  const onEvent = useCallback(
-    (name, data) => post(STUDIO_EVENTS.CONFIG_CHANGE, { name, data }),
-    []
-  );
+
+  const onEvent = useCallback((name, data) => {
+    /*
+     * Keep our copy of the sku level with what the visitor chose. The studio
+     * acts on a sku when it changes, so without this a host's setSku() back to
+     * the product the page opened on would be a value we already held — and
+     * nothing would happen.
+     */
+    if (name === 'product:select' && data?.sku) setSku(data.sku);
+    post(STUDIO_EVENTS.CONFIG_CHANGE, { name, data });
+  }, []);
 
   if (state.status === 'loading') return null;
   if (state.status === 'failed') {
@@ -217,3 +260,4 @@ createRoot(document.getElementById('root')).render(
     <Frame />
   </StrictMode>
 );
+        apiRef={studioApi}
