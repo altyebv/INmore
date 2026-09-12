@@ -79,15 +79,26 @@ export function StudioProvider({ children, catalogue, sku, initialProductId }) {
   );
 
   /*
-   * Follow a caller that is controlling which product is shown.
+   * Follow a caller that changes which product is shown.
    *
-   * `sku` used to reach the reducer only as its initial value, so a host
-   * changing it after mount changed nothing — the embed's `setSku()` appeared
-   * to work and quietly did not. Selecting it here routes through exactly the
-   * same path as a click on the picker, so the visitor's artwork carries over
-   * and is re-placed for the new print area rather than being reset.
+   * `sku` is a request, not a lock: it is acted on when it *changes*, never
+   * merely because it differs from what is on screen. The first version
+   * compared the two on every render, and since the embed always passes a
+   * sku, each click in the picker was undone on the next render — the stock
+   * reset to the original product's, which looked like the click had only
+   * changed a colour — and after a host's `setSku()` the studio was pinned to
+   * that product instead.
+   *
+   * Selecting routes through the same path as a click on the picker, so the
+   * visitor's artwork carries over and is re-placed for the new print area. A
+   * host that wants to send a visitor back to a product they have moved away
+   * from keeps its copy in step (the studio reports `product:select`) and
+   * changes it.
    */
+  const requestedSku = useRef(sku);
   useEffect(() => {
+    if (sku === requestedSku.current) return;
+    requestedSku.current = sku;
     if (!sku || sku === state.productId) return;
     const target = catalogue.get(sku);
     if (target) selectProduct(target);
