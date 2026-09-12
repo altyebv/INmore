@@ -58,8 +58,35 @@ const request = {
 /** Where a tenant's config lives, relative to this frame. */
 const configUrl = (tenant) => new URL(`tenants/${tenant}.json`, location.href).toString();
 
-/** Only the parent may talk to us, and only from where we were served. */
-const parentOrigin = document.referrer ? new URL(document.referrer).origin : '*';
+/**
+ * The page we are embedded in, as an origin: the only sender we listen to and
+ * the only receiver we post to.
+ *
+ * The loader passes it explicitly. The referrer used to be the only source,
+ * and a host page with `Referrer-Policy: no-referrer` — which privacy-minded
+ * shops do set — sends none. That left this at '*', and with it the studio
+ * took commands from any window and posted the visitor's configuration to
+ * whatever happened to be its parent. The referrer remains the fallback, for
+ * a frame loaded by an older copy of embed.js.
+ *
+ * Trusting a query parameter is safe here for a reason worth writing down: a
+ * page that frames us and lies about its origin only makes postMessage refuse
+ * to deliver to it. Nothing is gained by claiming to be someone else.
+ */
+function resolveParentOrigin() {
+  for (const candidate of [params.get('origin'), document.referrer]) {
+    if (!candidate) continue;
+    try {
+      const { origin } = new URL(candidate);
+      if (origin && origin !== 'null') return origin;
+    } catch {
+      // Not a URL. Try the next source.
+    }
+  }
+  return '*';
+}
+
+const parentOrigin = resolveParentOrigin();
 
 function post(type, payload) {
   parent?.postMessage(studioMessage(type, payload), parentOrigin);
@@ -70,8 +97,15 @@ function report(code, detail) {
   const hint = developerHint(code, { ...request, ...detail });
   if (hint) console.error(`[inmore-studio] ${hint}`);
   post(STUDIO_EVENTS.ERROR, { code, message: hint ?? code });
+}
+
+function fail(code, detail) {
+  report(code, detail);
   return { status: 'failed', code };
 }
+
+const liveSkus = (config) =>
+  config.products.filter((p) => p.status === 'live').map((p) => p.id);
 
 /* --- Loading ------------------------------------------------------------------- */
 
@@ -97,15 +131,8 @@ async function resolveTenant() {
   try {
     config = assertValidTenantConfig(raw, { label: `${request.tenant}.json` });
   } catch (error) {
-}
-
-function fail(code, detail) {
-  report(code, detail);
     return fail(ERROR_CODES.CONFIG_INVALID, { detail: error.message });
   }
-
-const liveSkus = (config) =>
-  config.products.filter((p) => p.status === 'live').map((p) => p.id);
 
   const live = liveSkus(config);
   if (request.sku && !live.includes(request.sku)) {
@@ -146,10 +173,19 @@ function Frame() {
   const [locale, setLocale] = useState(request.locale ?? 'en');
   const [sku, setSku] = useState(request.sku);
 
+  /** The mounted studio's handle, for answering requestState. */
+  const studioApi = useRef(null);
+  /** The resolved config, readable from the message listener without re-subscribing it. */
+  const configRef = useRef(null);
+
   useEffect(() => {
     let cancelled = false;
     resolveTenant().then((result) => {
       if (cancelled) return;
+      if (result.status === 'ready') {
+        configRef.current = result.config;
+        setLocale(result.locale);
+      }
       setState(result);
     });
     return () => {
@@ -160,6 +196,8 @@ function Frame() {
   /** Commands from the host. */
   useEffect(() => {
     const onMessage = (event) => {
+      // From our own parent, from the origin it was loaded by, tagged as ours.
+      if (event.source !== window.parent) return;
       if (!isOurMessage(event, FROM_HOST, parentOrigin)) return;
       const { type, payload } = event.data;
 
@@ -192,19 +230,10 @@ function Frame() {
   }, []);
 
   const dir = locale === 'ar' ? 'rtl' : 'ltr';
-  /** The mounted studio's handle, for answering requestState. */
-  const studioApi = useRef(null);
-  /** The resolved config, readable from the message listener without re-subscribing it. */
-  const configRef = useRef(null);
-
 
   // The frame owns this document, so here it is allowed to set these.
   useEffect(() => {
     document.documentElement.lang = locale;
-      if (result.status === 'ready') {
-        configRef.current = result.config;
-        setLocale(result.locale);
-      }
     document.documentElement.dir = dir;
   }, [locale, dir]);
 
@@ -247,6 +276,7 @@ function Frame() {
         sku={sku}
         locale={locale}
         dir={dir}
+        apiRef={studioApi}
         onReady={onReady}
         onSubmit={onSubmit}
         onEvent={onEvent}
@@ -260,4 +290,3 @@ createRoot(document.getElementById('root')).render(
     <Frame />
   </StrictMode>
 );
-        apiRef={studioApi}

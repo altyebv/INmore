@@ -199,6 +199,9 @@ function createInstance(element, options) {
        * navigation, no popups, no form submission into the host's document. A
        * compromised bundle cannot redirect a client's shop. That is worth
        * having even when the isolation is not absolute.
+      // Who the frame may talk to. It cannot rely on the referrer: a page with
+      // Referrer-Policy: no-referrer sends none.
+      url.searchParams.set('origin', location.origin);
        */
       frame.setAttribute(
         'sandbox',
