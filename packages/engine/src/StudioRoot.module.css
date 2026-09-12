@@ -126,74 +126,78 @@
 }
 
 /* ---------------------------------------------------------------------------
-   A reset, scoped to the subtree.
+   A reset, scoped to the subtree — and ranked below every component's rules.
 
    Tokens were only half the dependency. The studio also leaned on the site's
    global reset — and it was `button { color: inherit }` that mattered most,
    because without it a browser's default `buttontext` wins and every product
-   name in the picker renders black on a near-black panel. It was invisible
-   until the studio was mounted in a page that had no such reset, which is
-   precisely the situation it is being built for.
+   name in the picker renders black on a near-black panel.
 
-   So the studio brings its own. Every selector is a descendant of `.root`: a
-   host page's own buttons, lists and links are none of our business, and the
-   one thing worse than inheriting a host's reset is imposing ours on it.
+   Each rule below is written `:where(.root) element`. `:where()` adds no
+   specificity, so a rule weighs exactly what a bare element selector weighs:
+   enough to beat the browser's defaults, never enough to beat a component's
+   own class. The first version was written `.root button` — a class and an
+   element — which outranks a single CSS-module class, and so won against the
+   very components it was written for. Every Button lost its colour and size
+   (a primary button became paper text on a paper fill: a blank pill), the
+   placement preview's canvas lost `height: 100%` and drew at the wrong aspect,
+   and step titles lost their tracking.
+
+   A host theme's own `button {}` now ties with these and source order settles
+   it. That is the right place to stop: every studio control sets its own
+   surface, and a host that fights harder than an element selector is what
+   the embed's iframe is for.
    --------------------------------------------------------------------------- */
 
+/*
+ * The exception, at full weight on purpose. A theme setting `content-box`
+ * globally would break every padded panel, and no component sets
+ * `box-sizing`, so there is nothing of ours for this to out-rank.
+ */
 .root,
 .root *,
 .root *::before,
 .root *::after {
-  /* A theme setting `content-box` globally would break every padded panel. */
   box-sizing: border-box;
 }
 
-.root button,
-.root input,
-.root select,
-.root textarea {
+:where(.root) button,
+:where(.root) input,
+:where(.root) select,
+:where(.root) textarea {
   font: inherit;
   color: inherit;
   letter-spacing: inherit;
 }
 
-/*
- * Only the inherited properties are reset, which is what the site's global
- * reset did too. Resetting `background`, `border` and `padding` here looks
- * tempting as a defence against a host theme styling bare `button`, but
- * `.root button` out-specifies a CSS-module class and strips the studio's own
- * panels instead — which is what happened the first time this was written.
- *
- * Every studio button sets its own surface, so a host's `button {}` rule only
- * reaches parts nothing else styles. Closing that last gap is not a
- * specificity fight worth having; it is what the embed's iframe is for.
- */
-.root button {
+:where(.root) button {
   cursor: pointer;
 }
 
-.root h1,
-.root h2,
-.root h3,
-.root h4 {
+:where(.root) h1,
+:where(.root) h2,
+:where(.root) h3,
+:where(.root) h4 {
   margin: 0;
   font-weight: 500;
   line-height: 1.02;
   letter-spacing: var(--tracking-tight);
 }
 
-.root p {
+:where(.root) p,
+:where(.root) dl,
+:where(.root) dd {
   margin: 0;
 }
 
-.root ul,
-.root ol {
+:where(.root) ul,
+:where(.root) ol {
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
-.root a {
+:where(.root) a {
   color: inherit;
   text-decoration: none;
 }
@@ -201,15 +205,14 @@
 /*
  * A theme styling bare `canvas` or `img` is common enough to be worth
  * neutralising — the harness's green canvas border came from exactly such a
- * rule. No engine module styles these directly, so this cannot out-specify
- * anything of ours.
+ * rule.
  *
  * A host using `!important` still wins, and no reset can change that. That is
  * the argument for the iframe, not for an escalation here.
  */
-.root img,
-.root canvas,
-.root svg {
+:where(.root) img,
+:where(.root) canvas,
+:where(.root) svg {
   display: block;
   max-width: 100%;
   border: 0;
@@ -217,7 +220,7 @@
 
 /* A theme forcing `img { width: 100% !important }` must not stretch the 3-D
    canvas or a swatch; an explicit height keeps the aspect the studio set. */
-.root canvas {
+:where(.root) canvas {
   height: auto;
 }
 
@@ -302,4 +305,3 @@
     transition-duration: 0.01ms !important;
   }
 }
-
