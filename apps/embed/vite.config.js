@@ -104,8 +104,14 @@ function externalAssets() {
         const name = decodeURIComponent(req.url.slice(match.to.length + 2).split('?')[0]);
         const file = path.join(match.from, name);
 
-        // A request escaping the directory it names is a request we do not serve.
-        if (!file.startsWith(match.from) || !fs.existsSync(file)) return next();
+        /*
+         * A request escaping the directory it names is a request we do not
+         * serve. The separator matters: a bare prefix test lets
+         * `/tenants/../tenants-private/x` through, because "tenants-private"
+         * starts with "tenants".
+         */
+        if (!file.startsWith(match.from + path.sep) || !fs.existsSync(file)) return next();
+        if (!fs.statSync(file).isFile()) return next();
 
         res.setHeader(
           'Content-Type',
