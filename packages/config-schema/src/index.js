@@ -303,7 +303,24 @@ function validateProducts(c, products, locales, stockIds) {
     validateModel(c, product.model, `${path}.model`, label);
     validateCamera(c, product.camera, `${path}.camera`);
     validatePrint(c, product.print, `${path}.print`, stockIds);
+    validateMaterial(c, product.material, `${path}.material`);
   });
+}
+
+function validateMaterial(c, material, path) {
+  if (!isObject(material)) {
+    c.error(
+      path,
+      'is missing. A live product needs a material object — the engine reads it while shading the model, even if every field in it is left to its default.'
+    );
+    return;
+  }
+
+  for (const key of ['roughness', 'metalness', 'envMapIntensity']) {
+    if (material[key] != null) {
+      c.check(isNumber(material[key]), `${path}.${key}`, 'must be a number.');
+    }
+  }
 }
 
 function validateModel(c, model, path, label) {
@@ -426,7 +443,14 @@ function validatePrint(c, print, path, stockIds) {
     }
   }
 
-  validateDefaultTransform(c, print.defaultTransform, `${path}.defaultTransform`);
+  if (!isObject(print.defaultTransform)) {
+    c.error(
+      `${path}.defaultTransform`,
+      'is missing. A live product needs a default placement — the engine reads it to seat the artwork before anything is uploaded.'
+    );
+  } else {
+    validateDefaultTransform(c, print.defaultTransform, `${path}.defaultTransform`);
+  }
 }
 
 function validatePhysical(c, physical, path) {
@@ -509,12 +533,6 @@ function validatePhysical(c, physical, path) {
 }
 
 function validateDefaultTransform(c, transform, path) {
-  if (transform == null) return; // The engine has a default.
-  if (!isObject(transform)) {
-    c.error(path, 'must be an object.');
-    return;
-  }
-
   if (transform.width != null) {
     c.check(
       isNumber(transform.width) && transform.width > 0 && transform.width <= 3,

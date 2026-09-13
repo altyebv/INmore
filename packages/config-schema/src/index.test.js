@@ -33,6 +33,7 @@ const base = () => ({
         stockPalette: ['white'],
         defaultTransform: { width: 0.4, x: 0, y: 0 },
       },
+      material: {},
     },
   ],
 });
@@ -51,7 +52,6 @@ describe('a sound config', () => {
 
   it('passes with nothing optional supplied', () => {
     const config = base();
-    delete config.products[0].print.defaultTransform;
     delete config.products[0].print.stockPalette;
     delete config.products[0].print.physical.bleedMm;
     expect(validateTenantConfig(config).valid).toBe(true);
@@ -252,7 +252,35 @@ describe('the print area', () => {
   });
 });
 
+describe('material', () => {
+  it('requires a live product to have one, even if empty', () => {
+    const config = base();
+    delete config.products[0].material;
+    expect(messageAt(config, 'products[0].material')).toMatch(/material object/);
+  });
+
+  it('rejects a non-numeric field', () => {
+    const config = base();
+    config.products[0].material = { roughness: 'matte' };
+    expect(messageAt(config, 'products[0].material.roughness')).toMatch(/must be a number/);
+  });
+
+  it('does not ask a coming-soon product for one', () => {
+    const config = base();
+    config.products.push({ id: 'tote', slug: 'tote', status: 'coming-soon', name: 'Tote' });
+    expect(validateTenantConfig(config).valid).toBe(true);
+  });
+});
+
 describe('the default placement', () => {
+  it('is required, because the engine seats the artwork from it before any upload', () => {
+    const config = base();
+    delete config.products[0].print.defaultTransform;
+    expect(messageAt(config, 'products[0].print.defaultTransform')).toMatch(
+      /default placement/
+    );
+  });
+
   it('rejects a width that is not a fraction of the print area', () => {
     const config = base();
     config.products[0].print.defaultTransform.width = 12;

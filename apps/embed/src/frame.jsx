@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { assertValidTenantConfig } from '@inmore/config-schema';
 import { resolveAsset } from '@inmore/engine';
 import { Fallback, developerHint, hasWebGL } from './fallback';
+import { StudioBoundary } from './StudioBoundary';
 import {
   ERROR_CODES,
   FROM_HOST,
@@ -308,19 +309,25 @@ function Frame() {
   }
 
   return (
-    <Suspense fallback={null}>
-      <StudioMount
-        config={state.config}
-        sku={sku}
-        locale={locale}
-        dir={dir}
-        dracoPath={DRACO_PATH}
-        apiRef={studioApi}
-        onReady={onReady}
-        onSubmit={onSubmit}
-        onEvent={onEvent}
-      />
-    </Suspense>
+    <StudioBoundary
+      locale={locale}
+      dir={dir}
+      onError={(error) => report(ERROR_CODES.UNKNOWN, { detail: error?.message })}
+    >
+      <Suspense fallback={null}>
+        <StudioMount
+          config={state.config}
+          sku={sku}
+          locale={locale}
+          dir={dir}
+          dracoPath={DRACO_PATH}
+          apiRef={studioApi}
+          onReady={onReady}
+          onSubmit={onSubmit}
+          onEvent={onEvent}
+        />
+      </Suspense>
+    </StudioBoundary>
   );
 }
 
