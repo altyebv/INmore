@@ -10,31 +10,20 @@ const root = path.resolve(here, '../..');
 /**
  * Serve and build the things a tenant's embed needs alongside the frame.
  *
- * Two directories that live outside this app but have to be reachable from
- * its origin:
+ * Used to copy every tenant's `tenants/*.json` and every product's
+ * `apps/site/public/models/*.glb` into every deployment's `dist/` — which
+ * meant one client's build shipped every other client's config and models at
+ * guessable URLs. Both now come from R2 at runtime, scoped to the tenant the
+ * deployment is actually for (see `frame.jsx`'s `VITE_ASSET_BASE`), so
+ * neither is copied here any more.
  *
- * - `tenants/*.json`, which the frame fetches at runtime. They are shared
- *   data, not this app's, so they are copied rather than duplicated.
- * - the Draco decoder, which decompresses every product model. It belongs to
- *   neither app — it is the same wasm for every client — so it is taken from
- *   where it already lives rather than committed twice. When a third host
- *   appears it should move to a shared vendor directory; until then, copying
- *   beats a second copy in git.
+ * The Draco decoder is still local for now: it is the same wasm for every
+ * client, not tenant data, so bundling it carries none of the leak the
+ * configs and models did.
  */
 function externalAssets() {
   const sources = [
-    { from: path.join(root, 'tenants'), to: 'tenants', filter: (f) => f.endsWith('.json') },
     { from: path.join(root, 'apps/site/public/draco'), to: 'draco', filter: () => true },
-    /*
-     * The tenant's own models.
-     *
-     * Here because this deployment serves them itself, which is what an empty
-     * assetBase in the config means. A tenant on a CDN sets assetBase to their
-     * prefix instead and this copy does nothing — which is the point of the
-     * setting: where a client's assets live is a deployment decision, not
-     * something the engine or this build has an opinion about.
-     */
-    { from: path.join(root, 'apps/site/public/models'), to: 'models', filter: (f) => f.endsWith('.glb') },
   ];
 
   const copyInto = (outDir) => {
