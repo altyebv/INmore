@@ -295,6 +295,32 @@ describe('branding', () => {
   });
 });
 
+describe('ui', () => {
+  it('accepts picker: false', () => {
+    const config = base();
+    config.ui = { picker: false };
+    expect(validateTenantConfig(config).valid).toBe(true);
+  });
+
+  it('rejects a non-boolean picker', () => {
+    const config = base();
+    config.ui = { picker: 'no' };
+    expect(messageAt(config, 'ui.picker')).toMatch(/must be a boolean/);
+  });
+
+  it('defaults picker to true when ui is left unset', () => {
+    const result = normaliseTenantConfig(base());
+    expect(result.ui.picker).toBe(true);
+  });
+
+  it('normalises picker: false without inventing a true', () => {
+    const config = base();
+    config.ui = { picker: false };
+    const result = normaliseTenantConfig(config);
+    expect(result.ui.picker).toBe(false);
+  });
+});
+
 describe('reporting', () => {
   it('collects every problem rather than stopping at the first', () => {
     const config = base();

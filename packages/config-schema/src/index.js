@@ -50,12 +50,16 @@
  * @property {string} [maxWidth]
  * @property {Record<string, string>} [tokens] Raw custom properties, applied last.
  *
+ * @typedef {Object} StudioUi
+ * @property {boolean} [picker=true] Whether the product picker is shown.
+ *
  * @typedef {Object} TenantConfig
  * @property {string} tenant
  * @property {string[]} locales
  * @property {string} [defaultLocale]
  * @property {string} [assetBase]
  * @property {Branding} [branding]
+ * @property {StudioUi} [ui]
  * @property {Record<string, Stock>} stocks
  * @property {object[]} products
  */
@@ -171,6 +175,7 @@ export function validateTenantConfig(config) {
   }
 
   validateBranding(c, config.branding);
+  validateUi(c, config.ui);
   const stockIds = validateStocks(c, config.stocks, locales);
   validateProducts(c, config.products, locales, stockIds);
 
@@ -202,6 +207,17 @@ function validateBranding(c, branding) {
         c.error(`branding.tokens.${key}`, 'must be a CSS custom property, starting with "--".');
       }
     }
+  }
+}
+
+function validateUi(c, ui) {
+  if (ui == null) return;
+  if (!isObject(ui)) {
+    c.error('ui', 'must be an object.');
+    return;
+  }
+  if (ui.picker != null && typeof ui.picker !== 'boolean') {
+    c.error('ui.picker', 'must be a boolean.');
   }
 }
 
@@ -541,6 +557,7 @@ export function normaliseTenantConfig(config) {
     defaultLocale: config.defaultLocale ?? locales[0],
     assetBase: config.assetBase ?? '',
     branding: config.branding ?? {},
+    ui: { picker: true, ...config.ui },
     stocks: config.stocks ?? {},
     products: (config.products ?? []).map((product) => ({
       ...product,

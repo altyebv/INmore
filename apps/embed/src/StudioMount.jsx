@@ -86,6 +86,7 @@ export function StudioMount({
       tenant={config.tenant}
       catalogue={catalogue}
       branding={config.branding}
+      ui={config.ui}
       sku={sku}
       locale={locale}
       dir={dir}

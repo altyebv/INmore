@@ -46,7 +46,7 @@ import styles from './Studio.module.css';
  * they live here and the two layout components below only decide where
  * things sit.
  */
-function useStudioSession({ rootRef, apiRef, onSubmit, onEvent, tenant }) {
+function useStudioSession({ rootRef, apiRef, onSubmit, onEvent, tenant, showPicker }) {
   const studio = useStudio();
   const { locale } = useStudioLocale();
   const product = useMemo(
@@ -143,6 +143,7 @@ function useStudioSession({ rootRef, apiRef, onSubmit, onEvent, tenant }) {
     exportCurrentProof,
     submit,
     commit: () => studio.setTransform({}, true),
+    showPicker,
   };
 }
 
@@ -254,7 +255,7 @@ function PointerStudio({ session: s, renderCta }) {
           onInteract={() => s.toggleAutoRotate(false)}
           onExport={s.exportCurrentProof}
           canExport={Boolean(s.artwork)}
-          header={<ProductSwitcher session={s} />}
+          header={s.showPicker && <ProductSwitcher session={s} />}
           actions={<HistoryButtons session={s} variant="glass" />}
         />
       </div>
@@ -391,7 +392,7 @@ function TouchStudio({ session: s, renderCta }) {
           baseColor={s.baseColor}
           autoRotate={s.autoRotate}
           onInteract={() => s.toggleAutoRotate(false)}
-          header={<ProductSwitcher session={s} />}
+          header={s.showPicker && <ProductSwitcher session={s} />}
           // With the panel open its footer carries the call to action instead.
           footer={!open && renderCta ? <Cta session={s} renderCta={renderCta} size="sm" /> : null}
         />
@@ -435,8 +436,8 @@ function TouchStudio({ session: s, renderCta }) {
 }
 
 /** Chooses a layout from the room it has, then renders it. */
-function StudioBody({ shape, rootRef, apiRef, renderCta, onSubmit, onEvent, tenant }) {
-  const session = useStudioSession({ rootRef, apiRef, onSubmit, onEvent, tenant });
+function StudioBody({ shape, rootRef, apiRef, renderCta, onSubmit, onEvent, tenant, showPicker }) {
+  const session = useStudioSession({ rootRef, apiRef, onSubmit, onEvent, tenant, showPicker });
 
   // Nothing until the studio knows its size. It is measured before the first
   // paint, so this is never a frame anyone sees — and it means a phone never
@@ -468,6 +469,7 @@ function StudioBody({ shape, rootRef, apiRef, renderCta, onSubmit, onEvent, tena
  *   license?: import('./license').License,
  *   copy?: object,
  *   tenant?: string,
+ *   ui?: { picker?: boolean },
  *   fullscreen?: boolean,
  *   insetBlockStart?: string,
  *   className?: string,
@@ -488,6 +490,7 @@ export function Studio({
   license = permissiveLicense,
   copy,
   tenant = 'unknown',
+  ui,
   fullscreen = false,
   insetBlockStart,
   className,
@@ -507,6 +510,8 @@ export function Studio({
    * room the studio actually has.
    */
   const shape = useElementShape(rootRef);
+
+  const showPicker = ui?.picker !== false;
 
   const resolvedDir = dir ?? directionFor(locale);
   const resolvedCopy = useMemo(() => resolveCopy(locale, copy), [locale, copy]);
@@ -539,6 +544,7 @@ export function Studio({
                   onSubmit={onSubmit}
                   onEvent={onEvent}
                   tenant={tenant}
+                  showPicker={showPicker}
                 />
               </StudioProvider>
             </LicenseProvider>
