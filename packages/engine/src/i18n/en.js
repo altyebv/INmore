@@ -13,11 +13,22 @@
 
 export default {
   panelLabel: 'Product configuration',
-  steps: { product: 'Product', artwork: 'Your artwork', placement: 'Placement' },
-  tabs: { product: 'Product', artwork: 'Artwork', placement: 'Place' },
+  sections: {
+    stock: 'Stock',
+    artwork: 'Your artwork',
+    placement: 'Placement',
+    details: 'Details',
+  },
+  /** Short names for the touch layout's rail, where each sits under an icon. */
+  rail: { stock: 'Colour', artwork: 'Logo', placement: 'Place', details: 'Info' },
+  drawer: {
+    label: 'Studio controls',
+    show: 'Show controls',
+    hide: 'Hide controls',
+    close: 'Close panel',
+  },
   stock: {
     label: 'Stock',
-    step: 'Stock',
     custom: 'Custom colour',
   },
   chooseProduct: 'Choose a product',
@@ -29,9 +40,9 @@ export default {
   orbitHintTouch: 'Drag to rotate · pinch to zoom',
   undo: 'Undo',
   redo: 'Redo',
-  sheetHandle: 'Drag to resize the controls panel',
-  expand: 'Expand',
-  collapse: 'Collapse',
+  placementEmpty: 'Add your artwork to position it on the product.',
+  specs: 'Specifications',
+  guidance: 'Print guidance',
   dropzone: {
     title: 'Drop your logo here',
     titleTouch: 'Add your logo',

@@ -10,31 +10,20 @@ const root = path.resolve(here, '../..');
 /**
  * Serve and build the things a tenant's embed needs alongside the frame.
  *
- * Two directories that live outside this app but have to be reachable from
- * its origin:
+ * Used to copy every tenant's `tenants/*.json` and every product's
+ * `apps/site/public/models/*.glb` into every deployment's `dist/` — which
+ * meant one client's build shipped every other client's config and models at
+ * guessable URLs. Both now come from R2 at runtime, scoped to the tenant the
+ * deployment is actually for (see `frame.jsx`'s `VITE_ASSET_BASE`), so
+ * neither is copied here any more.
  *
- * - `tenants/*.json`, which the frame fetches at runtime. They are shared
- *   data, not this app's, so they are copied rather than duplicated.
- * - the Draco decoder, which decompresses every product model. It belongs to
- *   neither app — it is the same wasm for every client — so it is taken from
- *   where it already lives rather than committed twice. When a third host
- *   appears it should move to a shared vendor directory; until then, copying
- *   beats a second copy in git.
+ * The Draco decoder is still local for now: it is the same wasm for every
+ * client, not tenant data, so bundling it carries none of the leak the
+ * configs and models did.
  */
 function externalAssets() {
   const sources = [
-    { from: path.join(root, 'tenants'), to: 'tenants', filter: (f) => f.endsWith('.json') },
     { from: path.join(root, 'apps/site/public/draco'), to: 'draco', filter: () => true },
-    /*
-     * The tenant's own models.
-     *
-     * Here because this deployment serves them itself, which is what an empty
-     * assetBase in the config means. A tenant on a CDN sets assetBase to their
-     * prefix instead and this copy does nothing — which is the point of the
-     * setting: where a client's assets live is a deployment decision, not
-     * something the engine or this build has an opinion about.
-     */
-    { from: path.join(root, 'apps/site/public/models'), to: 'models', filter: (f) => f.endsWith('.glb') },
   ];
 
   const copyInto = (outDir) => {
@@ -62,6 +51,41 @@ function externalAssets() {
 
     /** In development, serve them from where they actually are. */
     configureServer(server) {
+      /*
+       * Serve /embed.js in development, bundled the way it actually ships.
+       *
+       * The loader is the one file a client's page loads with a plain script
+       * tag, so it is built as an IIFE — which means Vite's module server
+       * cannot serve it: demo.html would get an ES module where it expects a
+       * classic script, and `document.currentScript` would be null.
+       *
+       * Without this, testing the snippet meant a full build every time, and
+       * "run the dev server" would not have been the honest answer to how to
+       * work on this. It is the same esbuild Vite already depends on, on a
+       * file measured in kilobytes, so rebuilding per request costs nothing.
+       */
+      server.middlewares.use(async (req, res, next) => {
+        if (req.url?.split('?')[0] !== '/embed.js') return next();
+
+        try {
+          const { build } = await import('esbuild');
+          const result = await build({
+            entryPoints: [path.join(here, 'src/loader.js')],
+            bundle: true,
+            format: 'iife',
+            target: 'es2018',
+            write: false,
+          });
+          res.setHeader('Content-Type', 'application/javascript');
+          res.setHeader('Cache-Control', 'no-store');
+          res.end(result.outputFiles[0].text);
+        } catch (error) {
+          res.statusCode = 500;
+          res.end(`/* embed.js failed to build: ${error.message} */`);
+        }
+        return undefined;
+      });
+
       server.middlewares.use((req, res, next) => {
         const match = sources.find(({ to }) => req.url?.startsWith(`/${to}/`));
         if (!match) return next();
@@ -69,8 +93,14 @@ function externalAssets() {
         const name = decodeURIComponent(req.url.slice(match.to.length + 2).split('?')[0]);
         const file = path.join(match.from, name);
 
-        // A request escaping the directory it names is a request we do not serve.
-        if (!file.startsWith(match.from) || !fs.existsSync(file)) return next();
+        /*
+         * A request escaping the directory it names is a request we do not
+         * serve. The separator matters: a bare prefix test lets
+         * `/tenants/../tenants-private/x` through, because "tenants-private"
+         * starts with "tenants".
+         */
+        if (!file.startsWith(match.from + path.sep) || !fs.existsSync(file)) return next();
+        if (!fs.statSync(file).isFile()) return next();
 
         res.setHeader(
           'Content-Type',

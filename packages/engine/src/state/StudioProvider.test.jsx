@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, render, screen, within } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { createCatalogue } from '../catalogue';
 import ProductPicker from '../components/ProductPicker';
 import StudioProvider, { useStudio } from './StudioProvider';
@@ -154,5 +154,70 @@ describe('two studios on one page', () => {
     // catalogue only says what may be selected.
     expect(screen.getByText('left: cup-b of 2')).toBeTruthy();
     expect(screen.getByText('right: cup-a of 2')).toBeTruthy();
+  });
+});
+
+/** Selects a product the way a click on the picker does. */
+function Pick({ id }) {
+  const { selectProduct, catalogue } = useStudio();
+  return (
+    <button type="button" onClick={() => selectProduct(catalogue.get(id))}>
+      pick {id}
+    </button>
+  );
+}
+
+/** A studio whose host controls `sku`, as the embed's frame does. */
+function Hosted({ sku }) {
+  return (
+    <StudioProvider catalogue={cups} sku={sku}>
+      <Selected label="shown" />
+      <Pick id="cup-a" />
+      <Pick id="cup-b" />
+    </StudioProvider>
+  );
+}
+
+/*
+ * The embed always passes a sku, because the snippet always names one. These
+ * are the regressions from treating it as a lock rather than a request: the
+ * visitor's click was undone on the next render — so the picker appeared to
+ * change only the stock — and a host's setSku() pinned the studio to its
+ * product from then on.
+ */
+describe('a host that controls the sku', () => {
+  it('opens on it', () => {
+    mount(<Hosted sku="cup-b" />);
+    expect(screen.getByText('shown: cup-b of 2')).toBeTruthy();
+  });
+
+  it('lets the visitor choose another product', () => {
+    mount(<Hosted sku="cup-a" />);
+    fireEvent.click(screen.getByText('pick cup-b'));
+    expect(screen.getByText('shown: cup-b of 2')).toBeTruthy();
+  });
+
+  it('selects the product the host changes it to', () => {
+    const { rerender } = mount(<Hosted sku="cup-a" />);
+    rerender(<Hosted sku="cup-b" />);
+    expect(screen.getByText('shown: cup-b of 2')).toBeTruthy();
+  });
+
+  it('keeps following the host after the visitor has moved', () => {
+    const { rerender } = mount(<Hosted sku="cup-a" />);
+    rerender(<Hosted sku="cup-b" />);
+    fireEvent.click(screen.getByText('pick cup-a'));
+    expect(screen.getByText('shown: cup-a of 2')).toBeTruthy();
+
+    // The host catches up with the visitor, then sends them elsewhere.
+    rerender(<Hosted sku="cup-a" />);
+    rerender(<Hosted sku="cup-b" />);
+    expect(screen.getByText('shown: cup-b of 2')).toBeTruthy();
+  });
+
+  it('ignores a sku the catalogue does not have', () => {
+    const { rerender } = mount(<Hosted sku="cup-a" />);
+    rerender(<Hosted sku="nonsense" />);
+    expect(screen.getByText('shown: cup-a of 2')).toBeTruthy();
   });
 });

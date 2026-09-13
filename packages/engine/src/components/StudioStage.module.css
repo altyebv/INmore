@@ -18,27 +18,56 @@
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  gap: var(--space-3);
   padding: var(--space-4);
   pointer-events: none;
 }
 
-.overlayRow {
+.top,
+.bottom {
   display: flex;
-  align-items: center;
   justify-content: space-between;
   gap: var(--space-3);
+  min-width: 0;
 }
 
-.overlayRow > * { pointer-events: auto; }
+.top { align-items: flex-start; }
+.bottom { align-items: flex-end; }
+
+.header {
+  flex: 1 1 auto;
+  min-width: 0;
+  pointer-events: auto;
+}
+
+.actions {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-inline-start: auto;
+  pointer-events: auto;
+}
+
+.status {
+  display: grid;
+  justify-items: start;
+  gap: var(--space-2);
+  min-width: 0;
+}
 
 .caption {
+  display: grid;
+  gap: 2px;
   font-family: var(--font-mono);
   font-size: var(--step--2);
+  line-height: 1.4;
   letter-spacing: var(--tracking-label);
   text-transform: uppercase;
-  color: var(--fg-faint);
-  pointer-events: none;
 }
+
+.name { color: var(--fg-muted); }
+.category { color: var(--fg-faint); }
 
 .hint {
   font-family: var(--font-mono);
@@ -46,11 +75,10 @@
   color: var(--fg-faint);
   opacity: 1;
   transition: opacity var(--dur-slow) var(--ease-out);
-  pointer-events: none;
 }
 .hintHidden { opacity: 0; }
 
-.tools { display: flex; gap: var(--space-2); }
+.footer { pointer-events: auto; }
 
 .notice {
   max-width: 34ch;
@@ -72,17 +100,22 @@
   .notice { display: none; }
 }
 
-/* Touch layout: the stage is the whole upper screen, so it drops its own
-   chrome and lets the sheet carry the actions. */
+/* Touch layout: the stage is the whole studio. It drops its frame and its
+   caption — the switcher at the top already names what is on screen — and
+   keeps its bottom row clear of the drawer's rail. */
 .compact {
-  border-radius: var(--radius-md);
+  border: 0;
+  border-radius: 0;
   container-type: size;
 }
+
 .compact .overlay { padding: var(--space-3); }
 
-/* When the sheet is pulled up the stage gets short. Every pixel then belongs
-   to the product, so its labels step out of the way. */
-@container (max-height: 220px) {
+.compact .bottom { padding-inline-end: var(--stage-clearance-inline-end, 0px); }
+
+/* When the stage gets short its labels step out of the way; every pixel then
+   belongs to the product. */
+@container (max-height: 260px) {
   .caption,
   .hint { display: none; }
 }

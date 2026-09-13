@@ -19,7 +19,17 @@ import { Studio, Button, createCatalogue, domainLicense } from '@inmore/engine';
  *   navigate *to* — the host decides what a finished configuration means, and
  *   finds out through `onSubmit`.
  */
-export function StudioMount({ config, sku, locale, dir, onReady, onSubmit, onEvent }) {
+export function StudioMount({
+  config,
+  sku,
+  locale,
+  dir,
+  dracoPath,
+  apiRef,
+  onReady,
+  onSubmit,
+  onEvent,
+}) {
   const catalogue = useMemo(
     () => createCatalogue({ products: config.products, stocks: config.stocks }),
     [config]
@@ -76,11 +86,14 @@ export function StudioMount({ config, sku, locale, dir, onReady, onSubmit, onEve
       tenant={config.tenant}
       catalogue={catalogue}
       branding={config.branding}
+      ui={config.ui}
       sku={sku}
       locale={locale}
       dir={dir}
       assetBase={config.assetBase}
+      dracoPath={dracoPath}
       license={license}
+      apiRef={apiRef}
       renderCta={cta}
       onSubmit={onSubmit}
       onEvent={onEvent}

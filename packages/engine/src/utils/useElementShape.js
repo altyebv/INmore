@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useLayoutEffect, useState } from 'react';
 
 /**
  * Measure the room an element actually has.
@@ -19,26 +19,26 @@ import { useEffect, useState } from 'react';
 export const COMPACT_WIDTH = 1080;
 
 /**
- * Within the compact layout, the panel takes a side rather than the bottom
- * whenever the studio is at least as wide as it is tall.
- *
- * The test is shape, not size, because the constraint is shape: a bottom sheet
- * spends height and a side panel spends width, and the right one is whichever
- * spends the axis there is room on. A phone turned sideways has barely 390 px
- * of height — a bottom sheet there leaves the product a letterbox — while the
- * same phone upright cannot spare the width for a panel wide enough to hold a
- * slider.
- */
-export const SIDE_PANEL_RATIO = 1;
-
-/**
  * @param {{ current: HTMLElement | null }} ref
- * @returns {{ width: number, height: number, compact: boolean, sidePanel: boolean }}
+ * @returns {{
+ *   width: number,
+ *   height: number,
+ *   measured: boolean,
+ *   compact: boolean,
+ *   landscape: boolean,
+ * }}
  */
 export function useElementShape(ref) {
   const [size, setSize] = useState({ width: 0, height: 0 });
 
-  useEffect(() => {
+  /*
+   * Measured in a layout effect, so the answer is in before the browser
+   * paints. The first version measured after paint and guessed in the
+   * meantime, which put a desktop layout on a phone for one frame — a grid
+   * with a 320 px column, wider than the screen — and mounted a renderer only
+   * to tear it down again.
+   */
+  useLayoutEffect(() => {
     const node = ref.current;
     if (!node) return undefined;
 
@@ -65,19 +65,18 @@ export function useElementShape(ref) {
     return () => observer.disconnect();
   }, [ref]);
 
-  /*
-   * Before the first measurement there is no honest answer, and guessing
-   * "compact" would mount the touch layout and then tear it down a frame
-   * later. The pointer layout is the safer first guess: it degrades to a
-   * narrow column, where the touch layout in a wide space is simply wrong.
-   */
-  const width = size.width || COMPACT_WIDTH + 1;
-
   return {
     width: size.width,
     height: size.height,
-    compact: width <= COMPACT_WIDTH,
-    sidePanel: width <= COMPACT_WIDTH && size.height > 0 && width / size.height >= SIDE_PANEL_RATIO,
+    measured: size.width > 0,
+    compact: size.width > 0 && size.width <= COMPACT_WIDTH,
+    /*
+     * Measure the element whose shape you mean. The studio's own root is the
+     * wrong one for this on a touch layout: its shell is pinned to the
+     * viewport and out of flow, so the root is zero pixels tall — which is how
+     * a phone turned sideways used to be told it was upright.
+     */
+    landscape: size.height > 0 && size.width >= size.height,
   };
 }
 

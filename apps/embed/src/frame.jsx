@@ -1,7 +1,9 @@
-import { StrictMode, Suspense, lazy, useCallback, useEffect, useState } from 'react';
+import { StrictMode, Suspense, lazy, useCallback, useEffect, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { assertValidTenantConfig } from '@inmore/config-schema';
+import { resolveAsset } from '@inmore/engine';
 import { Fallback, developerHint, hasWebGL } from './fallback';
+import { StudioBoundary } from './StudioBoundary';
 import {
   ERROR_CODES,
   FROM_HOST,
@@ -55,22 +57,86 @@ const request = {
   host: params.get('host') || '',
 };
 
-/** Where a tenant's config lives, relative to this frame. */
-const configUrl = (tenant) => new URL(`tenants/${tenant}.json`, location.href).toString();
+/*
+ * Where every tenant's assets live: an R2 bucket, laid out as
+ *
+ *   tenants/<tenant>/config.json
+ *   tenants/<tenant>/models/*.glb
+ *   shared/draco/
+ *
+ * This is the bucket's own r2.dev URL for now — rate-limited and uncached,
+ * so temporary until a custom domain replaces it. Either way it is a
+ * deployment setting, never a literal in this file: an engine (or a build)
+ * that knows a default host is one that will quietly serve one client's
+ * assets to another the day a config forgets to say otherwise.
+ */
+const ASSET_BASE = import.meta.env.VITE_ASSET_BASE ?? '';
 
-/** Only the parent may talk to us, and only from where we were served. */
-const parentOrigin = document.referrer ? new URL(document.referrer).origin : '*';
+/** Where a tenant's config lives. */
+const configUrl = (tenant) => resolveAsset(ASSET_BASE, `tenants/${tenant}/config.json`);
+
+/** Where a tenant's own assets live — its models, and nothing of anyone else's. */
+const assetBaseFor = (tenant) => resolveAsset(ASSET_BASE, `tenants/${tenant}`);
+
+/**
+ * The Draco decoder, shared by every tenant's models.
+ *
+ * Not tenant-scoped, and not per-request either — computed once, since it
+ * does not depend on which tenant this frame turns out to be. `undefined`
+ * when no asset base is configured lets `AssetProvider`'s own root-absolute
+ * default stand in for local development against a bundle that still serves
+ * `/draco/` itself.
+ */
+const DRACO_PATH = ASSET_BASE ? resolveAsset(ASSET_BASE, 'shared/draco/') : undefined;
+
+/**
+ * The page we are embedded in, as an origin: the only sender we listen to and
+ * the only receiver we post to.
+ *
+ * The loader passes it explicitly. The referrer used to be the only source,
+ * and a host page with `Referrer-Policy: no-referrer` — which privacy-minded
+ * shops do set — sends none. That left this at '*', and with it the studio
+ * took commands from any window and posted the visitor's configuration to
+ * whatever happened to be its parent. The referrer remains the fallback, for
+ * a frame loaded by an older copy of embed.js.
+ *
+ * Trusting a query parameter is safe here for a reason worth writing down: a
+ * page that frames us and lies about its origin only makes postMessage refuse
+ * to deliver to it. Nothing is gained by claiming to be someone else.
+ */
+function resolveParentOrigin() {
+  for (const candidate of [params.get('origin'), document.referrer]) {
+    if (!candidate) continue;
+    try {
+      const { origin } = new URL(candidate);
+      if (origin && origin !== 'null') return origin;
+    } catch {
+      // Not a URL. Try the next source.
+    }
+  }
+  return '*';
+}
+
+const parentOrigin = resolveParentOrigin();
 
 function post(type, payload) {
   parent?.postMessage(studioMessage(type, payload), parentOrigin);
 }
 
-function fail(code, detail) {
+/** Tell the host — and the developer reading its console — what went wrong. */
+function report(code, detail) {
   const hint = developerHint(code, { ...request, ...detail });
   if (hint) console.error(`[inmore-studio] ${hint}`);
   post(STUDIO_EVENTS.ERROR, { code, message: hint ?? code });
+}
+
+function fail(code, detail) {
+  report(code, detail);
   return { status: 'failed', code };
 }
+
+const liveSkus = (config) =>
+  config.products.filter((p) => p.status === 'live').map((p) => p.id);
 
 /* --- Loading ------------------------------------------------------------------- */
 
@@ -99,9 +165,17 @@ async function resolveTenant() {
     return fail(ERROR_CODES.CONFIG_INVALID, { detail: error.message });
   }
 
-  const live = config.products.filter((p) => p.status === 'live');
-  if (request.sku && !live.some((p) => p.id === request.sku)) {
-    return fail(ERROR_CODES.UNKNOWN_SKU, { known: live.map((p) => p.id) });
+  /*
+   * Where this tenant's assets live is a deployment decision, not something
+   * the tenant's own JSON gets to say — otherwise a stray `assetBase` in one
+   * client's config is a path to another client's bucket prefix. It is
+   * always this tenant's own R2 prefix, in every deployment.
+   */
+  config = { ...config, assetBase: assetBaseFor(request.tenant) };
+
+  const live = liveSkus(config);
+  if (request.sku && !live.includes(request.sku)) {
+    return fail(ERROR_CODES.UNKNOWN_SKU, { known: live });
   }
   if (!live.length) {
     return fail(ERROR_CODES.UNKNOWN_SKU, { known: [] });
@@ -138,12 +212,20 @@ function Frame() {
   const [locale, setLocale] = useState(request.locale ?? 'en');
   const [sku, setSku] = useState(request.sku);
 
+  /** The mounted studio's handle, for answering requestState. */
+  const studioApi = useRef(null);
+  /** The resolved config, readable from the message listener without re-subscribing it. */
+  const configRef = useRef(null);
+
   useEffect(() => {
     let cancelled = false;
     resolveTenant().then((result) => {
       if (cancelled) return;
+      if (result.status === 'ready') {
+        configRef.current = result.config;
+        setLocale(result.locale);
+      }
       setState(result);
-      if (result.status === 'ready') setLocale(result.locale);
     });
     return () => {
       cancelled = true;
@@ -153,11 +235,33 @@ function Frame() {
   /** Commands from the host. */
   useEffect(() => {
     const onMessage = (event) => {
+      // From our own parent, from the origin it was loaded by, tagged as ours.
+      if (event.source !== window.parent) return;
       if (!isOurMessage(event, FROM_HOST, parentOrigin)) return;
       const { type, payload } = event.data;
 
       if (type === HOST_COMMANDS.SET_LOCALE && payload?.locale) setLocale(payload.locale);
-      if (type === HOST_COMMANDS.SET_SKU && payload?.sku) setSku(payload.sku);
+
+      if (type === HOST_COMMANDS.SET_SKU && payload?.sku) {
+        /*
+         * A sku the tenant does not have used to be dropped without a word:
+         * the host's button did nothing and nobody was told why. It is the
+         * same mistake as a typo in data-sku, and gets the same answer.
+         */
+        const config = configRef.current;
+        const known = config ? liveSkus(config) : [];
+        if (config && !known.includes(payload.sku)) {
+          report(ERROR_CODES.UNKNOWN_SKU, { sku: payload.sku, known });
+          return;
+        }
+        setSku(payload.sku);
+      }
+
+      if (type === HOST_COMMANDS.REQUEST_STATE) {
+        // Commands are held by the loader until the studio is ready, so the
+        // handle is normally set; null says honestly that there is no studio.
+        post(STUDIO_EVENTS.STATE, studioApi.current?.getState() ?? null);
+      }
     };
 
     window.addEventListener('message', onMessage);
@@ -187,10 +291,17 @@ function Frame() {
   );
 
   const onSubmit = useCallback((payload) => post(STUDIO_EVENTS.SUBMIT, payload), []);
-  const onEvent = useCallback(
-    (name, data) => post(STUDIO_EVENTS.CONFIG_CHANGE, { name, data }),
-    []
-  );
+
+  const onEvent = useCallback((name, data) => {
+    /*
+     * Keep our copy of the sku level with what the visitor chose. The studio
+     * acts on a sku when it changes, so without this a host's setSku() back to
+     * the product the page opened on would be a value we already held — and
+     * nothing would happen.
+     */
+    if (name === 'product:select' && data?.sku) setSku(data.sku);
+    post(STUDIO_EVENTS.CONFIG_CHANGE, { name, data });
+  }, []);
 
   if (state.status === 'loading') return null;
   if (state.status === 'failed') {
@@ -198,17 +309,25 @@ function Frame() {
   }
 
   return (
-    <Suspense fallback={null}>
-      <StudioMount
-        config={state.config}
-        sku={sku}
-        locale={locale}
-        dir={dir}
-        onReady={onReady}
-        onSubmit={onSubmit}
-        onEvent={onEvent}
-      />
-    </Suspense>
+    <StudioBoundary
+      locale={locale}
+      dir={dir}
+      onError={(error) => report(ERROR_CODES.UNKNOWN, { detail: error?.message })}
+    >
+      <Suspense fallback={null}>
+        <StudioMount
+          config={state.config}
+          sku={sku}
+          locale={locale}
+          dir={dir}
+          dracoPath={DRACO_PATH}
+          apiRef={studioApi}
+          onReady={onReady}
+          onSubmit={onSubmit}
+          onEvent={onEvent}
+        />
+      </Suspense>
+    </StudioBoundary>
   );
 }
 

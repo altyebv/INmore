@@ -52,6 +52,15 @@
 
 .quiet:hover:not(:disabled) { background: var(--line); }
 
+/* For buttons that float over the product: legible on any stock colour
+   without a solid surface hiding what is behind. */
+.glass {
+  --btn-bg: color-mix(in srgb, var(--ink-900) 62%, transparent);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+}
+.glass:hover:not(:disabled) { --btn-bg: color-mix(in srgb, var(--ink-700) 80%, transparent); }
+
 .sm { padding: 0.5em 0.95em; font-size: var(--step--2); }
 .lg { padding: 0.9em 1.8em; font-size: var(--step-0); }
 

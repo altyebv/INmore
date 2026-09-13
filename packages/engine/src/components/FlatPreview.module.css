@@ -1,12 +1,20 @@
 .wrap {
   position: relative;
   display: grid;
-  gap: var(--space-3);
+  gap: var(--space-2);
 }
 
+/*
+ * Capped by height through its width, never by `max-height`. A box with a
+ * definite width and a clamped height keeps the width and drops the aspect,
+ * and this stage's drag maths and drawing both assume it is exactly the print
+ * area's shape. A tall print area — a bag panel — at full panel width was
+ * taller than the panel; this lets it narrow instead.
+ */
 .stage {
   position: relative;
-  width: 100%;
+  width: min(100%, calc(var(--preview-max-h, 100rem) * var(--preview-aspect, 2.5)));
+  margin-inline: auto;
   aspect-ratio: var(--preview-aspect, 2.5);
   border: 1px solid var(--line);
   border-radius: var(--radius-md);
@@ -82,9 +90,7 @@
 
 .warn { color: var(--accent-soft); }
 
-@media (pointer: coarse) {
-  /* Bigger hit area for dragging, without distorting the layout: the stage
-     keeps the print area's true proportions and simply gets more room. */
-  .stage { min-height: 5.5rem; }
-  .meta { font-size: var(--step--2); }
-}
+/* There used to be a coarse-pointer `min-height` here, for a bigger drag
+   target. With a definite width it made a short print area taller than its
+   own shape, and the preview drew stretched. The stage's size is its aspect
+   and the room it is given; nothing else may set it. */

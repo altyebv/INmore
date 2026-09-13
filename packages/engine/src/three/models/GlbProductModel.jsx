@@ -68,6 +68,35 @@ export function GlbProductModel({ url, product, texture, baseColor, onMeasure })
   const named = (child, list) =>
     Boolean(list?.some((name) => child.name === name || child.material?.name === name));
 
+  /*
+   * A `printMeshName` that matches nothing used to fail silently: no mesh
+   * takes the texture, no decal geometry is built, and the product renders
+   * with no print surface at all — the kind of thing that is obvious on
+   * screen but invisible in the console. Worth knowing while a product is
+   * being onboarded, and worth nothing to a visitor.
+   */
+  useLayoutEffect(() => {
+    if (!import.meta.env.DEV) return;
+
+    let found = false;
+    const names = new Set();
+    cloned.traverse((child) => {
+      if (!child.isMesh) return;
+      if (child.name) names.add(child.name);
+      if (child.material?.name) names.add(child.material.name);
+      if (matches(child)) found = true;
+    });
+
+    if (!found) {
+      console.warn(
+        `[${product.id}] print.printMeshName is "${printMeshName}", but no mesh or ` +
+          `material in the model is named that. Found: ${
+            names.size ? [...names].join(', ') : '(nothing named)'
+          }.`
+      );
+    }
+  }, [cloned, printMeshName, product.id]);
+
   /* --- Base pass: stock colour and shadows -------------------------------- */
   useLayoutEffect(() => {
     const stock = new THREE.Color(baseColor ?? product.print.stockColor);

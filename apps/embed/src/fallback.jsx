@@ -92,7 +92,7 @@ const DEVELOPER_HINTS = {
   [ERROR_CODES.CONFIG_INVALID]: (d) =>
     `The tenant config for "${d.tenant}" failed validation. Run \`npm run tenants:check ${d.tenant}.json\` to see every problem.\n${d.detail ?? ''}`,
   [ERROR_CODES.UNKNOWN_SKU]: (d) =>
-    `No product with sku "${d.sku}" in tenant "${d.tenant}". Known skus: ${d.known?.join(', ') || 'none'}. Check data-sku on the target element.`,
+    `No product with sku "${d.sku}" in tenant "${d.tenant}". Known skus: ${d.known?.join(', ') || 'none'}. Check data-sku on the target element, or the sku passed to setSku().`,
   [ERROR_CODES.UNLICENSED]: (d) =>
     `"${d.tenant}" is not licensed for ${d.host}. Add it to the tenant's licensed domains.`,
   [ERROR_CODES.NO_WEBGL]: () =>

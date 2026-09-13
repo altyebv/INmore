@@ -33,6 +33,21 @@ import {
 
 const VERSION = '0.1.0';
 
+/**
+ * Tall enough for the studio on a desktop, never taller than the screen.
+ *
+ * A fixed 640 px is taller than a phone held sideways, and a studio taller
+ * than the screen can never be seen whole: the product is in one half, its
+ * controls in the other, and the visitor scrolls the page between them. Small
+ * viewport units keep the frame on screen; a browser without them gets the
+ * fixed height everyone used to get. An explicit `data-height` is the host's
+ * decision and is used exactly as given.
+ */
+const DEFAULT_HEIGHT =
+  typeof CSS !== 'undefined' && CSS.supports?.('height', 'min(1px, 1svh)')
+    ? 'min(640px, 92svh)'
+    : '640px';
+
 /* --- Where we are ------------------------------------------------------------ */
 
 /**
@@ -103,18 +118,21 @@ function createInstance(element, options) {
   let frame = null;
   let destroyed = false;
   let ready = false;
+  let readyPayload = null;
   const queued = [];
 
-  const emit = (event, payload) => {
-    for (const fn of listeners.get(event) ?? []) {
-      try {
-        fn(payload);
-      } catch (error) {
-        // A host's callback throwing is the host's problem, not ours — but it
-        // must not take the studio down with it.
-        console.error('[inmore-studio] listener for', event, 'threw:', error);
-      }
+  const call = (event, fn, payload) => {
+    try {
+      fn(payload);
+    } catch (error) {
+      // A host's callback throwing is the host's problem, not ours — but it
+      // must not take the studio down with it.
+      console.error('[inmore-studio] listener for', event, 'threw:', error);
     }
+  };
+
+  const emit = (event, payload) => {
+    for (const fn of listeners.get(event) ?? []) call(event, fn, payload);
   };
 
   const send = (type, payload) => {
@@ -135,6 +153,7 @@ function createInstance(element, options) {
 
     if (type === STUDIO_EVENTS.READY) {
       ready = true;
+      readyPayload = payload;
       for (const message of queued.splice(0)) {
         frame.contentWindow.postMessage(message, origin);
       }
@@ -180,6 +199,9 @@ function createInstance(element, options) {
       // The frame is licensed against the page it is embedded in, not against
       // its own origin — which is the same for every client.
       url.searchParams.set('host', location.hostname);
+      // Who the frame may talk to. It cannot rely on the referrer: a page with
+      // Referrer-Policy: no-referrer sends none.
+      url.searchParams.set('origin', location.origin);
 
       frame = document.createElement('iframe');
       frame.className = 'inmore-studio-frame';
@@ -224,6 +246,19 @@ function createInstance(element, options) {
     on(event, handler) {
       if (!listeners.has(event)) listeners.set(event, new Set());
       listeners.get(event).add(handler);
+
+      /*
+       * `ready` fires once, so a host that subscribes after it has fired would
+       * wait forever — which is what happens to any script that loads slower
+       * than the studio does. A late subscriber is told straight away instead,
+       * asynchronously, so on() behaves the same whichever came first.
+       */
+      if (event === STUDIO_EVENTS.READY && ready) {
+        Promise.resolve().then(() => {
+          if (listeners.get(event)?.has(handler)) call(event, handler, readyPayload);
+        });
+      }
+
       return () => listeners.get(event)?.delete(handler);
     },
 
@@ -270,7 +305,7 @@ function optionsFor(element) {
     sku: element.dataset.sku,
     locale: read('locale'),
     open: read('open', 'lazy'),
-    height: read('height', '640px'),
+    height: read('height', DEFAULT_HEIGHT),
     label: read('label', 'Customise this product'),
     title: read('title', 'Product studio'),
   };

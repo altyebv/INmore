@@ -19,6 +19,10 @@
       html, body { height: 100%; }
       body { margin: 0; background: transparent; }
       #root { height: 100%; }
+      /* The frame is exactly the room the host gave the studio, so the studio
+         fills it. Left at its content height, a touch layout stopped short of
+         the bottom of the frame. */
+      #root > [data-studio-root] { height: 100%; }
     </style>
   </head>
   <body>

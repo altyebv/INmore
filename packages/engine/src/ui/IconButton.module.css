@@ -1,0 +1,51 @@
+.button {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 2.25rem;
+  height: 2.25rem;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--fg-muted);
+  transition:
+    background var(--dur-fast) var(--ease-out),
+    color var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out);
+}
+
+.button:hover:not(:disabled) {
+  color: var(--fg);
+  background: var(--line);
+}
+
+.button:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.glass {
+  border-color: var(--line-strong);
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--ink-900) 62%, transparent);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  color: var(--fg);
+}
+
+.glass:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--ink-700) 80%, transparent);
+}
+
+/* Undo and redo point backwards and forwards, which swap sides in RTL. */
+.mirror:dir(rtl) svg {
+  transform: scaleX(-1);
+}
+
+@media (pointer: coarse) {
+  .button {
+    width: 2.75rem;
+    height: 2.75rem;
+  }
+}
