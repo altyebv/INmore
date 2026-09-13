@@ -23,6 +23,7 @@ import StudioProvider, { useStudio } from './state/StudioProvider';
 import StudioRoot, { studioUtils } from './StudioRoot';
 import useArtworkTexture from './three/useArtworkTexture';
 import exportProof from './artwork/exportProof';
+import { hexToRgba } from './utils/color';
 import buildSubmitPayload from './artwork/submitPayload';
 import { AssetProvider } from './assets';
 import { localizeProduct } from './catalogue';
@@ -46,7 +47,7 @@ import styles from './Studio.module.css';
  * they live here and the two layout components below only decide where
  * things sit.
  */
-function useStudioSession({ rootRef, apiRef, onSubmit, onEvent, tenant, showPicker }) {
+function useStudioSession({ rootRef, apiRef, onSubmit, onEvent, tenant, branding, showPicker }) {
   const studio = useStudio();
   const { locale } = useStudioLocale();
   const product = useMemo(
@@ -86,12 +87,30 @@ function useStudioSession({ rootRef, apiRef, onSubmit, onEvent, tenant, showPick
     return () => node.removeEventListener('keydown', onKey);
   }, [rootRef, studio]);
 
+  /*
+   * A tenant's guide colours, at the alpha a proof needs. Branding is opaque
+   * hex, chosen for CSS custom properties, so this is the one place it is
+   * turned translucent — falling back to `exportProof`'s own neutral defaults
+   * for whichever of accent or ink the tenant left unset.
+   */
+  const guideColors = useMemo(() => {
+    const safe = hexToRgba(branding?.accent, 0.85);
+    const trim = hexToRgba(branding?.ink, 0.45);
+    const bleed = hexToRgba(branding?.ink, 0.22);
+    return Object.fromEntries(
+      Object.entries({ safe, trim, bleed }).filter(([, value]) => value != null)
+    );
+  }, [branding?.accent, branding?.ink]);
+
   const exportCurrentProof = useCallback(() => {
     onEvent?.('proof:download', { sku: studio.product.id });
     return exportProof(studio.product, studio.artwork, studio.transform, {
       stockColor: studio.baseColor,
+      guideColors,
+      tenant,
+      dpi: studio.product.print.printDpi,
     });
-  }, [studio.product, studio.artwork, studio.transform, studio.baseColor, onEvent]);
+  }, [studio.product, studio.artwork, studio.transform, studio.baseColor, guideColors, tenant, onEvent]);
 
   const buildPayload = useCallback(
     () =>
@@ -436,8 +455,26 @@ function TouchStudio({ session: s, renderCta }) {
 }
 
 /** Chooses a layout from the room it has, then renders it. */
-function StudioBody({ shape, rootRef, apiRef, renderCta, onSubmit, onEvent, tenant, showPicker }) {
-  const session = useStudioSession({ rootRef, apiRef, onSubmit, onEvent, tenant, showPicker });
+function StudioBody({
+  shape,
+  rootRef,
+  apiRef,
+  renderCta,
+  onSubmit,
+  onEvent,
+  tenant,
+  branding,
+  showPicker,
+}) {
+  const session = useStudioSession({
+    rootRef,
+    apiRef,
+    onSubmit,
+    onEvent,
+    tenant,
+    branding,
+    showPicker,
+  });
 
   // Nothing until the studio knows its size. It is measured before the first
   // paint, so this is never a frame anyone sees — and it means a phone never
@@ -544,6 +581,7 @@ export function Studio({
                   onSubmit={onSubmit}
                   onEvent={onEvent}
                   tenant={tenant}
+                  branding={branding}
                   showPicker={showPicker}
                 />
               </StudioProvider>

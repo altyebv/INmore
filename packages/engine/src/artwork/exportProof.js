@@ -19,7 +19,7 @@ export async function exportProof(
   product,
   artwork,
   transform,
-  { withGuides = true, stockColor, dpi = DEFAULT_PRINT_DPI, guideColors } = {}
+  { withGuides = true, stockColor, dpi = DEFAULT_PRINT_DPI, guideColors, tenant } = {}
 ) {
   const { print } = product;
   const options = { stockColor, dpi, bleed: true };
@@ -32,12 +32,13 @@ export async function exportProof(
   /*
    * Guide colours come from the tenant, not from this module. They used to be
    * INMORE's accent and ink written as literals here — a second, invisible copy
-   * of the brand, in the one output a client actually sends to a printer.
+   * of the brand, in the one output a client actually sends to a printer. The
+   * neutral defaults below are only for a caller that supplies none at all.
    */
   const guides = {
-    safe: 'rgba(226, 72, 31, 0.85)',
-    trim: 'rgba(11, 11, 10, 0.45)',
-    bleed: 'rgba(11, 11, 10, 0.22)',
+    safe: 'rgba(17, 17, 17, 0.85)',
+    trim: 'rgba(17, 17, 17, 0.45)',
+    bleed: 'rgba(17, 17, 17, 0.22)',
     ...guideColors,
   };
 
@@ -74,9 +75,10 @@ export async function exportProof(
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href = url;
-  // The name carries the resolution, because a proof is a production file and
-  // the first question anyone asks of one is what it was rendered at.
-  link.download = `inmore-${product.slug}-proof-${Math.round(surface.dpi)}dpi.png`;
+  // The name carries the tenant and the resolution, because a proof is a
+  // production file and the first questions anyone asks of one are whose it
+  // is and what it was rendered at.
+  link.download = `${tenant ?? 'studio'}-${product.slug}-proof-${Math.round(surface.dpi)}dpi.png`;
   document.body.appendChild(link);
   link.click();
   link.remove();
