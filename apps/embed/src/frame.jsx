@@ -1,6 +1,7 @@
 import { StrictMode, Suspense, lazy, useCallback, useEffect, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { assertValidTenantConfig } from '@inmore/config-schema';
+import { resolveAsset } from '@inmore/engine';
 import { Fallback, developerHint, hasWebGL } from './fallback';
 import {
   ERROR_CODES,
@@ -55,8 +56,37 @@ const request = {
   host: params.get('host') || '',
 };
 
-/** Where a tenant's config lives, relative to this frame. */
-const configUrl = (tenant) => new URL(`tenants/${tenant}.json`, location.href).toString();
+/*
+ * Where every tenant's assets live: an R2 bucket, laid out as
+ *
+ *   tenants/<tenant>/config.json
+ *   tenants/<tenant>/models/*.glb
+ *   shared/draco/
+ *
+ * This is the bucket's own r2.dev URL for now — rate-limited and uncached,
+ * so temporary until a custom domain replaces it. Either way it is a
+ * deployment setting, never a literal in this file: an engine (or a build)
+ * that knows a default host is one that will quietly serve one client's
+ * assets to another the day a config forgets to say otherwise.
+ */
+const ASSET_BASE = import.meta.env.VITE_ASSET_BASE ?? '';
+
+/** Where a tenant's config lives. */
+const configUrl = (tenant) => resolveAsset(ASSET_BASE, `tenants/${tenant}/config.json`);
+
+/** Where a tenant's own assets live — its models, and nothing of anyone else's. */
+const assetBaseFor = (tenant) => resolveAsset(ASSET_BASE, `tenants/${tenant}`);
+
+/**
+ * The Draco decoder, shared by every tenant's models.
+ *
+ * Not tenant-scoped, and not per-request either — computed once, since it
+ * does not depend on which tenant this frame turns out to be. `undefined`
+ * when no asset base is configured lets `AssetProvider`'s own root-absolute
+ * default stand in for local development against a bundle that still serves
+ * `/draco/` itself.
+ */
+const DRACO_PATH = ASSET_BASE ? resolveAsset(ASSET_BASE, 'shared/draco/') : undefined;
 
 /**
  * The page we are embedded in, as an origin: the only sender we listen to and
@@ -133,6 +163,14 @@ async function resolveTenant() {
   } catch (error) {
     return fail(ERROR_CODES.CONFIG_INVALID, { detail: error.message });
   }
+
+  /*
+   * Where this tenant's assets live is a deployment decision, not something
+   * the tenant's own JSON gets to say — otherwise a stray `assetBase` in one
+   * client's config is a path to another client's bucket prefix. It is
+   * always this tenant's own R2 prefix, in every deployment.
+   */
+  config = { ...config, assetBase: assetBaseFor(request.tenant) };
 
   const live = liveSkus(config);
   if (request.sku && !live.includes(request.sku)) {
@@ -276,6 +314,7 @@ function Frame() {
         sku={sku}
         locale={locale}
         dir={dir}
+        dracoPath={DRACO_PATH}
         apiRef={studioApi}
         onReady={onReady}
         onSubmit={onSubmit}
