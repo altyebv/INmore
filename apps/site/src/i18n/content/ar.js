@@ -13,7 +13,7 @@
  */
 
 const email = 'hello@inmore.qa';
-const phone = '+974 0000 0000';
+const phone = '+974 5199 9340';
 
 export default {
   company: {
