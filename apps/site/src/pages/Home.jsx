@@ -3,6 +3,7 @@ import Reveal from '@/components/ui/Reveal';
 import Section from '@/components/ui/Section';
 import HeroProduct from '@/features/marketing/HeroProduct';
 import HeroShowcase from '@/features/marketing/HeroShowcase';
+import ProductGallery from '@/features/marketing/ProductGallery';
 import { useContent } from '@/i18n';
 import { inmoreCatalogue } from '@/tenant';
 import usePageMeta from '@/lib/utils/usePageMeta';
@@ -103,6 +104,11 @@ export function Home() {
             </Reveal>
           ))}
         </div>
+      </Section>
+
+      {/* --- Product range -------------------------------------------------- */}
+      <Section className="on-paper" eyebrow={c.galleryEyebrow} title={c.galleryTitle} lede={c.galleryLede}>
+        <ProductGallery />
       </Section>
 
       {/* --- Selected work --------------------------------------------------- */}

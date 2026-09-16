@@ -40,8 +40,11 @@ src/
 │  └─ marketing/   Hero product presentation
 ├─ three/          Everything inside the WebGL boundary
 │  ├─ ProductViewer.jsx   Canvas — the DOM/3D boundary
+│  ├─ ShowcaseScene.jsx   The hero's product chain
 │  ├─ Stage.jsx           Lighting, shadows, camera controls
 │  ├─ ProductModel.jsx    Config → geometry resolution
+│  ├─ framing.js          Camera distance from measured product size
+│  ├─ printSurface.js     Projected print panels for imported models
 │  └─ models/             GLB loader, proxy geometry, availability probe
 ├─ lib/
 │  ├─ artwork/     Loading, auto-trim, compositing, proof export
@@ -88,6 +91,18 @@ in and the switch is automatic.
 
 `public/models/README.md` documents the mesh naming, UV layout, units and
 export settings the loader expects.
+
+## The hero
+
+The hero is a product chain: products hand over one after another, each
+arriving in a different stock colour, with the colour advancing one step each
+time the chain comes round. Only two models are mounted at a time — the one
+leaving and the one arriving — and the next is preloaded during the current
+one's hold, so a product never arrives as an empty space.
+
+It runs on its own but is not a video: the links below the product are real
+controls, hovering pauses it, and reduced-motion visitors get the first product
+still, with the same controls.
 
 ## Languages
 
