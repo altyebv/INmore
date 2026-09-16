@@ -28,9 +28,18 @@ export function ProductGallery() {
   }, []);
 
   const move = (direction) => {
-    const next = Math.min(Math.max(active + direction, 0), copy.products.length - 1);
-    const card = track.current?.children[next];
-    card?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' });
+    const total = copy.products.length;
+    const next = (active + direction + total) % total;
+    const node = track.current;
+    const card = node?.children[next];
+
+    if (node && card) {
+      node.scrollTo({
+        left: card.offsetLeft - node.offsetLeft,
+        behavior: 'smooth',
+      });
+    }
+
     setActive(next);
   };
 
@@ -43,7 +52,6 @@ export function ProductGallery() {
             type="button"
             className={styles.control}
             aria-label={copy.previousGallery}
-            disabled={active === 0}
             onClick={() => move(isRTL ? 1 : -1)}
           >
             <span aria-hidden="true">{isRTL ? '→' : '←'}</span>
@@ -55,7 +63,6 @@ export function ProductGallery() {
             type="button"
             className={styles.control}
             aria-label={copy.nextGallery}
-            disabled={active === copy.products.length - 1}
             onClick={() => move(isRTL ? -1 : 1)}
           >
             <span aria-hidden="true">{isRTL ? '←' : '→'}</span>
