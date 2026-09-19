@@ -31,6 +31,7 @@ export const inmoreBranding = tenant.branding;
 export const inmoreCatalogue = createCatalogue({
   products: tenant.products,
   stocks: tenant.stocks,
+  text: tenant.text,
 });
 
 export default inmoreCatalogue;
