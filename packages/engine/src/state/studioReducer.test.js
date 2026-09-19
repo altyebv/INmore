@@ -285,3 +285,57 @@ describe('base-color', () => {
     expect(studioReducer(initial, { type: 'base-color', color: '#f7f5f1' })).toBe(initial);
   });
 });
+
+describe('text layers', () => {
+  const layer = (id = 'text-1') => ({
+    id,
+    content: 'Hi',
+    fontId: 'sans',
+    color: '#111111',
+    align: 'center',
+    aspect: 2,
+    transform: { widthMm: 40, xMm: 0, yMm: 0, rotation: 0, repeat: 1 },
+  });
+  const add = (state, l = layer()) => studioReducer(state, { type: 'text-add', layer: l, product: CUP });
+
+  it('adds a layer, selects it and records history', () => {
+    const next = add(initial);
+    expect(next.texts).toHaveLength(1);
+    expect(next.selectedId).toBe('text-1');
+    expect(next.history).toHaveLength(1);
+  });
+
+  it('moves only the layer it is asked to', () => {
+    const two = add(add(initial), layer('text-2'));
+    const moved = studioReducer(two, { type: 'text-transform', id: 'text-2', patch: { xMm: 10 }, product: CUP });
+    expect(moved.texts[1].transform.xMm).toBe(10);
+    expect(moved.texts[0].transform.xMm).toBe(0);
+  });
+
+  it('undoes a whole drag to where it began', () => {
+    const one = add(initial);
+    let s = studioReducer(one, { type: 'text-transform', id: 'text-1', patch: { xMm: 5 }, commit: false, product: CUP });
+    s = studioReducer(s, { type: 'text-transform', id: 'text-1', patch: { xMm: 30 }, commit: false, product: CUP });
+    s = studioReducer(s, { type: 'text-transform', id: 'text-1', patch: {}, commit: true, product: CUP });
+    expect(s.history).toHaveLength(2);
+    const undone = studioReducer(s, { type: 'undo' });
+    expect(undone.texts[0].transform.xMm).toBe(0);
+  });
+
+  it('does not record a commit that changed nothing', () => {
+    const one = add(initial);
+    const same = studioReducer(one, { type: 'text-update', id: 'text-1', patch: {}, commit: true, product: CUP });
+    expect(same).toBe(one);
+  });
+
+  it('falls back to a layer that exists when the selected one is removed', () => {
+    const two = add(add(initial), layer('text-2'));
+    const gone = studioReducer(two, { type: 'text-remove', id: 'text-2' });
+    expect(gone.selectedId).toBe('text-1');
+  });
+
+  it('keeps text when the product changes', () => {
+    const next = studioReducer(add(initial), { type: 'select-product', product: { ...CUP, id: 'other' } });
+    expect(next.texts).toHaveLength(1);
+  });
+});
