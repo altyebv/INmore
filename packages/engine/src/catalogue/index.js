@@ -30,6 +30,7 @@
  * @property {import('./schema').ProductConfig[]} showcase  Those the hero cycles through.
  * @property {string|undefined} defaultProductId
  * @property {Record<string, Stock>} stocks
+ * @property {ReturnType<typeof resolveTextSettings>} text  Fonts, colours and limits for text.
  * @property {(id: string) => import('./schema').ProductConfig|undefined} get
  * @property {(slug: string) => import('./schema').ProductConfig|undefined} getBySlug
  * @property {(id: string) => boolean} isLive
@@ -81,11 +82,89 @@ function resolveProduct(product, stocks) {
   };
 }
 
+
+/* --- Text ---------------------------------------------------------------------- */
+
 /**
- * @param {{ products?: any[], stocks?: Record<string, Stock> }} config
+ * What a tenant with no `text` block gets: three system stacks. Enough for the
+ * feature to work everywhere on day one; a client that cares which typefaces
+ * its customers can choose declares its own.
+ */
+const BUILT_IN_FONTS = {
+  sans: {
+    label: { en: 'Sans', ar: 'بلا زوائد' },
+    family: 'system-ui, "Segoe UI", Tahoma, Arial, sans-serif',
+    weight: 700,
+  },
+  serif: {
+    label: { en: 'Serif', ar: 'بزوائد' },
+    family: 'Georgia, "Times New Roman", "Noto Naskh Arabic", serif',
+    weight: 700,
+  },
+  mono: {
+    label: { en: 'Mono', ar: 'أحادي' },
+    family: 'ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace',
+    weight: 700,
+  },
+};
+
+const BUILT_IN_COLORS = ['#111111', '#ffffff', '#d62828', '#1d4ed8', '#15803d', '#f4b400'];
+
+/** A short, stable hash, so two tenants' "inter" never share a registered name. */
+function hashOf(value) {
+  let h = 5381;
+  for (let i = 0; i < value.length; i += 1) h = ((h << 5) + h + value.charCodeAt(i)) >>> 0;
+  return h.toString(36);
+}
+
+function resolveFont(id, font) {
+  const files = font.files ?? (font.url ? [{ url: font.url }] : []);
+  const family = font.family ?? 'sans-serif';
+  const name = `qs-${id}-${hashOf(files.map((file) => file.url).join('|') || family)}`;
+  return {
+    id,
+    label: font.label ?? id,
+    family,
+    weight: font.weight ?? 400,
+    style: font.style ?? 'normal',
+    script: font.script,
+    files,
+    // The private name leads so a loaded face wins; the declared family follows
+    // so text is still text if the file never arrives.
+    name,
+    stack: files.length ? `"${name}", ${family}` : family,
+  };
+}
+
+/**
+ * Resolve a tenant's `text` block into what the studio reads.
+ *
+ * Every field has a default, so a config that says nothing about text still
+ * gets the feature. A tenant that does not want it says `enabled: false`; a
+ * product that does not (a lid where text makes no sense) says `text: false`
+ * on its print block.
+ */
+export function resolveTextSettings(text = {}) {
+  const declared = text?.fonts && Object.keys(text.fonts).length ? text.fonts : BUILT_IN_FONTS;
+  const fonts = Object.entries(declared).map(([id, font]) => resolveFont(id, font));
+  const fallbackId = fonts[0]?.id;
+
+  return {
+    enabled: text?.enabled !== false,
+    maxLength: text?.maxLength ?? 80,
+    maxLayers: text?.maxLayers ?? 3,
+    allowCustomColor: text?.allowCustomColor !== false,
+    colors: text?.colors?.length ? text.colors : BUILT_IN_COLORS,
+    defaultFont: fonts.some((font) => font.id === text?.defaultFont) ? text.defaultFont : fallbackId,
+    fonts,
+  };
+}
+
+/**
+ * @param {{ products?: any[], stocks?: Record<string, Stock>, text?: object }} config
  * @returns {Catalogue}
  */
-export function createCatalogue({ products = [], stocks = {} } = {}) {
+export function createCatalogue({ products = [], stocks = {}, text } = {}) {
   const all = products
     .map((product) => resolveProduct(product, stocks))
     .sort((a, b) => (a.order ?? 999) - (b.order ?? 999));
@@ -99,6 +178,7 @@ export function createCatalogue({ products = [], stocks = {} } = {}) {
     showcase: live,
     defaultProductId: live[0]?.id,
     stocks,
+    text: resolveTextSettings(text),
     get: (id) => live.find((product) => product.id === id),
     getBySlug: (slug) => live.find((product) => product.slug === slug),
     isLive: (id) => live.some((product) => product.id === id),
