@@ -732,6 +732,50 @@
       }
     }
   ],
+  "text": {
+    "maxLength": 80,
+    "maxLayers": 3,
+    "defaultFont": "inter",
+    "colors": ["#0b0b0a", "#f7f5f1", "#ffffff", "#e2481f", "#1f4d3a", "#1d3557"],
+    "fonts": {
+      "inter": {
+        "label": { "en": "Inter", "ar": "إنتر" },
+        "family": "sans-serif", "weight": 700, "script": "latin",
+        "files": [{ "url": "/fonts/inter-700-latin.woff2" }]
+      },
+      "playfair": {
+        "label": { "en": "Playfair", "ar": "بلايفير" },
+        "family": "serif", "weight": 700, "script": "latin",
+        "files": [{ "url": "/fonts/playfair-700-latin.woff2" }]
+      },
+      "bebas": {
+        "label": { "en": "Bebas", "ar": "بيباس" },
+        "family": "sans-serif", "weight": 400, "script": "latin",
+        "files": [{ "url": "/fonts/bebas-400-latin.woff2" }]
+      },
+      "caveat": {
+        "label": { "en": "Caveat", "ar": "كافيت" },
+        "family": "cursive", "weight": 700, "script": "latin",
+        "files": [{ "url": "/fonts/caveat-700-latin.woff2" }]
+      },
+      "cairo": {
+        "label": { "en": "Cairo", "ar": "القاهرة" },
+        "family": "sans-serif", "weight": 700, "script": "both",
+        "files": [
+          { "url": "/fonts/cairo-700-arabic.woff2", "unicodeRange": "U+0600-06FF,U+0750-077F,U+0870-088E,U+0890-0891,U+0897-08E1,U+08E3-08FF,U+200C-200E,U+2010-2011,U+204F,U+2E41,U+FB50-FDFF,U+FE70-FE74,U+FE76-FEFC" },
+          { "url": "/fonts/cairo-700-latin.woff2", "unicodeRange": "U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-2009,U+2010-2021,U+2026,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD" }
+        ]
+      },
+      "amiri": {
+        "label": { "en": "Amiri", "ar": "أميري" },
+        "family": "serif", "weight": 700, "script": "both",
+        "files": [
+          { "url": "/fonts/amiri-700-arabic.woff2", "unicodeRange": "U+0600-06FF,U+0750-077F,U+0870-088E,U+0890-0891,U+0897-08E1,U+08E3-08FF,U+200C-200E,U+2010-2011,U+204F,U+2E41,U+FB50-FDFF,U+FE70-FE74,U+FE76-FEFC" },
+          { "url": "/fonts/amiri-700-latin.woff2", "unicodeRange": "U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-2009,U+2010-2021,U+2026,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD" }
+        ]
+      }
+    }
+  },
   "branding": {
     "ink": "#0b0b0a",
     "paper": "#f7f5f1",
