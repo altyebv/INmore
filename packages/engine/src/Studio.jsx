@@ -7,6 +7,7 @@ import {
   InfoIcon,
   MoveIcon,
   RedoIcon,
+  TextIcon,
   UndoIcon,
   UploadIcon,
 } from './ui/icons';
@@ -14,6 +15,8 @@ import cx from './utils/cx';
 import ArtworkControls from './components/ArtworkControls';
 import ArtworkDropzone from './components/ArtworkDropzone';
 import FlatPreview from './components/FlatPreview';
+import LayerTabs from './components/LayerTabs';
+import TextControls from './components/TextControls';
 import ProductDetails from './components/ProductDetails';
 import ProductPicker from './components/ProductPicker';
 import StockPicker, { useStockName } from './components/StockPicker';
@@ -25,7 +28,9 @@ import useArtworkTexture from './three/useArtworkTexture';
 import exportProof from './artwork/exportProof';
 import { hexToRgba } from './utils/color';
 import buildSubmitPayload from './artwork/submitPayload';
-import { AssetProvider } from './assets';
+import { AssetProvider, resolveAsset, useAssetBase } from './assets';
+import { ensureFonts } from './artwork/fonts';
+import { createTextArtwork } from './artwork/text';
 import { localizeProduct } from './catalogue';
 import { LicenseProvider, permissiveLicense, useLicense } from './license';
 import {
@@ -55,12 +60,9 @@ function useStudioSession({ rootRef, apiRef, onSubmit, onEvent, tenant, branding
     [studio.product, locale]
   );
 
-  const { texture } = useArtworkTexture(
-    studio.product,
-    studio.artwork,
-    studio.transform,
-    studio.baseColor
-  );
+  const assetBase = useAssetBase();
+
+  const { texture } = useArtworkTexture(studio.product, studio.layers, studio.baseColor);
 
   /*
    * Undo listens on the studio's own element, not on `window`.
@@ -102,15 +104,39 @@ function useStudioSession({ rootRef, apiRef, onSubmit, onEvent, tenant, branding
     );
   }, [branding?.accent, branding?.ink]);
 
-  const exportCurrentProof = useCallback(() => {
+  const exportCurrentProof = useCallback(async () => {
     onEvent?.('proof:download', { sku: studio.product.id });
+
+    // A canvas draws in the fallback if a face has not arrived. The proof is
+    // the one output that must never do that, so wait, then measure again.
+    const placed = studio.layers.filter((layer) => layer.kind === 'text');
+    await ensureFonts(
+      placed.map((layer) => layer.font),
+      assetBase
+    );
+    const textLayers = placed.map((layer) => ({
+      artwork: createTextArtwork(layer.text, layer.font),
+      transform: layer.transform,
+    }));
+
     return exportProof(studio.product, studio.artwork, studio.transform, {
       stockColor: studio.baseColor,
       guideColors,
       tenant,
       dpi: studio.product.print.printDpi,
+      textLayers,
     });
-  }, [studio.product, studio.artwork, studio.transform, studio.baseColor, guideColors, tenant, onEvent]);
+  }, [
+    studio.product,
+    studio.artwork,
+    studio.transform,
+    studio.baseColor,
+    studio.layers,
+    guideColors,
+    tenant,
+    onEvent,
+    assetBase,
+  ]);
 
   const buildPayload = useCallback(
     () =>
@@ -121,8 +147,24 @@ function useStudioSession({ rootRef, apiRef, onSubmit, onEvent, tenant, branding
         artwork: studio.artwork,
         transform: studio.transform,
         baseColor: studio.baseColor,
+        texts: studio.layers
+          .filter((layer) => layer.kind === 'text')
+          .map((layer) => ({
+            ...layer.text,
+            transform: layer.transform,
+            font: layer.font,
+            // Absolute, so a print job on another machine can fetch them.
+            fontFiles: layer.font.files.map((file) => {
+              const url = resolveAsset(assetBase, file.url);
+              try {
+                return new URL(url, globalThis.location?.href).href;
+              } catch {
+                return url;
+              }
+            }),
+          })),
       }),
-    [tenant, locale, studio.product, studio.artwork, studio.transform, studio.baseColor]
+    [tenant, locale, studio.product, studio.artwork, studio.transform, studio.baseColor, studio.layers, assetBase]
   );
 
   const submit = useCallback(() => {
@@ -161,7 +203,7 @@ function useStudioSession({ rootRef, apiRef, onSubmit, onEvent, tenant, branding
     texture,
     exportCurrentProof,
     submit,
-    commit: () => studio.setTransform({}, true),
+    commit: () => studio.setLayerTransform({}, true),
     showPicker,
   };
 }
@@ -208,26 +250,45 @@ function Placement({ session: s }) {
     <>
       <FlatPreview
         product={s.product}
-        artwork={s.artwork}
-        transform={s.transform}
         baseColor={s.baseColor}
-        onTransform={s.setTransform}
+        layers={s.layers}
+        selectedId={s.selectedId}
+        onSelect={s.selectLayer}
+        onTransform={s.setLayerTransform}
         onCommit={s.commit}
       />
-      {s.artwork ? (
-        <ArtworkControls
-          product={s.product}
-          artwork={s.artwork}
-          transform={s.transform}
-          onTransform={s.setTransform}
-          onCommit={s.commit}
-          onReset={s.resetTransform}
-          showGuidance={false}
-        />
+      {s.selected ? (
+        <>
+          <LayerTabs layers={s.layers} selectedId={s.selectedId} onSelect={s.selectLayer} />
+          <ArtworkControls
+            product={s.product}
+            artwork={s.selected.artwork}
+            transform={s.selected.transform}
+            onTransform={s.setLayerTransform}
+            onCommit={s.commit}
+            onReset={s.resetLayer}
+            allowCrop={s.selected.kind === 'image'}
+            showGuidance={false}
+          />
+        </>
       ) : (
         <p className={styles.empty}>{t.placementEmpty}</p>
       )}
     </>
+  );
+}
+
+function TextPanel({ session: s }) {
+  return (
+    <TextControls
+      texts={s.texts}
+      selectedId={s.selectedId}
+      settings={s.textSettings}
+      onAdd={s.addText}
+      onSelect={s.selectLayer}
+      onUpdate={s.updateText}
+      onRemove={s.removeText}
+    />
   );
 }
 
@@ -273,7 +334,7 @@ function PointerStudio({ session: s, renderCta }) {
           autoRotate={s.autoRotate}
           onInteract={() => s.toggleAutoRotate(false)}
           onExport={s.exportCurrentProof}
-          canExport={Boolean(s.artwork)}
+          canExport={s.layers.length > 0}
           header={s.showPicker && <ProductSwitcher session={s} />}
           actions={<HistoryButtons session={s} variant="glass" />}
         />
@@ -300,7 +361,13 @@ function PointerStudio({ session: s, renderCta }) {
             />
           </Section>
 
-          <Section index="03" title={t.sections.placement}>
+          {s.canText && (
+            <Section index="03" title={t.sections.text}>
+              <TextPanel session={s} />
+            </Section>
+          )}
+
+          <Section index={s.canText ? '04' : '03'} title={t.sections.placement}>
             <Placement session={s} />
           </Section>
 
@@ -377,12 +444,15 @@ function TouchStudio({ session: s, renderCta }) {
         <UploadIcon />
       ),
     },
+    ...(s.canText
+      ? [{ id: 'text', label: t.rail.text, title: t.sections.text, icon: <TextIcon /> }]
+      : []),
     {
       id: 'placement',
       label: t.rail.placement,
       title: t.sections.placement,
       icon: <MoveIcon />,
-      disabled: !s.artwork,
+      disabled: s.layers.length === 0,
     },
     { id: 'details', label: t.rail.details, title: t.sections.details, icon: <InfoIcon /> },
   ];
@@ -428,7 +498,7 @@ function TouchStudio({ session: s, renderCta }) {
         labels={t.drawer}
         title={current.title}
         headerActions={
-          current.id === 'stock' || current.id === 'placement' ? (
+          current.id === 'stock' || current.id === 'text' || current.id === 'placement' ? (
             <HistoryButtons session={s} />
           ) : null
         }
@@ -447,6 +517,7 @@ function TouchStudio({ session: s, renderCta }) {
             compact
           />
         )}
+        {current.id === 'text' && <TextPanel session={s} />}
         {current.id === 'placement' && <Placement session={s} />}
         {current.id === 'details' && <ProductDetails product={s.product} />}
       </StudioDrawer>
