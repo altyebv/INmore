@@ -173,3 +173,42 @@ describe('a placement survives leaving the browser', () => {
     expect(offsetMm).toBeCloseTo(-12, 9);
   });
 });
+
+describe('text decorations', () => {
+  const text = {
+    id: 't1',
+    content: 'Hello\nWorld',
+    fontId: 'inter',
+    color: '#111111',
+    align: 'center',
+    aspect: 2,
+    font: { family: 'sans-serif', weight: 700, style: 'normal' },
+    fontFiles: ['https://x.test/inter.woff2'],
+    transform: { widthMm: 120, xMm: 5, yMm: -3, rotation: 0, repeat: 1 },
+  };
+
+  it('describes text completely enough to set it again, with no artwork', () => {
+    const payload = buildSubmitPayload({
+      tenant: 't', locale: 'en', product: PRODUCT, artwork: null,
+      transform: {}, baseColor: '#fff', texts: [text],
+    });
+    const [d] = payload.decorations;
+    expect(d.type).toBe('text');
+    expect(d.assetHash).toBeNull();
+    expect(d.text).toMatchObject({ content: 'Hello\nWorld', fontId: 'inter', color: '#111111', weight: 700, lineHeight: 1.2 });
+    expect(d.text.fontFiles).toEqual(['https://x.test/inter.woff2']);
+    // 60 mm tall block over two lines at a 1.2 pitch.
+    expect(d.placement.heightMm).toBeCloseTo(60);
+    expect(d.text.fontSizeMm).toBeCloseTo(25);
+    expect(d.area.widthMm).toBe(250);
+  });
+
+  it('puts text after the image', () => {
+    const payload = buildSubmitPayload({
+      tenant: 't', locale: 'en', product: PRODUCT,
+      artwork: { name: 'a.png', size: 1, type: 'image/png' },
+      transform: { widthMm: 10, xMm: 0, yMm: 0 }, baseColor: '#fff', texts: [text],
+    });
+    expect(payload.decorations.map((d) => d.type)).toEqual(['image', 'text']);
+  });
+});
