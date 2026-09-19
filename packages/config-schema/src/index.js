@@ -176,6 +176,7 @@ export function validateTenantConfig(config) {
 
   validateBranding(c, config.branding);
   validateUi(c, config.ui);
+  validateText(c, config.text, locales);
   const stockIds = validateStocks(c, config.stocks, locales);
   validateProducts(c, config.products, locales, stockIds);
 
@@ -218,6 +219,79 @@ function validateUi(c, ui) {
   }
   if (ui.picker != null && typeof ui.picker !== 'boolean') {
     c.error('ui.picker', 'must be a boolean.');
+  }
+}
+
+const FONT_FILE = /\.(woff2?|ttf|otf)(\?.*)?$/i;
+const FONT_SCRIPTS = ['latin', 'arabic', 'both'];
+
+/**
+ * The optional `text` block: which typefaces and colours a visitor may choose
+ * for text, and how much of it. Every field has an engine default, so all of
+ * this is opt-in; what is checked here is only what would otherwise fail
+ * later, in a visitor's browser, as a font that never loads.
+ */
+function validateText(c, text, locales) {
+  if (text == null) return;
+  if (!isObject(text)) {
+    c.error('text', 'must be an object.');
+    return;
+  }
+
+  if (text.enabled != null && typeof text.enabled !== 'boolean') {
+    c.error('text.enabled', 'must be a boolean.');
+  }
+  for (const key of ['maxLength', 'maxLayers']) {
+    if (text[key] != null) {
+      c.check(Number.isInteger(text[key]) && text[key] > 0, `text.${key}`, 'must be a positive whole number.');
+    }
+  }
+  if (text.allowCustomColor != null && typeof text.allowCustomColor !== 'boolean') {
+    c.error('text.allowCustomColor', 'must be a boolean.');
+  }
+
+  if (text.colors != null) {
+    if (!Array.isArray(text.colors) || text.colors.length === 0) {
+      c.error('text.colors', 'must be a list of at least one hex colour.');
+    } else {
+      text.colors.forEach((colour, i) =>
+        c.check(typeof colour === 'string' && HEX.test(colour), `text.colors[${i}]`, 'must be a hex colour.')
+      );
+    }
+  }
+
+  if (text.fonts == null) return;
+  if (!isObject(text.fonts) || Object.keys(text.fonts).length === 0) {
+    c.error('text.fonts', 'must be a map of font id to font, with at least one entry.');
+    return;
+  }
+
+  for (const [id, font] of Object.entries(text.fonts)) {
+    const path = `text.fonts.${id}`;
+    if (!isObject(font)) {
+      c.error(path, 'must be an object.');
+      continue;
+    }
+    checkLocalized(c, font.label, `${path}.label`, locales);
+
+    const files = font.files ?? (font.url ? [{ url: font.url }] : []);
+    if (font.files != null && !Array.isArray(font.files)) c.error(`${path}.files`, 'must be a list.');
+    if (!files.length && !isString(font.family)) {
+      c.error(path, 'needs a `url` (or `files`) to load, or a `family` naming a system font.');
+    }
+    (Array.isArray(files) ? files : []).forEach((file, i) => {
+      c.check(isObject(file) && isString(file.url) && FONT_FILE.test(file.url), `${path}.files[${i}].url`, 'must be a .woff2, .woff, .ttf or .otf file.');
+    });
+    if (font.weight != null) {
+      c.check(isNumber(font.weight) || isString(font.weight), `${path}.weight`, 'must be a number such as 400 or 700.');
+    }
+    if (font.script != null) {
+      c.check(FONT_SCRIPTS.includes(font.script), `${path}.script`, `is "${font.script}"; expected one of ${FONT_SCRIPTS.join(', ')}.`);
+    }
+  }
+
+  if (text.defaultFont != null && !(text.defaultFont in text.fonts)) {
+    c.error('text.defaultFont', `is "${text.defaultFont}", which is not in text.fonts.`);
   }
 }
 
@@ -380,6 +454,10 @@ function validatePrint(c, print, path, stockIds) {
   if (!isObject(print)) {
     c.error(path, 'is missing. A live product needs a print area.');
     return;
+  }
+
+  if (print.text != null && typeof print.text !== 'boolean') {
+    c.error(`${path}.text`, 'must be true or false. Say false to keep text off this product.');
   }
 
   const mode = print.mode ?? 'texture';
