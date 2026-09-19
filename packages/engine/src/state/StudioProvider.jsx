@@ -11,10 +11,23 @@ import { loadArtwork, releaseArtwork, ArtworkError } from '../artwork/loadArtwor
 import autoTrim from '../artwork/autoTrim';
 import { IDENTITY_CROP } from '../artwork/constants';
 import { getFitWidthMm } from '../artwork/composeArtwork';
+import {
+  bestOn,
+  createTextArtwork,
+  defaultTextTransform,
+  refitTransform,
+  retuneWidth,
+} from '../artwork/text';
+import { ensureFont, isFontReady, useFontVersion } from '../artwork/fonts';
+import { useAssetBase } from '../assets';
+import { resolveTextSettings } from '../catalogue';
 import { useCopy } from '../i18n';
 import studioReducer, { createInitialState, createTransform } from './studioReducer';
 
 const StudioContext = createContext(null);
+
+/** For a catalogue built without a `text` block (a hand-rolled one, in a test). */
+const DEFAULT_TEXT = resolveTextSettings();
 
 /**
  * Owns all studio interaction state and the side effects around file loading.
@@ -49,9 +62,23 @@ export function StudioProvider({ children, catalogue, sku, initialProductId }) {
 
   const [state, dispatch] = useReducer(studioReducer, initialProduct, createInitialState);
   const previousArtwork = useRef(null);
-  const errorCopy = useCopy().errors;
+  const copy = useCopy();
+  const errorCopy = copy.errors;
+  const assetBase = useAssetBase();
+  const fontVersion = useFontVersion();
+  const nextTextId = useRef(0);
 
   const product = catalogue.get(state.productId) ?? initialProduct;
+
+  const textSettings = catalogue.text ?? DEFAULT_TEXT;
+  const canText = textSettings.enabled && product.print.text !== false;
+  const fontFor = useCallback(
+    (id) =>
+      textSettings.fonts.find((font) => font.id === id) ??
+      textSettings.fonts.find((font) => font.id === textSettings.defaultFont) ??
+      textSettings.fonts[0],
+    [textSettings]
+  );
 
   /**
    * Size and place existing artwork for a product's print area.
@@ -73,9 +100,13 @@ export function StudioProvider({ children, catalogue, sku, initialProductId }) {
         type: 'select-product',
         product: target,
         transform: placementFor(target, state.artwork),
+        texts: state.texts.map((layer) => ({
+          ...layer,
+          transform: refitTransform(layer.transform, product.print, target.print),
+        })),
       });
     },
-    [catalogue, placementFor, state.artwork]
+    [catalogue, placementFor, state.artwork, state.texts, product]
   );
 
   /*
@@ -137,6 +168,147 @@ export function StudioProvider({ children, catalogue, sku, initialProductId }) {
     dispatch({ type: 'artwork-cleared', product });
   }, [product]);
 
+  /* --- Text ------------------------------------------------------------------ */
+
+  // Text a product cannot take stays in state — switch back and it returns —
+  // but takes no part in what is drawn or sent.
+  const texts = useMemo(() => (canText ? state.texts : []), [canText, state.texts]);
+
+  /*
+   * Text layers as things the compositor can place. Rebuilt when a font
+   * arrives (`fontVersion`), because a measurement taken in the fallback is
+   * the wrong measurement.
+   */
+  const textArtworks = useMemo(
+    () => texts.map((layer) => createTextArtwork(layer, fontFor(layer.fontId))),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [texts, fontFor, fontVersion]
+  );
+
+  // The visitor's things in drawing order: the image below, text above it.
+  const layers = useMemo(() => {
+    const out = [];
+    if (state.artwork) {
+      out.push({ id: 'artwork', kind: 'image', artwork: state.artwork, transform: state.transform });
+    }
+    texts.forEach((layer, index) => {
+      out.push({
+        id: layer.id,
+        kind: 'text',
+        artwork: textArtworks[index],
+        transform: layer.transform,
+        text: layer,
+        font: fontFor(layer.fontId),
+      });
+    });
+    return out;
+  }, [state.artwork, state.transform, texts, textArtworks, fontFor]);
+
+  const selected = layers.find((layer) => layer.id === state.selectedId) ?? layers[layers.length - 1] ?? null;
+
+  // The words changed, or the font: keep the letters the same size.
+  const updateText = useCallback(
+    (id, patch, commit = true) => {
+      const layer = state.texts.find((entry) => entry.id === id);
+      if (!layer) return;
+
+      const clean = { ...patch };
+      if (typeof clean.content === 'string') {
+        clean.content = clean.content.slice(0, textSettings.maxLength);
+      }
+
+      let transform;
+      if ('content' in clean || 'fontId' in clean) {
+        const merged = { ...layer, ...clean };
+        const font = fontFor(merged.fontId);
+        ensureFont(font, assetBase);
+        const { aspect } = createTextArtwork(merged, font);
+        clean.aspect = aspect;
+        transform = { widthMm: retuneWidth(layer.transform, layer.aspect, aspect, product.print) };
+      }
+
+      dispatch({ type: 'text-update', id, patch: clean, transform, commit, product });
+    },
+    [state.texts, textSettings.maxLength, fontFor, assetBase, product]
+  );
+
+  const addText = useCallback(
+    (initial) => {
+      // Called bare, and also as an onClick — an event is not the words.
+      const content = typeof initial === 'string' ? initial : copy.text?.defaultContent ?? 'Your text';
+      if (!canText || state.texts.length >= textSettings.maxLayers) return null;
+
+      nextTextId.current += 1;
+      const id = `text-${nextTextId.current}`;
+      const font = fontFor(textSettings.defaultFont);
+      ensureFont(font, assetBase);
+
+      const layer = { id, content, fontId: font.id, color: bestOn(state.baseColor, textSettings.colors), align: 'center' };
+      const { aspect } = createTextArtwork(layer, font);
+      const existing = (state.artwork ? 1 : 0) + state.texts.length;
+
+      dispatch({
+        type: 'text-add',
+        product,
+        layer: { ...layer, aspect, transform: defaultTextTransform(product.print, aspect, existing) },
+      });
+      return id;
+    },
+    [canText, state.texts.length, state.artwork, state.baseColor, textSettings, fontFor, assetBase, product, copy.text]
+  );
+
+  const removeText = useCallback((id) => dispatch({ type: 'text-remove', id }), []);
+  const selectLayer = useCallback((id) => dispatch({ type: 'select-layer', id }), []);
+
+  /*
+   * The placement controls act on whichever layer is selected, so the sliders,
+   * the drag surface and the keyboard nudges are the same code for a logo and
+   * for a line of text.
+   */
+  const setLayerTransform = useCallback(
+    (patch, commit = true) => {
+      if (!selected) return;
+      if (selected.kind === 'text') {
+        dispatch({ type: 'text-transform', id: selected.id, patch, commit, product });
+      } else {
+        dispatch({ type: 'transform', patch, commit, product });
+      }
+    },
+    [selected, product]
+  );
+
+  const resetLayer = useCallback(() => {
+    if (!selected) return;
+    if (selected.kind === 'text') {
+      dispatch({
+        type: 'text-transform',
+        id: selected.id,
+        patch: defaultTextTransform(product.print, selected.text.aspect, Math.max(0, layers.indexOf(selected))),
+        commit: true,
+        product,
+      });
+    } else {
+      dispatch({ type: 'reset-transform', product });
+    }
+  }, [selected, layers, product]);
+
+  // A font that finishes loading changes a line's width. Keep the height.
+  useEffect(() => {
+    state.texts.forEach((layer) => {
+      const font = fontFor(layer.fontId);
+      if (!isFontReady(font, assetBase)) return;
+      const { aspect } = createTextArtwork(layer, font);
+      if (Math.abs(aspect / layer.aspect - 1) < 0.005) return;
+      dispatch({
+        type: 'text-remeasure',
+        id: layer.id,
+        aspect,
+        widthMm: retuneWidth(layer.transform, layer.aspect, aspect, product.print),
+        product,
+      });
+    });
+  }, [fontVersion, state.texts, fontFor, assetBase, product]);
+
   const value = useMemo(
     () => ({
       ...state,
@@ -148,6 +320,19 @@ export function StudioProvider({ children, catalogue, sku, initialProductId }) {
       dispatch,
       uploadArtwork,
       clearArtwork,
+      texts,
+      layers,
+      selected,
+      selectedId: selected?.id ?? null,
+      canText,
+      textSettings,
+      fontFor,
+      addText,
+      updateText,
+      removeText,
+      selectLayer,
+      setLayerTransform,
+      resetLayer,
       setTransform: (patch, commit = true) =>
         dispatch({ type: 'transform', patch, commit, product }),
       resetTransform: () => dispatch({ type: 'reset-transform', product }),
@@ -160,7 +345,27 @@ export function StudioProvider({ children, catalogue, sku, initialProductId }) {
       canUndo: state.history.length > 0,
       canRedo: state.future.length > 0,
     }),
-    [state, product, catalogue, errorCopy, uploadArtwork, clearArtwork, selectProduct]
+    [
+      state,
+      product,
+      catalogue,
+      errorCopy,
+      uploadArtwork,
+      clearArtwork,
+      selectProduct,
+      texts,
+      layers,
+      selected,
+      canText,
+      textSettings,
+      fontFor,
+      addText,
+      updateText,
+      removeText,
+      selectLayer,
+      setLayerTransform,
+      resetLayer,
+    ]
   );
 
   return <StudioContext.Provider value={value}>{children}</StudioContext.Provider>;
