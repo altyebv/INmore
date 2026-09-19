@@ -159,3 +159,24 @@ describe('isolation', () => {
     expect(b.defaultProductId).toBe('box');
   });
 });
+
+describe('text settings', () => {
+  it('offers system fonts and defaults when a tenant declares nothing', () => {
+    const { text } = createCatalogue({});
+    expect(text.enabled).toBe(true);
+    expect(text.fonts.length).toBeGreaterThan(1);
+    expect(text.defaultFont).toBe(text.fonts[0].id);
+  });
+
+  it('gives a loaded font a private name ahead of its fallback', () => {
+    const { text } = createCatalogue({
+      text: { fonts: { x: { label: 'X', family: 'serif', url: '/f/x.woff2' } } },
+    });
+    expect(text.fonts[0].stack).toMatch(/^"qs-x-[a-z0-9]+", serif$/);
+    expect(text.fonts[0].files).toEqual([{ url: '/f/x.woff2' }]);
+  });
+
+  it('can be switched off', () => {
+    expect(createCatalogue({ text: { enabled: false } }).text.enabled).toBe(false);
+  });
+});
