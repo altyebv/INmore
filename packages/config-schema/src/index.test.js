@@ -407,3 +407,44 @@ describe('normaliseTenantConfig', () => {
     expect(config.products[0].status).toBe('live');
   });
 });
+
+describe('text', () => {
+  const withText = (text) => ({ ...base(), text });
+  const errorsFor = (text) => validateTenantConfig(withText(text)).errors.map((e) => e.path);
+
+  it('is optional', () => {
+    expect(validateTenantConfig(base()).valid).toBe(true);
+  });
+
+  it('accepts fonts with files, a system family, and unicode ranges', () => {
+    const result = validateTenantConfig(
+      withText({
+        defaultFont: 'a',
+        colors: ['#111', '#ffffff'],
+        fonts: {
+          a: { label: 'A', files: [{ url: '/f/a.woff2', unicodeRange: 'U+0600-06FF' }] },
+          b: { label: 'B', family: 'Georgia, serif' },
+        },
+      })
+    );
+    expect(result.errors).toEqual([]);
+  });
+
+  it('says which font is wrong and why', () => {
+    expect(errorsFor({ fonts: { a: { label: 'A' } } })).toContain('text.fonts.a');
+    expect(errorsFor({ fonts: { a: { label: 'A', url: '/f/a.png' } } })).toContain('text.fonts.a.files[0].url');
+    expect(errorsFor({ fonts: { a: { family: 'serif' } } })).toContain('text.fonts.a.label');
+  });
+
+  it('checks colours, limits and the default font', () => {
+    expect(errorsFor({ colors: ['red'] })).toContain('text.colors[0]');
+    expect(errorsFor({ maxLayers: 0 })).toContain('text.maxLayers');
+    expect(errorsFor({ defaultFont: 'nope', fonts: { a: { label: 'A', family: 'serif' } } })).toContain('text.defaultFont');
+  });
+
+  it('lets a product opt out, but only with a boolean', () => {
+    const config = base();
+    config.products[0].print = { ...config.products[0].print, text: 'no' };
+    expect(validateTenantConfig(config).errors.map((e) => e.path).some((p) => p.endsWith('.print.text'))).toBe(true);
+  });
+});
