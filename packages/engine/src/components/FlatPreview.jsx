@@ -1,5 +1,7 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
-import composeArtwork, {
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  composeLayers,
+  getArtworkBox,
   getPrintRect,
   getSafeRect,
   normaliseSafe,
@@ -19,7 +21,35 @@ import styles from './FlatPreview.module.css';
  * here and watches it move on the product beside them. It draws from the same
  * compositor the 3D texture uses, so the two views can never disagree.
  */
-export function FlatPreview({ product, artwork, transform, baseColor, onTransform, onCommit }) {
+export function FlatPreview({
+  product,
+  artwork: imageArtwork,
+  transform: imageTransform,
+  baseColor,
+  onTransform,
+  onCommit,
+  layers: suppliedLayers,
+  selectedId,
+  onSelect,
+}) {
+  /*
+   * Everything placed on the print area, and which of it is being moved. A
+   * host that passes only `artwork` and `transform` — the shape this component
+   * always took — gets one layer, always selected.
+   */
+  const layers = useMemo(
+    () =>
+      suppliedLayers ??
+      (imageArtwork
+        ? [{ id: 'artwork', kind: 'image', artwork: imageArtwork, transform: imageTransform }]
+        : []),
+    [suppliedLayers, imageArtwork, imageTransform]
+  );
+  const active = layers.find((layer) => layer.id === selectedId) ?? layers[layers.length - 1];
+  const artwork = active?.artwork ?? null;
+  const transform = active?.transform;
+  const hasLayers = layers.length > 0;
+
   const displayRef = useRef(null);
   const bufferRef = useRef(null);
   const dragRef = useRef(null);
@@ -44,7 +74,7 @@ export function FlatPreview({ product, artwork, transform, baseColor, onTransfor
     const buffer = bufferRef.current;
     if (!display || !buffer) return;
 
-    composeArtwork(buffer, print, artwork, transform, { stockColor: baseColor });
+    composeLayers(buffer, print, layers, { stockColor: baseColor });
 
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
     const width = display.clientWidth;
@@ -60,7 +90,7 @@ export function FlatPreview({ product, artwork, transform, baseColor, onTransfor
     ctx.imageSmoothingQuality = 'high';
     // Show only the printable window, scaled to fill the stage.
     ctx.drawImage(buffer, rect.x, rect.y, rect.width, rect.height, 0, 0, width, height);
-  }, [print, artwork, transform, baseColor, size, rect.x, rect.y, rect.width, rect.height]);
+  }, [print, layers, baseColor, size, rect.x, rect.y, rect.width, rect.height]);
 
   // Keep the drawing crisp through container resizes.
   useEffect(() => {
@@ -81,9 +111,34 @@ export function FlatPreview({ product, artwork, transform, baseColor, onTransfor
 
   const handlePointerDown = useCallback(
     (event) => {
-      if (!artwork) return;
+      if (!hasLayers) return;
       const stage = event.currentTarget;
       stage.setPointerCapture(event.pointerId);
+
+      // Pick up whatever is under the pointer, topmost first. Only a single
+      // finger chooses; a second one is a pinch on what is already selected.
+      let target = active;
+      if (pointersRef.current.size === 0 && layers.length > 1 && onSelect) {
+        const bounds = stage.getBoundingClientRect();
+        const px = rect.x + ((event.clientX - bounds.left) / bounds.width) * rect.width;
+        const py = rect.y + ((event.clientY - bounds.top) / bounds.height) * rect.height;
+        const hit = [...layers].reverse().find((layer) => {
+          const box = getArtworkBox(print, layer.artwork, layer.transform);
+          const angle = -((layer.transform.rotation ?? 0) * Math.PI) / 180;
+          const dx = px - box.centreX;
+          const dy = py - box.centreY;
+          const lx = dx * Math.cos(angle) - dy * Math.sin(angle);
+          const ly = dx * Math.sin(angle) + dy * Math.cos(angle);
+          // A little slack, so a thin line of type can be grabbed.
+          const slack = rect.width * 0.015;
+          return Math.abs(lx) <= box.width / 2 + slack && Math.abs(ly) <= box.height / 2 + slack;
+        });
+        if (hit) {
+          target = hit;
+          if (hit.id !== active?.id) onSelect(hit.id);
+        }
+      }
+      const origin = target?.transform ?? transform;
       pointersRef.current.set(event.pointerId, { x: event.clientX, y: event.clientY });
 
       if (pointersRef.current.size === 2) {
@@ -100,13 +155,13 @@ export function FlatPreview({ product, artwork, transform, baseColor, onTransfor
       dragRef.current = {
         startX: event.clientX,
         startY: event.clientY,
-        originX: transform.xMm,
-        originY: transform.yMm,
+        originX: origin.xMm,
+        originY: origin.yMm,
         width: stage.clientWidth,
         height: stage.clientHeight,
       };
     },
-    [artwork, transform.xMm, transform.yMm, transform.widthMm]
+    [hasLayers, layers, active, onSelect, print, rect.x, rect.y, rect.width, rect.height, transform]
   );
 
   const handlePointerMove = useCallback(
@@ -167,7 +222,7 @@ export function FlatPreview({ product, artwork, transform, baseColor, onTransfor
   // expect from every other placement tool.
   const handleWheel = useCallback(
     (event) => {
-      if (!artwork) return;
+      if (!hasLayers) return;
       event.preventDefault();
       const factor = event.deltaY > 0 ? 0.94 : 1.06;
       onTransform(
@@ -181,12 +236,12 @@ export function FlatPreview({ product, artwork, transform, baseColor, onTransfor
         true
       );
     },
-    [artwork, transform.widthMm, limits, onTransform]
+    [hasLayers, transform, limits, onTransform]
   );
 
   const handleKeyDown = useCallback(
     (event) => {
-      if (!artwork) return;
+      if (!hasLayers) return;
       // A millimetre at a time, or five with shift. Real units mean the nudge
       // is the same physical distance on every product rather than a fraction
       // that means 2.5 mm on a cup and 12 mm on a bag.
@@ -202,7 +257,7 @@ export function FlatPreview({ product, artwork, transform, baseColor, onTransfor
       event.preventDefault();
       onTransform(patch, true);
     },
-    [artwork, transform.xMm, transform.yMm, onTransform]
+    [hasLayers, transform, onTransform]
   );
 
   const aspect = rect.width / rect.height;
@@ -225,10 +280,10 @@ export function FlatPreview({ product, artwork, transform, baseColor, onTransfor
       <div
         className={styles.stage}
         style={{ '--preview-aspect': aspect }}
-        data-empty={!artwork}
-        role={artwork ? 'application' : 'img'}
-        tabIndex={artwork ? 0 : -1}
-        aria-label={artwork ? t.dragLabel : t.emptyAria}
+        data-empty={!hasLayers}
+        role={hasLayers ? 'application' : 'img'}
+        tabIndex={hasLayers ? 0 : -1}
+        aria-label={hasLayers ? t.dragLabel : t.emptyAria}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={endDrag}
@@ -262,14 +317,18 @@ export function FlatPreview({ product, artwork, transform, baseColor, onTransfor
           </>
         )}
 
-        {!artwork && <p className={styles.empty}>{t.emptyLabel}</p>}
+        {active && (layers.length > 1 || active.kind === 'text') && (
+          <SelectionBox print={print} rect={rect} layer={active} />
+        )}
+
+        {!hasLayers && <p className={styles.empty}>{t.emptyLabel}</p>}
       </div>
 
       <div className={styles.meta}>
         <span className={studioUtils.ltr}>
           {physical.widthMm} × {physical.heightMm} mm · {safeCaption} mm
         </span>
-        {artwork && (
+        {artwork && artwork.kind !== 'text' && (
           <span className={artwork.isLowResolution ? styles.warn : undefined}>
             <span className={studioUtils.ltr}>
               {artwork.width} × {artwork.height} px ·{' '}
@@ -280,6 +339,24 @@ export function FlatPreview({ product, artwork, transform, baseColor, onTransfor
         )}
       </div>
     </div>
+  );
+}
+
+/** The outline round the selected layer, turned with it. */
+function SelectionBox({ print, rect, layer }) {
+  const box = getArtworkBox(print, layer.artwork, layer.transform);
+  return (
+    <span
+      className={styles.selection}
+      aria-hidden="true"
+      style={{
+        left: `${((box.x - rect.x) / rect.width) * 100}%`,
+        top: `${((box.y - rect.y) / rect.height) * 100}%`,
+        width: `${(box.width / rect.width) * 100}%`,
+        height: `${(box.height / rect.height) * 100}%`,
+        transform: `rotate(${layer.transform.rotation ?? 0}deg)`,
+      }}
+    />
   );
 }
 
