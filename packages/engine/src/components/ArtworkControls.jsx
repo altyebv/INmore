@@ -30,6 +30,7 @@ export function ArtworkControls({
   onCommit,
   onReset,
   showGuidance = true,
+  allowCrop = true,
 }) {
   const [cropping, setCropping] = useState(false);
   const t = useCopy().controls;
@@ -131,15 +132,17 @@ export function ArtworkControls({
         <Button size="sm" onClick={centre} disabled={disabled}>
           {t.centre}
         </Button>
-        <Button size="sm" onClick={() => setCropping((v) => !v)} disabled={disabled}>
-          {cropping ? t.doneCropping : t.crop}
-        </Button>
+        {allowCrop && (
+          <Button size="sm" onClick={() => setCropping((v) => !v)} disabled={disabled}>
+            {cropping ? t.doneCropping : t.crop}
+          </Button>
+        )}
         <Button size="sm" variant="ghost" onClick={onReset} disabled={disabled}>
           {t.reset}
         </Button>
       </div>
 
-      {cropping && artwork && (
+      {allowCrop && cropping && artwork && (
         <CropPanel
           artwork={artwork}
           crop={transform.crop}
