@@ -74,6 +74,21 @@ export function createInitialState(product) {
     transform: createTransform(product),
     /** Chosen stock. Not part of the transform — it survives an artwork reset. */
     baseColor: product.print.stockColor,
+    /**
+     * Text layers, bottom first. Each is `{ id, content, fontId, color, align,
+     * aspect, transform }` — plain data, with the placement in the same
+     * millimetres as an image's. The words are state; the measured artwork
+     * built from them is derived (see the provider).
+     */
+    texts: [],
+    /** What the placement controls act on: `'artwork'`, a text id, or null. */
+    selectedId: null,
+    /**
+     * The state a drag started from. A drag changes state on every frame
+     * without recording history; when it is committed, this is what undo goes
+     * back to — not the place the pointer finished.
+     */
+    pending: null,
     status: 'idle', // 'idle' | 'loading' | 'ready' | 'error'
     error: null,
     view: 'product', // 'product' | 'flat'
@@ -83,18 +98,46 @@ export function createInitialState(product) {
   };
 }
 
-const TRACKED_KEYS = ['transform', 'baseColor'];
+const TRACKED_KEYS = ['transform', 'baseColor', 'texts'];
 
 function snapshot(state) {
   return TRACKED_KEYS.reduce((acc, key) => ({ ...acc, [key]: state[key] }), {});
 }
 
+/**
+ * Record a change. If a drag or an edit has been running, undo returns to
+ * where it started; otherwise to the state just before this change.
+ */
 function withHistory(state, next) {
   return {
     ...next,
-    history: [...state.history, snapshot(state)].slice(-40),
+    pending: null,
+    history: [...state.history, state.pending ?? snapshot(state)].slice(-40),
     future: [],
   };
+}
+
+/** A change in flight: applied now, recorded when it is committed. */
+function inFlight(state, next) {
+  return { ...next, pending: state.pending ?? snapshot(state) };
+}
+
+/** Keep `selectedId` pointing at something that exists. */
+function withValidSelection(state) {
+  const valid = (id) =>
+    (id === 'artwork' && state.artwork) || state.texts.some((layer) => layer.id === id);
+  if (valid(state.selectedId)) return state;
+  const fallback = state.texts.length
+    ? state.texts[state.texts.length - 1].id
+    : state.artwork
+      ? 'artwork'
+      : null;
+  return { ...state, selectedId: fallback };
+}
+
+/** Clamp a text layer's placement to what its print area can hold. */
+function clampText(layer, print) {
+  return { ...layer, transform: clampTransform(layer.transform, print) };
 }
 
 /**
@@ -126,6 +169,10 @@ export function studioReducer(state, action) {
         // product is just the surface it lands on. The stock does not: board
         // and cup stock are different materials with different ranges.
         artwork: state.artwork,
+        // Text is the visitor's too. It arrives already re-fitted to the new
+        // print area (the provider knows both products; the reducer only the new).
+        texts: (action.texts ?? state.texts).map((layer) => clampText(layer, action.product.print)),
+        selectedId: state.selectedId,
         status: state.artwork ? 'ready' : 'idle',
         // A placement computed for the new product's print area, so the logo
         // arrives correctly sized rather than reset to an arbitrary default.
@@ -143,6 +190,8 @@ export function studioReducer(state, action) {
         status: 'ready',
         error: null,
         transform: clampTransform({ ...action.transform }, action.product.print),
+        selectedId: 'artwork',
+        pending: null,
         history: [],
         future: [],
       };
@@ -151,15 +200,16 @@ export function studioReducer(state, action) {
       return { ...state, status: 'error', error: action.error };
 
     case 'artwork-cleared':
-      return {
+      return withValidSelection({
         ...state,
         artwork: null,
         status: 'idle',
         error: null,
         transform: createTransform(action.product),
+        pending: null,
         history: [],
         future: [],
-      };
+      });
 
     case 'base-color': {
       if (action.color === state.baseColor) return state;
@@ -169,32 +219,110 @@ export function studioReducer(state, action) {
     case 'transform': {
       const next = clampTransform({ ...state.transform, ...action.patch }, action.product.print);
       const base = { ...state, transform: next };
-      return action.commit === false ? base : withHistory(state, base);
+      if (action.commit === false) return inFlight(state, base);
+      // Nothing changed and nothing was in flight: a click, not an edit.
+      if (!state.pending && !Object.keys(action.patch ?? {}).length) return state;
+      return withHistory(state, base);
     }
 
     case 'reset-transform':
       return withHistory(state, { ...state, transform: createTransform(action.product) });
 
+    case 'select-layer': {
+      if (action.id === state.selectedId) return state;
+      return withValidSelection({ ...state, selectedId: action.id });
+    }
+
+    case 'text-add':
+      return withHistory(state, {
+        ...state,
+        texts: [...state.texts, clampText(action.layer, action.product.print)],
+        selectedId: action.layer.id,
+      });
+
+    case 'text-update': {
+      const texts = state.texts.map((layer) => {
+        if (layer.id !== action.id) return layer;
+        return clampText(
+          {
+            ...layer,
+            ...action.patch,
+            transform: { ...layer.transform, ...action.transform },
+          },
+          action.product.print
+        );
+      });
+      const base = { ...state, texts };
+      if (action.commit === false) return inFlight(state, base);
+      // A commit with nothing behind it — focus leaving a field nobody typed in.
+      if (!state.pending && !Object.keys(action.patch ?? {}).length) return state;
+      return withHistory(state, base);
+    }
+
+    case 'text-transform': {
+      const texts = state.texts.map((layer) =>
+        layer.id === action.id
+          ? clampText({ ...layer, transform: { ...layer.transform, ...action.patch } }, action.product.print)
+          : layer
+      );
+      const base = { ...state, texts };
+      if (action.commit === false) return inFlight(state, base);
+      if (!state.pending && !Object.keys(action.patch ?? {}).length) return state;
+      return withHistory(state, base);
+    }
+
+    /*
+     * A font finished loading and the text is wider or narrower than it was
+     * measured to be. Not the visitor's edit, so it is not history: the
+     * letters keep their size and the box follows.
+     */
+    case 'text-remeasure':
+      return {
+        ...state,
+        texts: state.texts.map((layer) =>
+          layer.id === action.id
+            ? clampText(
+                {
+                  ...layer,
+                  aspect: action.aspect,
+                  transform: { ...layer.transform, widthMm: action.widthMm },
+                },
+                action.product.print
+              )
+            : layer
+        ),
+      };
+
+    case 'text-remove':
+      return withValidSelection(
+        withHistory(state, {
+          ...state,
+          texts: state.texts.filter((layer) => layer.id !== action.id),
+        })
+      );
+
     case 'undo': {
       if (!state.history.length) return state;
       const previous = state.history[state.history.length - 1];
-      return {
+      return withValidSelection({
         ...state,
         ...previous,
+        pending: null,
         history: state.history.slice(0, -1),
         future: [snapshot(state), ...state.future].slice(0, 40),
-      };
+      });
     }
 
     case 'redo': {
       if (!state.future.length) return state;
       const [next, ...rest] = state.future;
-      return {
+      return withValidSelection({
         ...state,
         ...next,
+        pending: null,
         history: [...state.history, snapshot(state)].slice(-40),
         future: rest,
-      };
+      });
     }
 
     case 'set-view':
