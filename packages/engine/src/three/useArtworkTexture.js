@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
-import composeArtwork from '../artwork/composeArtwork';
+import { composeLayers } from '../artwork/composeArtwork';
 
 /**
- * Keep a canvas texture in sync with the studio's artwork placement.
+ * Keep a canvas texture in sync with what the visitor has placed — a logo,
+ * lines of text, or both.
  *
  * The canvas is allocated once per product and redrawn in place, so dragging
  * the artwork does not churn GPU memory. We only ask three.js to re-upload the
@@ -15,7 +16,7 @@ import composeArtwork from '../artwork/composeArtwork';
  * its background must be transparent and the stock colour comes from the mesh
  * underneath — which is also why changing stock does not force a redraw there.
  */
-export function useArtworkTexture(product, artwork, transform, baseColor) {
+export function useArtworkTexture(product, layers, baseColor) {
   const canvasRef = useRef(null);
 
   if (!canvasRef.current && typeof document !== 'undefined') {
@@ -42,12 +43,12 @@ export function useArtworkTexture(product, artwork, transform, baseColor) {
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas || !texture) return;
-    composeArtwork(canvas, product.print, artwork, transform, {
+    composeLayers(canvas, product.print, layers, {
       transparentBackground: isDecal,
       stockColor: baseColor,
     });
     texture.needsUpdate = true;
-  }, [texture, product.print, artwork, transform, baseColor, isDecal]);
+  }, [texture, product.print, layers, baseColor, isDecal]);
 
   return { texture, canvas: canvasRef.current };
 }
