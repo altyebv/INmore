@@ -76,7 +76,7 @@ const frameUrl = new URL('frame.html', new URL(self?.src ?? location.href, locat
  * would let a theme make it unrecognisable. This is the middle.
  */
 const STYLE_ID = 'inmore-studio-style';
-const CSS = `
+const STYLE_TEXT = `
 .inmore-studio{position:relative;width:100%;overflow:hidden}
 .inmore-studio-frame{display:block;width:100%;border:0;margin:0;background:transparent}
 .inmore-studio-open{
@@ -99,7 +99,7 @@ function injectStyle() {
   if (document.getElementById(STYLE_ID)) return;
   const style = document.createElement('style');
   style.id = STYLE_ID;
-  style.textContent = CSS;
+  style.textContent = STYLE_TEXT;
   document.head.appendChild(style);
 }
 
