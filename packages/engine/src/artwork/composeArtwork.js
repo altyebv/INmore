@@ -198,6 +198,17 @@ export function getFitWidthMm(print, artwork, transform, mode = 'contain') {
 }
 
 function drawPlacement(ctx, artwork, box, transform, offsetX) {
+  // Text has no pixels to copy: it sets itself into the box at whatever size
+  // the caller is drawing at. See `text.js`.
+  if (typeof artwork.draw === 'function') {
+    ctx.save();
+    ctx.translate(box.centreX + offsetX, box.centreY);
+    if (transform.rotation) ctx.rotate(degToRad(transform.rotation));
+    artwork.draw(ctx, box.width, box.height);
+    ctx.restore();
+    return;
+  }
+
   const crop = transform.crop ?? IDENTITY_CROP;
   const sx = crop.x * artwork.width;
   const sy = crop.y * artwork.height;
@@ -224,6 +235,9 @@ function drawPlacement(ctx, artwork, box, transform, offsetX) {
 /**
  * Composite the print layout onto a canvas.
  *
+ * One artwork and its placement — the shape this module always had, kept so a
+ * caller with a single image does not have to know layers exist.
+ *
  * @param {HTMLCanvasElement} canvas Reused between renders to avoid GC churn.
  * @param {import('../catalogue/schema').ProductPrintConfig} print
  * @param {object|null} artwork Result of `loadArtwork`, or null for bare stock.
@@ -236,6 +250,21 @@ function drawPlacement(ctx, artwork, box, transform, offsetX) {
  * }} [options]
  */
 export function composeArtwork(canvas, print, artwork, transform, options = {}) {
+  return composeLayers(canvas, print, artwork ? [{ artwork, transform }] : [], options);
+}
+
+/**
+ * Composite several placed things onto one print layout, first at the bottom.
+ *
+ * Each layer is `{ artwork, transform }`, where `artwork` is either a decoded
+ * image or a text object with a `draw` method. Everything about how a layer is
+ * placed — millimetres, rotation, repeat, the seam — is the same for both,
+ * which is why a logo and a line of text can share a panel without either
+ * knowing about the other.
+ *
+ * @param {Array<{ artwork: object, transform: object }>} layers
+ */
+export function composeLayers(canvas, print, layers, options = {}) {
   const surface = resolveSurface(print, options);
   const { texture, trim } = surface;
 
@@ -251,7 +280,7 @@ export function composeArtwork(canvas, print, artwork, transform, options = {}) 
     ctx.fillRect(0, 0, canvas.width, canvas.height);
   }
 
-  if (!artwork) return canvas;
+  if (!layers.length) return canvas;
 
   /*
    * Bleed is a press concern, not a screen one. On the product the visitor is
@@ -261,7 +290,6 @@ export function composeArtwork(canvas, print, artwork, transform, options = {}) 
    * and the studio does not.
    */
   const window = options.bleed ? surface.bleed : trim;
-  const box = getArtworkBox(print, artwork, transform, options);
 
   ctx.save();
   ctx.beginPath();
@@ -269,6 +297,18 @@ export function composeArtwork(canvas, print, artwork, transform, options = {}) 
   ctx.clip();
   ctx.imageSmoothingEnabled = true;
   ctx.imageSmoothingQuality = 'high';
+
+  for (const { artwork, transform } of layers) {
+    drawLayer(ctx, print, surface, artwork, transform, options);
+  }
+
+  ctx.restore();
+  return canvas;
+}
+
+function drawLayer(ctx, print, surface, artwork, transform, options) {
+  const { trim } = surface;
+  const box = getArtworkBox(print, artwork, transform, options);
 
   const repeat = Math.max(1, Math.round(transform.repeat ?? 1));
 
@@ -290,9 +330,6 @@ export function composeArtwork(canvas, print, artwork, transform, options = {}) 
     if (crossesLeft) drawPlacement(ctx, artwork, box, transform, trim.width);
     if (crossesRight) drawPlacement(ctx, artwork, box, transform, -trim.width);
   }
-
-  ctx.restore();
-  return canvas;
 }
 
 export default composeArtwork;
