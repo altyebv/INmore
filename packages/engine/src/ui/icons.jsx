@@ -85,3 +85,41 @@ export const InfoIcon = (props) => (
     <path d="M10 6.5v.01" strokeWidth="2" />
   </Icon>
 );
+
+export const TextIcon = (props) => (
+  <Icon {...props}>
+    <path d="M4.5 5.5v-1.5h11v1.5" />
+    <path d="M10 4v12" />
+    <path d="M7.5 16h5" />
+  </Icon>
+);
+
+export const PlusIcon = (props) => (
+  <Icon {...props}>
+    <path d="M10 4.5v11" />
+    <path d="M4.5 10h11" />
+  </Icon>
+);
+
+export const TrashIcon = (props) => (
+  <Icon {...props}>
+    <path d="M4 6h12" />
+    <path d="M8 6V4.5h4V6" />
+    <path d="m5.5 6 .7 9.5a1 1 0 0 0 1 .9h5.6a1 1 0 0 0 1-.9L14.5 6" />
+  </Icon>
+);
+
+/** Paragraph alignment: `align` is 'left', 'center' or 'right'. */
+export const AlignIcon = ({ align = 'center', ...props }) => {
+  const rows = [5, 9, 13];
+  const [a, b, c] = align === 'left' ? [[3.5, 16.5], [3.5, 12], [3.5, 14.5]]
+    : align === 'right' ? [[3.5, 16.5], [8, 16.5], [5.5, 16.5]]
+    : [[3.5, 16.5], [6, 14], [4.75, 15.25]];
+  return (
+    <Icon {...props}>
+      {[a, b, c].map(([x1, x2], i) => (
+        <path key={rows[i]} d={`M${x1} ${rows[i]}H${x2}`} />
+      ))}
+    </Icon>
+  );
+};
