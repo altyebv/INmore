@@ -31,7 +31,7 @@ export function StudioMount({
   onEvent,
 }) {
   const catalogue = useMemo(
-    () => createCatalogue({ products: config.products, stocks: config.stocks }),
+    () => createCatalogue({ products: config.products, stocks: config.stocks, text: config.text }),
     [config]
   );
 
