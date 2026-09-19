@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { createCatalogue } from '../catalogue';
 import ProductPicker from '../components/ProductPicker';
 import StudioProvider, { useStudio } from './StudioProvider';
@@ -219,5 +219,61 @@ describe('a host that controls the sku', () => {
     const { rerender } = mount(<Hosted sku="cup-a" />);
     rerender(<Hosted sku="nonsense" />);
     expect(screen.getByText('shown: cup-a of 2')).toBeTruthy();
+  });
+});
+
+describe('text', () => {
+  const probe = { current: null };
+  function Probe() {
+    probe.current = useStudio();
+    return null;
+  }
+  const open = (catalogue = cups) =>
+    render(
+      <StudioProvider catalogue={catalogue}>
+        <Probe />
+      </StudioProvider>
+    );
+
+  it('adds a line of text as a placeable layer, in a colour visible on the stock', () => {
+    open();
+    act(() => probe.current.addText('Hello'));
+    const { layers, selected } = probe.current;
+    expect(layers).toHaveLength(1);
+    expect(selected.kind).toBe('text');
+    expect(selected.text.color).toBe('#111111');
+    expect(selected.artwork.aspect).toBeGreaterThan(0);
+  });
+
+  it('moves the selected layer, not the image', () => {
+    open();
+    act(() => probe.current.addText('Hello'));
+    act(() => probe.current.setLayerTransform({ xMm: 12 }, true));
+    expect(probe.current.selected.transform.xMm).toBe(12);
+    expect(probe.current.transform.xMm).toBe(0);
+  });
+
+  it('keeps the letters the same size when the words get longer', () => {
+    open();
+    act(() => probe.current.addText('Hi'));
+    const id = probe.current.selectedId;
+    const before = probe.current.selected;
+    const height = before.transform.widthMm / before.artwork.aspect;
+    act(() => probe.current.updateText(id, { content: 'Hi!' }, true));
+    const after = probe.current.selected;
+    expect(after.transform.widthMm / after.artwork.aspect).toBeCloseTo(height, 1);
+  });
+
+  it('stops at the tenant limit and honours a switch-off', () => {
+    open(createCatalogue({ products: [product('a', 'A', 1)], stocks: STOCKS, text: { maxLayers: 1 } }));
+    act(() => probe.current.addText());
+    act(() => probe.current.addText());
+    expect(probe.current.layers).toHaveLength(1);
+
+    cleanup();
+    open(createCatalogue({ products: [product('a', 'A', 1)], stocks: STOCKS, text: { enabled: false } }));
+    expect(probe.current.canText).toBe(false);
+    act(() => probe.current.addText());
+    expect(probe.current.layers).toHaveLength(0);
   });
 });
