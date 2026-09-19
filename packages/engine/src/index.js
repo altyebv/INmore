@@ -18,7 +18,7 @@
 export { Studio, default as default } from './Studio';
 
 /* --- Building a catalogue ---------------------------------------------------- */
-export { createCatalogue, paletteFor, localizeProduct } from './catalogue';
+export { createCatalogue, paletteFor, localizeProduct, resolveTextSettings } from './catalogue';
 
 /* --- The styling boundary, for a host that wants to compose its own layout --- */
 export { StudioRoot, studioUtils } from './StudioRoot';
@@ -53,8 +53,11 @@ export {
   getPrintRect,
   getSafeRect,
   normaliseSafe,
+  composeLayers,
   resolveSurface,
 } from './artwork/composeArtwork';
+export { createTextArtwork, measureText, fontSizeMm } from './artwork/text';
+export { ensureFont, ensureFonts } from './artwork/fonts';
 
 /* --- Layout thresholds, for a host deciding how much room to give us --------- */
 export { COMPACT_WIDTH } from './utils/useElementShape';
@@ -71,6 +74,8 @@ export { default as ProductDetails } from './components/ProductDetails';
 export { default as StockPicker } from './components/StockPicker';
 export { default as ArtworkDropzone } from './components/ArtworkDropzone';
 export { default as ArtworkControls } from './components/ArtworkControls';
+export { default as TextControls } from './components/TextControls';
+export { default as LayerTabs } from './components/LayerTabs';
 export { default as FlatPreview } from './components/FlatPreview';
 export { default as StudioStage } from './components/StudioStage';
 
