@@ -94,3 +94,12 @@
    target. With a definite width it made a short print area taller than its
    own shape, and the preview drew stretched. The stage's size is its aspect
    and the room it is given; nothing else may set it. */
+
+/* The outline round the selected layer. Never takes the pointer. */
+.selection {
+  position: absolute;
+  pointer-events: none;
+  border: 1px dashed var(--accent);
+  box-sizing: border-box;
+  transform-origin: center;
+}
