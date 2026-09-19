@@ -1,5 +1,6 @@
 import { resolveSurface } from './composeArtwork';
 import { IDENTITY_CROP } from './constants';
+import { LINE_HEIGHT, fontSizeMm, isRtlText, linesOf } from './text';
 
 /**
  * What leaves the studio when a visitor is finished.
@@ -48,8 +49,10 @@ import { IDENTITY_CROP } from './constants';
  * @property {{ thumbnail: string|null }} previews
  *
  * @typedef {Object} Decoration
+ * @property {'image'|'text'} type   What is being printed. Absent on payloads from before text existed: read it as 'image'.
  * @property {string} zoneId
- * @property {string|null} assetHash  Identifies the artwork to whatever stores it.
+ * @property {string|null} assetHash  Identifies the artwork to whatever stores it. Null for text.
+ * @property {TextSpec} [text]        Present when `type` is 'text'. Everything needed to set it again.
  * @property {Placement} placement
  * @property {{ widthMm: number, heightMm: number, bleedMm: number, safeMm: object }} area
  *
@@ -60,6 +63,23 @@ import { IDENTITY_CROP } from './constants';
  * @property {number} rotation   Degrees, clockwise.
  * @property {number} repeat     Evenly spaced copies across the print area.
  * @property {{x:number,y:number,width:number,height:number}} crop  Normalised source crop.
+ * @property {number} [heightMm]  Text only: an image's height follows from its file, text has none.
+ *
+ * @typedef {Object} TextSpec
+ * @property {string} content     The words, with '\n' between lines.
+ * @property {string} fontId      The tenant's id for the font.
+ * @property {string} family      CSS family stack it was set in.
+ * @property {string[]} fontFiles Absolute URLs of the font files, so a print job can fetch them.
+ * @property {number} weight
+ * @property {string} style
+ * @property {string} color       Hex.
+ * @property {'left'|'center'|'right'} align
+ * @property {'ltr'|'rtl'} direction
+ * @property {number} fontSizeMm  Size of the type, as a press operator would specify it.
+ * @property {number} lineHeight  Line pitch as a multiple of font size.
+ *
+ * A text decoration's `placement.widthMm` × `placement.heightMm` is the block
+ * the words occupy at that size, centred on (xMm, yMm) like any other.
  */
 
 /**
@@ -100,13 +120,24 @@ export function buildSubmitPayload({
   baseColor,
   options = {},
   thumbnail = null,
+  /** Text layers, each `{ ...layer, font, fontFiles }` — see the studio session. */
+  texts = [],
 }) {
   const { print } = product;
   const { physical } = print;
 
-  const decorations = artwork
+  const area = {
+    widthMm: physical.widthMm,
+    heightMm: physical.heightMm,
+    bleedMm: physical.bleedMm ?? 0,
+    safeMm: physical.safeMm,
+    wrap: Boolean(print.wrap),
+  };
+
+  const imageDecorations = artwork
     ? [
         {
+          type: 'image',
           // One zone per product today. The array is the shape a second one
           // would arrive in without this contract changing.
           zoneId: print.zoneId ?? 'primary',
@@ -121,16 +152,44 @@ export function buildSubmitPayload({
           },
           // Restated so the payload is self-describing: a consumer can place
           // the artwork without also holding the tenant config.
-          area: {
-            widthMm: physical.widthMm,
-            heightMm: physical.heightMm,
-            bleedMm: physical.bleedMm ?? 0,
-            safeMm: physical.safeMm,
-            wrap: Boolean(print.wrap),
-          },
+          area,
         },
       ]
     : [];
+
+  const textDecorations = texts.map((layer) => {
+    const t = layer.transform;
+    return {
+      type: 'text',
+      zoneId: print.zoneId ?? 'primary',
+      assetHash: null,
+      text: {
+        content: layer.content,
+        fontId: layer.fontId,
+        family: layer.font?.family ?? null,
+        fontFiles: layer.fontFiles ?? [],
+        weight: layer.font?.weight ?? 400,
+        style: layer.font?.style ?? 'normal',
+        color: layer.color,
+        align: layer.align ?? 'center',
+        direction: isRtlText(layer.content) ? 'rtl' : 'ltr',
+        fontSizeMm: fontSizeMm(t, layer.aspect, linesOf(layer.content).length),
+        lineHeight: LINE_HEIGHT,
+      },
+      placement: {
+        widthMm: t.widthMm,
+        heightMm: t.widthMm / layer.aspect,
+        xMm: t.xMm,
+        yMm: t.yMm,
+        rotation: t.rotation ?? 0,
+        repeat: t.repeat ?? 1,
+        crop: IDENTITY_CROP,
+      },
+      area,
+    };
+  });
+
+  const decorations = [...imageDecorations, ...textDecorations];
 
   return {
     tenant,
