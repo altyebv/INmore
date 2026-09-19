@@ -13,8 +13,11 @@
   padding: 0.3rem 0.7rem 0.3rem 0.4rem;
   border: 1px solid var(--line-strong);
   border-radius: var(--radius-pill);
+  background: transparent;
   color: var(--fg-muted);
+  font: inherit;
   font-size: var(--step--1);
+  cursor: pointer;
   transition: border-color var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out);
 }
 .line[aria-pressed='true'] { color: var(--fg); border-color: var(--fg); }
@@ -71,6 +74,10 @@
   padding: var(--space-2) var(--space-3);
   border: 1px solid var(--line-strong);
   border-radius: var(--radius-md);
+  background: var(--ink-800);
+  color: var(--fg);
+  font: inherit;
+  cursor: pointer;
   text-align: start;
   transition: border-color var(--dur-fast) var(--ease-out);
 }
@@ -83,6 +90,7 @@
 .swatches { display: flex; flex-wrap: wrap; gap: var(--space-2); }
 
 .swatch {
+  cursor: pointer;
   width: 2rem;
   height: 2rem;
   padding: 0;
