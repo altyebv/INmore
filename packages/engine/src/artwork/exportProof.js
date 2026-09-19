@@ -1,7 +1,4 @@
-import composeArtwork, {
-  DEFAULT_PRINT_DPI,
-  resolveSurface,
-} from './composeArtwork';
+import { composeLayers, DEFAULT_PRINT_DPI, resolveSurface } from './composeArtwork';
 
 /**
  * Render the flat print layout as a downloadable proof.
@@ -19,13 +16,23 @@ export async function exportProof(
   product,
   artwork,
   transform,
-  { withGuides = true, stockColor, dpi = DEFAULT_PRINT_DPI, guideColors, tenant } = {}
+  {
+    withGuides = true,
+    stockColor,
+    dpi = DEFAULT_PRINT_DPI,
+    guideColors,
+    tenant,
+    /** Placed text, drawn above the image: `[{ artwork, transform }]`. */
+    textLayers = [],
+  } = {}
 ) {
   const { print } = product;
   const options = { stockColor, dpi, bleed: true };
 
+  const layers = [...(artwork ? [{ artwork, transform }] : []), ...textLayers];
+
   const canvas = document.createElement('canvas');
-  composeArtwork(canvas, print, artwork, transform, options);
+  composeLayers(canvas, print, layers, options);
 
   const surface = resolveSurface(print, options);
 
