@@ -3,6 +3,11 @@
 Production foundation for the INMORE website. React + JavaScript, Vite,
 React Three Fiber. Entirely client-side: no backend, no database, no CMS.
 
+The product configurator is a separate project, **Qreate**, and this site hosts
+it through its embed (`src/features/studio/StudioEmbed.jsx`). Set
+`VITE_QREATE_URL` to wherever Qreate is deployed (default
+`http://localhost:5174`, i.e. `npm run dev` in the Qreate repo).
+
 ```bash
 npm install
 npm run dev      # http://localhost:5173
