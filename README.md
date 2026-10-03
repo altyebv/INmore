@@ -1,7 +1,8 @@
 # INMORE — web
 
 Production foundation for the INMORE website. React + JavaScript, Vite,
-React Three Fiber. Entirely client-side: no backend, no database, no CMS.
+React Three Fiber. Client-side, with no backend of its own and no CMS; orders
+are sent to INMORE's operations system (see [Orders](#orders)).
 
 The product configurator is a separate project, **Qreate**, and this site hosts
 it through its embed (`src/features/studio/StudioEmbed.jsx`). Set
@@ -195,6 +196,33 @@ motion and elevation. The accent colour and type stack are provisional; an
 approved brand system replaces the values there without touching components.
 Adding `class="on-paper"` to a section inverts the palette to the light
 "paper" surface.
+
+## Orders
+
+`/order` places an order in INMORE's operations system (the `inmore-ops` repo).
+There are no accounts: a visitor gives a name and a mobile number, which is how
+the business identifies its customers, and gets a request number back. A person
+then calls to confirm details and price — the site quotes nothing and takes no
+payment.
+
+Everything about ordering is in `src/lib/orders/`:
+
+- `placeOrder(order)` is the only function pages call. It checks the order and
+  hands it to the transport.
+- `opsTransport.js` is the only file that knows where orders go: one public
+  database function, `create_public_request`, called over REST. Set
+  `VITE_SUPABASE_URL` and `VITE_SUPABASE_KEY` (the publishable key); until both
+  are set the page says ordering is not open.
+- `describeDesign(payload)` turns the studio's submit payload into the line of
+  specs staff read. Finishing in the studio opens the order page with that
+  design as the first line.
+
+A product's `id` in `src/data/products.js` is sent as the item's `sku`. The
+operations system maps SKUs onto its own catalogue (`product_web_skus`); one it
+does not know still arrives, as a free-text item.
+
+The artwork file is not uploaded — only its name and placement travel with the
+order — so the page tells the visitor we will ask for it.
 
 ## Approval-state notes
 

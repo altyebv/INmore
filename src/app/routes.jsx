@@ -10,6 +10,7 @@ import Home from '@/pages/Home';
 const Studio = lazy(() => import('@/pages/Studio'));
 const Work = lazy(() => import('@/pages/Work'));
 const Capabilities = lazy(() => import('@/pages/Capabilities'));
+const Order = lazy(() => import('@/pages/Order'));
 const Contact = lazy(() => import('@/pages/Contact'));
 const NotFound = lazy(() => import('@/pages/NotFound'));
 
@@ -18,6 +19,7 @@ export const routes = [
   { path: '/studio', element: <Studio />, label: 'Studio' },
   { path: '/work', element: <Work />, label: 'Work' },
   { path: '/capabilities', element: <Capabilities />, label: 'Capabilities' },
+  { path: '/order', element: <Order />, label: 'Order' },
   { path: '/contact', element: <Contact />, label: 'Contact' },
   { path: '*', element: <NotFound />, label: 'Not found' },
 ];

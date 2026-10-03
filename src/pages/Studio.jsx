@@ -21,12 +21,23 @@ import styles from './Studio.module.css';
  *
  * - the page's title and description, which are this site's metadata
  * - the heading and lede above the studio, which are marketing copy
- * - what happens on submit, because only this app knows there is a contact page
+ * - what happens on submit, because only this app knows there is an order page
  * - whether the studio owns the viewport, which only the page can know
  */
 
 /** Below this the studio takes the whole viewport rather than sitting in a page. */
 const FULLSCREEN_QUERY = '(max-width: 1080px)';
+
+/**
+ * History state has a size limit and a thumbnail is a data URL of no fixed
+ * size. A small one is worth showing on the order page; a large one is not
+ * worth a failed navigation.
+ */
+function withoutHeavyPreview(payload) {
+  const thumbnail = payload?.previews?.thumbnail;
+  if (!thumbnail || thumbnail.length < 400_000) return payload;
+  return { ...payload, previews: { ...payload.previews, thumbnail: null } };
+}
 
 export function Studio() {
   const { ui } = useContent();
@@ -41,14 +52,13 @@ export function Studio() {
 
   /*
    * The studio reports a finished configuration; where it goes is ours to
-   * decide. There is no backend yet, so the payload goes to the console and
-   * the visitor goes to the contact page — but the seam is the real one, and
-   * the day there is an endpoint this is the only line that changes.
+   * decide. It goes to the order page as the first line of an order, carried
+   * in the route's state so it survives a reload but never lands in the URL.
    */
   const handleSubmit = useCallback(
     (payload) => {
       if (import.meta.env.DEV) console.info('[studio] submit', payload);
-      navigate('/contact');
+      navigate('/order', { state: { design: withoutHeavyPreview(payload) } });
     },
     [navigate]
   );

@@ -1,0 +1,93 @@
+/* The order page shares its layout and fields with Contact; this is only what
+   an order adds to a form. */
+
+.steps {
+  display: grid;
+  gap: var(--space-2);
+  list-style: decimal;
+  padding-inline-start: 1.2em;
+  color: var(--fg-muted);
+  font-size: var(--step--1);
+}
+
+.lines {
+  display: grid;
+  gap: var(--space-3);
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+.lines legend { padding: 0; margin-bottom: var(--space-2); }
+
+.line {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 8rem auto;
+  gap: var(--space-3);
+  align-items: center;
+}
+.otherName { grid-column: 1 / -1; }
+
+.remove {
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: none;
+  color: var(--fg-muted);
+  cursor: pointer;
+  transition: border-color var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out);
+}
+.remove:hover { border-color: var(--line-strong); color: var(--fg); }
+
+.textButton {
+  justify-self: start;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--fg-muted);
+  font-size: var(--step--1);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+  cursor: pointer;
+}
+.textButton:hover { color: var(--fg); }
+
+.design {
+  display: flex;
+  gap: var(--space-4);
+  align-items: center;
+  padding: var(--space-4);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-md);
+  background: var(--ink-900);
+}
+.designThumb {
+  width: 5rem;
+  height: 5rem;
+  flex: none;
+  object-fit: contain;
+  border-radius: var(--radius-sm);
+}
+.designBody { display: grid; gap: var(--space-2); }
+.designNote { font-size: var(--step--1); color: var(--fg-muted); }
+
+/* Off screen rather than display: none, which the scripts this is for skip. */
+.trap {
+  position: absolute;
+  inset-inline-start: -9999px;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+
+.doneHeading { font-size: var(--step-3); }
+.number { font-family: var(--font-mono); font-size: var(--step-4); line-height: 1; }
+.doneActions { display: flex; flex-wrap: wrap; gap: var(--space-3); }
+
+@media (max-width: 520px) {
+  .line { grid-template-columns: minmax(0, 1fr) auto; }
+  .line > :first-child { grid-column: 1 / -1; }
+}
