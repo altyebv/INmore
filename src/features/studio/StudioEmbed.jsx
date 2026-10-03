@@ -5,15 +5,26 @@ import { useEffect, useRef } from 'react';
  *
  * The website does not contain the configurator; it hosts it, the way any
  * client's product page would. `embed.js` is loaded from wherever Qreate is
- * deployed (`VITE_QREATE_URL`), pointed at a div, and talked to over its
- * postMessage bridge. Everything about the studio's inner workings is
- * Qreate's; what is here is only the seam.
+ * deployed, pointed at a div, and talked to over its postMessage bridge.
+ * Everything about the studio's inner workings is Qreate's; what is here is
+ * only the seam.
  *
  * The div is deliberately empty of React children: the loader owns its
  * contents and replaces them at will.
  */
 
-const QREATE_URL = (import.meta.env.VITE_QREATE_URL ?? 'http://localhost:5174').replace(/\/$/, '');
+/**
+ * Qreate's production deployment.
+ *
+ * The default is the real one, not a dev server: a build that forgot to set
+ * `VITE_QREATE_URL` should still have a studio, rather than quietly asking
+ * every visitor's own machine for one. Working on Qreate itself is the
+ * exception, and says so in `.env.local`.
+ */
+const QREATE_DEPLOYMENT = 'https://qreate-embeder.vercel.app';
+
+// `||`, not `??`: an env file that lists the key with no value means "unset".
+const QREATE_URL = (import.meta.env.VITE_QREATE_URL || QREATE_DEPLOYMENT).replace(/\/$/, '');
 
 let loading;
 

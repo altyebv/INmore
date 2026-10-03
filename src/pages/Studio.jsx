@@ -77,7 +77,13 @@ export function Studio() {
     />
   );
 
-  if (fullscreen) return <main id="main">{configurator}</main>;
+  if (fullscreen) {
+    return (
+      <main id="main" className={styles.shell}>
+        {configurator}
+      </main>
+    );
+  }
 
   return (
     <main id="main" className={styles.page}>

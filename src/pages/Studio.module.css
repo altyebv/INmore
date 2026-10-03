@@ -11,6 +11,14 @@
   flex-direction: column;
 }
 
+/*
+   Below the fullscreen breakpoint the studio is the page: no heading, no
+   footer, just the frame under the fixed header. The frame's height is
+   already the viewport less the header, so all that is left to do is start it
+   below the header rather than behind it.
+*/
+.shell { padding-top: var(--header-h); }
+
 .intro { padding-block: clamp(1.5rem, 4vw, 3rem) var(--space-5); }
 
 .introInner {
