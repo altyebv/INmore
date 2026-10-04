@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import Button from '@/components/ui/Button';
 import Reveal from '@/components/ui/Reveal';
-import { useContent, useLocalizedCatalogue } from '@/i18n';
+import { localizePath, useContent, useLocale, useLocalizedCatalogue } from '@/i18n';
 import catalogue from '@/catalogue';
 import usePageMeta from '@/lib/utils/usePageMeta';
 import { describeDesign, isOrderingEnabled, placeOrder } from '@/lib/orders';
@@ -26,6 +26,7 @@ const MAX_LINES = 20;
  */
 export function Order() {
   const { ui } = useContent();
+  const { locale } = useLocale();
   const o = ui.order;
   const products = useLocalizedCatalogue(catalogue.live);
   const location = useLocation();
@@ -88,7 +89,7 @@ export function Order() {
       });
       setDone({ number, mobile: data.mobile });
       // The design has been ordered; a reload should not bring it back.
-      navigate('/order', { replace: true, state: null });
+      navigate(localizePath('/order', locale), { replace: true, state: null });
     } catch (failure) {
       if (import.meta.env.DEV) console.warn('[order]', failure);
       setError(o.errors[failure.code] ?? o.errors.failed);
