@@ -1,6 +1,7 @@
 import { forwardRef } from 'react';
 import { Link } from 'react-router-dom';
 import cx from '@/lib/utils/cx';
+import { localizePath, useLocale } from '@/i18n';
 import styles from './Button.module.css';
 
 /**
@@ -14,6 +15,7 @@ export const Button = forwardRef(function Button(
   { as, to, href, variant = 'quiet', size = 'md', block, icon, className, children, ...props },
   ref
 ) {
+  const { locale } = useLocale();
   const classes = cx(
     styles.base,
     styles[variant],
@@ -25,7 +27,7 @@ export const Button = forwardRef(function Button(
 
   if (to) {
     return (
-      <Link ref={ref} to={to} className={classes} {...props}>
+      <Link ref={ref} to={localizePath(to, locale)} className={classes} {...props}>
         {children}
       </Link>
     );
