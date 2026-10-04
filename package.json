@@ -6,7 +6,7 @@
   "description": "INMORE's website. Hosts the Qreate configurator through its embed.",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "vite build && vite build --ssr src/entry-server.jsx --outDir dist-ssr && node scripts/prerender.mjs",
     "preview": "vite preview",
     "test": "vitest run --passWithNoTests"
   },
