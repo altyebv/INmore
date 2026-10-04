@@ -1,8 +1,18 @@
 .footer {
-  border-top: 1px solid var(--line);
+  position: relative;
   background: var(--ink-900);
   color: var(--paper-100);
   padding-block: clamp(3rem, 7vw, 6rem) var(--space-6);
+}
+
+/* The footer opens on the four plates rather than on a hairline. */
+.footer::before {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  top: 0;
+  height: 4px;
+  background: var(--cmyk-strip);
 }
 
 .top {
@@ -10,6 +20,13 @@
   grid-template-columns: minmax(0, 1.4fr) repeat(2, minmax(0, 1fr));
   gap: clamp(2rem, 5vw, 4rem);
   padding-bottom: clamp(3rem, 6vw, 5rem);
+}
+
+.lead {
+  display: grid;
+  gap: var(--space-6);
+  align-content: start;
+  justify-items: start;
 }
 
 .statement {
@@ -50,7 +67,24 @@
   color: rgba(247, 245, 241, 0.38);
 }
 
+/* The signature is Latin handwriting: it reads left to right in both locales. */
+.credit {
+  display: inline-flex;
+  direction: ltr;
+  color: rgba(247, 245, 241, 0.5);
+  cursor: default;
+  transition: color var(--dur-base) var(--ease-out);
+}
+.credit:hover { color: var(--paper-100); }
+
+.signature {
+  display: block;
+  height: 2.75rem;
+  width: auto;
+  overflow: visible;
+}
+
 @media (max-width: 780px) {
   .top { grid-template-columns: 1fr 1fr; }
-  .statement { grid-column: 1 / -1; }
+  .lead { grid-column: 1 / -1; }
 }
