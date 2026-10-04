@@ -4,12 +4,13 @@ import cx from '@/lib/utils/cx';
 import Button from '@/components/ui/Button';
 import Logo from '@/components/ui/Logo';
 import LanguageToggle from '@/components/ui/LanguageToggle';
-import { useContent, useT } from '@/i18n';
+import { localizePath, useContent, useLocale, useT } from '@/i18n';
 import styles from './SiteHeader.module.css';
 
 export function SiteHeader() {
   const { nav } = useContent();
   const t = useT();
+  const { locale } = useLocale();
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
   const location = useLocation();
@@ -32,7 +33,7 @@ export function SiteHeader() {
   return (
     <header className={cx(styles.header, (scrolled || open) && styles.scrolled)}>
       <div className={cx('u-shell', styles.inner)}>
-        <NavLink to="/" className={styles.brand} aria-label={t.common.home}>
+        <NavLink to={localizePath('/', locale)} className={styles.brand} aria-label={t.common.home}>
           <Logo height={38} />
         </NavLink>
 
@@ -44,7 +45,7 @@ export function SiteHeader() {
           {nav.map((item) => (
             <NavLink
               key={item.to}
-              to={item.to}
+              to={localizePath(item.to, locale)}
               className={({ isActive }) => cx(styles.link, isActive && styles.active)}
             >
               {item.label}
