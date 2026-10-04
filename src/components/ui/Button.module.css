@@ -73,6 +73,11 @@
 
 .block { width: 100%; }
 
+:global([lang='ar']) .base {
+  line-height: 1.25;
+  padding-block: 0.78em;
+}
+
 /* Minimum comfortable target on touch, without changing the visual scale of
    small buttons on pointer devices. */
 @media (pointer: coarse) {
