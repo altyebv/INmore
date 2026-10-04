@@ -5,6 +5,7 @@ import App from '@/app/App';
 import routes from '@/app/routes';
 import { LOCALES, LocaleProvider, localeFromPath, localizePath } from '@/i18n';
 import { SITE_URL } from '@/lib/site';
+import structuredData from '@/lib/structuredData';
 import { PageMetaContext, pageUrls } from '@/lib/utils/usePageMeta';
 
 /**
@@ -50,4 +51,4 @@ export function render(url) {
 /** Every indexable path, before localisation. */
 export const paths = routes.map((route) => route.path).filter((path) => path !== '*');
 
-export { LOCALES, SITE_URL, localizePath, pageUrls };
+export { LOCALES, SITE_URL, localizePath, pageUrls, structuredData };
