@@ -42,3 +42,6 @@
   max-width: 46ch;
   line-height: 1.45;
 }
+
+:global([lang='ar']) .title { max-width: 24ch; }
+:global([lang='ar']) .lede { line-height: 1.65; }
