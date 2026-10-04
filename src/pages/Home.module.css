@@ -78,6 +78,10 @@
   max-width: 40ch;
 }
 
+:global([lang='ar']) .heroCopy { max-width: min(38rem, 50%); }
+:global([lang='ar']) .heroTitle { max-width: 10ch; }
+:global([lang='ar']) .heroLede { max-width: 44ch; }
+
 /* The carousel's own readout owns the bottom centre, so the scroll cue moves
    to the trailing corner rather than stacking on top of it. */
 .scrollCue {
@@ -171,6 +175,11 @@
   letter-spacing: 0.1em;
 }
 
+:global([lang='ar']) .disciplineList {
+  font-weight: 600;
+  line-height: 1.7;
+}
+
 /* --- Studio invitation ----------------------------------------------------- */
 .invite {
   display: grid;
@@ -225,6 +234,8 @@
 .workTitle { font-size: var(--step-1); max-width: 20ch; }
 .workBody { font-size: var(--step--1); color: var(--fg-muted); }
 
+:global([lang='ar']) .workTitle { max-width: 24ch; }
+
 .workMetric {
   font-family: var(--font-mono);
   font-size: var(--step-1);
@@ -276,6 +287,9 @@
      needs six lines of body copy is not a hero. */
   .heroTitle { font-size: var(--step-4); max-width: 11ch; }
   .heroLede { font-size: var(--step--1); max-width: 30ch; }
+
+  :global([lang='ar']) .heroTitle { max-width: 12ch; }
+  :global([lang='ar']) .heroLede { max-width: 34ch; }
 
   .scrollCue { display: none; }
 
