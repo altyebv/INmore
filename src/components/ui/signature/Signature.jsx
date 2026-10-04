@@ -60,40 +60,13 @@ export default function Signature({ uid, run = false, duration = 2600, className
     useEffect(() => {
         if (!run || !ref.current) return;
         const paths = ref.current.querySelectorAll('.sig-trace');
-        const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-        const animations = [];
-
-        paths.forEach((path, i) => {
-            path.style.strokeDashoffset = '1';
-
-            if (reducedMotion) {
-                path.style.strokeDashoffset = '0';
-                return;
-            }
-
-            if (typeof path.animate === 'function') {
-                animations.push(
-                    path.animate(
-                        [{ strokeDashoffset: 1 }, { strokeDashoffset: 0 }],
-                        {
-                            duration: timing[i].dur,
-                            delay: timing[i].delay,
-                            easing: STROKES[i].ease,
-                            fill: 'forwards',
-                        }
-                    )
-                );
-                return;
-            }
-
-            path.style.transition = [
-                `stroke-dashoffset ${timing[i].dur}ms ${STROKES[i].ease}`,
-                `visibility 0s ${timing[i].delay}ms`,
-            ].join(', ');
-            path.style.strokeDashoffset = '0';
-        });
-
-        return () => animations.forEach((animation) => animation.cancel());
+        // Force a style flush before flipping the offset. Without it React can
+        // batch the initial dashoffset="1" and the "0" into one paint and the
+        // browser has nothing to transition between, so the signature simply
+        // appears — which is exactly the bug this whole component exists to
+        // avoid, and it only shows up in production builds.
+        void ref.current.getBoundingClientRect();
+        paths.forEach((p) => { p.style.strokeDashoffset = '0'; });
     }, [run]);
 
     return (
@@ -123,6 +96,13 @@ export default function Signature({ uid, run = false, duration = 2600, className
                             strokeDasharray="1 1.001"
                             style={{
                                 strokeDashoffset: run ? 1 : 0,
+                                transitionDuration: `${timing[i].dur}ms`,
+                                transitionDelay: `${timing[i].delay}ms`,
+                                /* Per-stroke easing, from the data. A single
+                                   linear curve for all four was the single
+                                   biggest reason this read as a machine
+                                   drawing a path rather than a hand writing. */
+                                transitionTimingFunction: s.ease,
                             }}
                         />
                     </mask>
