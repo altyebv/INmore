@@ -1,4 +1,5 @@
 import { Suspense, lazy } from 'react';
+import useHydrated from '@/lib/utils/useHydrated';
 
 /**
  * The hero object.
@@ -14,18 +15,23 @@ const ProductViewer = lazy(() =>
 const HERO_CAMERA = { position: [0.5, 0.28, 1], fov: 26, framing: 1.95 };
 
 export function HeroProduct({ product, className, autoRotate = true }) {
+  // WebGL is the browser's alone: the prerendered page carries the empty frame.
+  const hydrated = useHydrated();
+
   if (!product) return <div className={className} />;
 
   return (
     <div className={className}>
-      <Suspense fallback={null}>
-        <ProductViewer
-          product={product}
-          texture={null}
-          autoRotate={autoRotate}
-          camera={HERO_CAMERA}
-        />
-      </Suspense>
+      {hydrated && (
+        <Suspense fallback={null}>
+          <ProductViewer
+            product={product}
+            texture={null}
+            autoRotate={autoRotate}
+            camera={HERO_CAMERA}
+          />
+        </Suspense>
+      )}
     </div>
   );
 }
