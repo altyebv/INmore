@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import cx from '@/lib/utils/cx';
 import Button from '@/components/ui/Button';
-import Wordmark from '@/components/ui/Wordmark';
+import Logo from '@/components/ui/Logo';
 import LanguageToggle from '@/components/ui/LanguageToggle';
 import { useContent, useT } from '@/i18n';
 import styles from './SiteHeader.module.css';
@@ -33,7 +33,7 @@ export function SiteHeader() {
     <header className={cx(styles.header, (scrolled || open) && styles.scrolled)}>
       <div className={cx('u-shell', styles.inner)}>
         <NavLink to="/" className={styles.brand} aria-label={t.common.home}>
-          <Wordmark height={16} />
+          <Logo height={38} />
         </NavLink>
 
         <nav
