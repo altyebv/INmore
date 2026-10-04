@@ -4,7 +4,7 @@ import StudioEmbed from '@/features/studio/StudioEmbed';
 import cx from '@/lib/utils/cx';
 import usePageMeta from '@/lib/utils/usePageMeta';
 import useMediaQuery from '@/lib/utils/useMediaQuery';
-import { useContent, useLocale } from '@/i18n';
+import { localizePath, useContent, useLocale } from '@/i18n';
 import { useAppShell } from '@/app/ShellContext';
 import catalogue from '@/catalogue';
 import styles from './Studio.module.css';
@@ -58,9 +58,9 @@ export function Studio() {
   const handleSubmit = useCallback(
     (payload) => {
       if (import.meta.env.DEV) console.info('[studio] submit', payload);
-      navigate('/order', { state: { design: withoutHeavyPreview(payload) } });
+      navigate(localizePath('/order', locale), { state: { design: withoutHeavyPreview(payload) } });
     },
-    [navigate]
+    [navigate, locale]
   );
 
   const configurator = (
