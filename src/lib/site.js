@@ -5,6 +5,6 @@
  * canonical home of a page, and so the build can write the same URLs the
  * browser will.
  */
-export const SITE_URL = (import.meta.env.VITE_SITE_URL || 'https://inmore.store').replace(/\/$/, '');
+export const SITE_URL = (import.meta.env.VITE_SITE_URL || 'https://www.inmore.store').replace(/\/$/, '');
 
 export default SITE_URL;
