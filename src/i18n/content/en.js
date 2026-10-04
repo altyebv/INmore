@@ -6,18 +6,25 @@
  * stays identical; only human-readable strings change.
  */
 
-const email = 'hello@inmore.qa';
-const phone = '+974 5199 9340';
+const email = 'hello@inmore.store';
+const phones = ['+974 5199 9340', '+974 5199 9273'];
+const whatsapp = 'https://wa.me/97451999340';
+const instagram = 'https://www.instagram.com/inmore.qa/';
+const mapUrl = 'https://www.google.com/maps/search/?api=1&query=INMORE+Ezdan+Mall+Al+Gharrafa+Doha';
 
 export default {
   company: {
     name: 'INMORE',
     legalName: 'INMORE Advertising',
-    location: 'Doha, Qatar',
+    location: 'Ezdan Mall, Al Gharrafa, Doha',
     statement: 'We turn brands into printed things people notice, keep and carry.',
     email,
-    phone,
-    address: ['Doha', 'State of Qatar'],
+    phones,
+    whatsapp,
+    instagram,
+    address: ['First Floor, Gate 3, Ezdan Mall', 'Al Gharrafa, Doha', 'State of Qatar'],
+    mapUrl,
+    hours: 'Saturday to Thursday, 10 am – 10 pm. Closed on Friday.',
   },
 
   nav: [
@@ -43,7 +50,9 @@ export default {
       title: 'Contact',
       items: [
         { href: `mailto:${email}`, label: email },
-        { href: `tel:${phone.replace(/\s/g, '')}`, label: phone },
+        ...phones.map((number) => ({ href: `tel:${number.replace(/\s/g, '')}`, label: number })),
+        { href: whatsapp, label: 'WhatsApp' },
+        { href: instagram, label: 'Instagram' },
       ],
     },
   ],
@@ -163,7 +172,7 @@ export default {
     home: {
       title: 'INMORE — Branding, print and production in Doha',
       description:
-        'INMORE is a Doha-based advertising, branding and production house creating packaging, print and branded objects for businesses in Qatar.',
+        'INMORE is an advertising, branding and production house at Ezdan Mall, Al Gharrafa, Doha, creating packaging, print and branded objects for businesses in Qatar.',
       eyebrow: 'Advertising · Branding · Packaging · Production',
       headlineLead: 'Your brand,',
       headlineEmphasis: 'made to be held.',
@@ -323,7 +332,8 @@ export default {
 
     contact: {
       title: 'Contact — INMORE',
-      description: 'Start a project with INMORE — branding, design and production in Doha, Qatar.',
+      description:
+        'Visit INMORE at Ezdan Mall, Al Gharrafa, Doha, or start a project online — branding, design and print production in Qatar.',
       eyebrow: 'Contact',
       heading: 'Tell us what you need to make.',
       lede:
@@ -331,6 +341,8 @@ export default {
       emailLabel: 'Email',
       phoneLabel: 'Telephone',
       studioLabel: 'Studio',
+      hoursLabel: 'Hours',
+      mapLabel: 'Open in Google Maps',
       fields: {
         name: 'Name',
         company: 'Company',
