@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import cx from '@/lib/utils/cx';
 import Logo from '@/components/ui/Logo';
 import Signature from '@/components/ui/signature/Signature';
-import { useContent } from '@/i18n';
+import { localizePath, useContent, useLocale } from '@/i18n';
 import styles from './SiteFooter.module.css';
 
 /** How long the signature takes to write itself, start to finish. */
@@ -54,6 +54,7 @@ function FooterSignature() {
 
 export function SiteFooter() {
   const { company, footerColumns } = useContent();
+  const { locale } = useLocale();
 
   return (
     <footer className={styles.footer}>
@@ -69,7 +70,7 @@ export function SiteFooter() {
               <h2 className={styles.columnTitle}>{column.title}</h2>
               {column.items.map((item) =>
                 item.to ? (
-                  <Link key={item.label} className={styles.item} to={item.to}>
+                  <Link key={item.label} className={styles.item} to={localizePath(item.to, locale)}>
                     {item.label}
                   </Link>
                 ) : (
