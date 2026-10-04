@@ -5,9 +5,11 @@ React Three Fiber. Client-side, with no backend of its own and no CMS; orders
 are sent to INMORE's operations system (see [Orders](#orders)).
 
 The product configurator is a separate project, **Qreate**, and this site hosts
-it through its embed (`src/features/studio/StudioEmbed.jsx`). Set
-`VITE_QREATE_URL` to wherever Qreate is deployed (default
-`http://localhost:5174`, i.e. `npm run dev` in the Qreate repo).
+it through its embed (`src/features/studio/StudioEmbed.jsx`), loaded from
+Qreate's own deployment at `https://qreate-embeder.vercel.app`. Nothing needs
+setting for that. To work against a local Qreate instead, put
+`VITE_QREATE_URL=http://localhost:5174` in `.env.local` (`npm run dev` in the
+Qreate repo).
 
 ```bash
 npm install
@@ -38,7 +40,7 @@ src/
 ├─ pages/          One file per route
 ├─ components/
 │  ├─ layout/      Header, footer
-│  └─ ui/          Button, Slider, Section, Reveal, Wordmark
+│  └─ ui/          Button, Slider, Section, Reveal, Logo, Signature
 ├─ features/
 │  ├─ studio/      The "Test your product" experience
 │  │  ├─ state/    Reducer + provider — all interaction state
