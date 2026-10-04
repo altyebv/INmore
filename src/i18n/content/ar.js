@@ -12,18 +12,25 @@
  * commercial print.
  */
 
-const email = 'hello@inmore.qa';
-const phone = '+974 5199 9340';
+const email = 'hello@inmore.store';
+const phones = ['+974 5199 9340', '+974 5199 9273'];
+const whatsapp = 'https://wa.me/97451999340';
+const instagram = 'https://www.instagram.com/inmore.qa/';
+const mapUrl = 'https://www.google.com/maps/search/?api=1&query=INMORE+Ezdan+Mall+Al+Gharrafa+Doha';
 
 export default {
   company: {
     name: 'INMORE',
-    legalName: 'إنمور للدعاية والإعلان',
-    location: 'الدوحة، قطر',
+    legalName: 'إن مور للدعاية والإعلان',
+    location: 'إزدان مول، الغرافة، الدوحة',
     statement: 'نحوّل العلامات إلى مطبوعات يلاحظها الناس ويحملونها ويتذكرونها.',
     email,
-    phone,
-    address: ['الدوحة', 'دولة قطر'],
+    phones,
+    whatsapp,
+    instagram,
+    address: ['الطابق الأول، بوابة 3، إزدان مول', 'الغرافة، الدوحة', 'دولة قطر'],
+    mapUrl,
+    hours: 'من السبت إلى الخميس، 10 صباحًا – 10 مساءً. الجمعة عطلة.',
   },
 
   nav: [
@@ -49,7 +56,9 @@ export default {
       title: 'للتواصل',
       items: [
         { href: `mailto:${email}`, label: email },
-        { href: `tel:${phone.replace(/\s/g, '')}`, label: phone },
+        ...phones.map((number) => ({ href: `tel:${number.replace(/\s/g, '')}`, label: number })),
+        { href: whatsapp, label: 'واتساب' },
+        { href: instagram, label: 'إنستغرام' },
       ],
     },
   ],
@@ -158,7 +167,7 @@ export default {
       openStudio: 'ادخل الاستوديو',
       seeAllWork: 'شاهد كل الأعمال',
       skipToContent: 'تخطَّ إلى المحتوى',
-      home: 'إنمور — الرئيسية',
+      home: 'إن مور — الرئيسية',
       openMenu: 'افتح القائمة',
       closeMenu: 'أغلق القائمة',
       language: 'اللغة',
@@ -167,9 +176,9 @@ export default {
     },
 
     home: {
-      title: 'إنمور — دعاية وتغليف وإنتاج في الدوحة',
+      title: 'إن مور — دعاية وتغليف وإنتاج في الدوحة',
       description:
-        'إنمور دار دعاية وهوية وإنتاج في الدوحة، نصمم ونطبع ونجهّز التغليف والمطبوعات والمنتجات المطبوعة لعلامات قطر.',
+        'إن مور دار دعاية وهوية وإنتاج في إزدان مول الغرافة بالدوحة، نصمم ونطبع ونجهّز التغليف والمطبوعات والمنتجات المطبوعة لعلامات قطر.',
       eyebrow: 'دعاية · هوية · تغليف · إنتاج',
       headlineLead: 'علامتكم،',
       headlineEmphasis: 'لها حضور.',
@@ -290,7 +299,7 @@ export default {
     },
 
     studio: {
-      title: 'عاين منتجك — إنمور',
+      title: 'عاين منتجك — إن مور',
       description: 'ارفع شعارك، وضعه على منتج حقيقي، وعاينه قبل طباعة أي شيء.',
       eyebrow: 'عاين منتجك',
       heading: 'شاهده قبل أن ننفّذه.',
@@ -300,7 +309,7 @@ export default {
     },
 
     work: {
-      title: 'أعمالنا — إنمور',
+      title: 'أعمالنا — إن مور',
       description: 'هوية وتغليف وإنتاج مطبوع من الدوحة.',
       eyebrow: 'أعمالنا',
       heading: 'مطبوعات بحضور فعلي.',
@@ -312,8 +321,8 @@ export default {
     },
 
     capabilities: {
-      title: 'إمكانياتنا — إنمور',
-      description: 'أساليب الطباعة والتشطيبات والخامات والمقاسات التي تنفذها إنمور في الدوحة.',
+      title: 'إمكانياتنا — إن مور',
+      description: 'أساليب الطباعة والتشطيبات والخامات والمقاسات التي تنفذها إن مور في الدوحة.',
       eyebrow: 'إمكانياتنا',
       heading: 'كل ما بين الفكرة والتسليم.',
       lede:
@@ -326,8 +335,9 @@ export default {
     },
 
     contact: {
-      title: 'تواصل معنا — إنمور',
-      description: 'ابدأ مشروعًا مع إنمور — هوية وتصميم وإنتاج في الدوحة، قطر.',
+      title: 'تواصل معنا — إن مور',
+      description:
+        'زورونا في إزدان مول الغرافة بالدوحة، أو ابدأ مشروعك مع إن مور عبر الموقع — هوية وتصميم وإنتاج مطبوع في قطر.',
       eyebrow: 'تواصل معنا',
       heading: 'أخبرنا بما تريد أن نصنعه.',
       lede:
@@ -335,6 +345,8 @@ export default {
       emailLabel: 'البريد الإلكتروني',
       phoneLabel: 'الهاتف',
       studioLabel: 'المقر',
+      hoursLabel: 'ساعات العمل',
+      mapLabel: 'افتح في خرائط Google',
       fields: {
         name: 'الاسم',
         company: 'الشركة',
@@ -356,8 +368,8 @@ export default {
     },
 
     order: {
-      title: 'اطلب الآن — إنمور',
-      description: 'اطلب التغليف المطبوع من إنمور: اختر المنتجات والكميات، ونتصل بك للتأكيد.',
+      title: 'اطلب الآن — إن مور',
+      description: 'اطلب التغليف المطبوع من إن مور: اختر المنتجات والكميات، ونتصل بك للتأكيد.',
       eyebrow: 'الطلب',
       heading: 'ابدأ طلبك.',
       lede:
@@ -412,7 +424,7 @@ export default {
     },
 
     notFound: {
-      title: 'الصفحة غير موجودة — إنمور',
+      title: 'الصفحة غير موجودة — إن مور',
       code: '404',
       heading: 'هذه الصفحة ليست ضمن التشغيلة.',
       body: 'قد يكون الرابط قديمًا، أو الصفحة ما زالت قيد الإنتاج.',
