@@ -134,6 +134,17 @@
 
 :root[lang='ar'] body { line-height: 1.75; }
 
+:root[lang='ar'] h1,
+:root[lang='ar'] h2,
+:root[lang='ar'] h3,
+:root[lang='ar'] h4 {
+  line-height: 1.16;
+}
+
+:root[lang='ar'] .u-label {
+  font-weight: 600;
+}
+
 /* Light surface inversion — used for "paper" sections. */
 .on-paper {
   --bg: var(--paper-100);
