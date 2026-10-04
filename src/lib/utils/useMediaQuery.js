@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useSyncExternalStore } from 'react';
 
 /**
  * Subscribe to a media query.
@@ -8,23 +8,26 @@ import { useEffect, useState } from 'react';
  * studio embedded in a column should lay itself out for the column. The site's
  * marketing pages genuinely are the viewport, so for them a media query is the
  * right question and this stays.
+ *
+ * Prerendered pages cannot know the viewport, so the server's answer is
+ * always `false`; the real one arrives straight after hydration.
  */
 export function useMediaQuery(query) {
-  const [matches, setMatches] = useState(() => {
-    if (typeof window === 'undefined' || !window.matchMedia) return false;
-    return window.matchMedia(query).matches;
-  });
+  const subscribe = useCallback(
+    (notify) => {
+      const list = window.matchMedia?.(query);
+      if (!list) return () => {};
+      list.addEventListener('change', notify);
+      return () => list.removeEventListener('change', notify);
+    },
+    [query]
+  );
 
-  useEffect(() => {
-    if (typeof window === 'undefined' || !window.matchMedia) return undefined;
-    const list = window.matchMedia(query);
-    const onChange = (event) => setMatches(event.matches);
-    setMatches(list.matches);
-    list.addEventListener('change', onChange);
-    return () => list.removeEventListener('change', onChange);
-  }, [query]);
-
-  return matches;
+  return useSyncExternalStore(
+    subscribe,
+    () => window.matchMedia?.(query).matches ?? false,
+    () => false
+  );
 }
 
 export default useMediaQuery;
