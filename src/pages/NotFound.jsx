@@ -6,7 +6,7 @@ export function NotFound() {
   const { ui } = useContent();
   const c = ui.notFound;
 
-  usePageMeta({ title: c.title });
+  usePageMeta({ title: c.title, noindex: true });
 
   return (
     <main
