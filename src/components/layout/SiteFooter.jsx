@@ -33,7 +33,14 @@ function FooterSignature() {
   };
 
   return (
-    <span className={styles.credit} onPointerEnter={write}>
+    <a
+      className={styles.credit}
+      href="https://www.altyeb.my"
+      target="_blank"
+      rel="noopener noreferrer"
+      onPointerEnter={write}
+      onFocus={write}
+    >
       <Signature
         key={plays}
         uid="footer-signature"
@@ -41,7 +48,7 @@ function FooterSignature() {
         duration={SIGNATURE_MS}
         className={styles.signature}
       />
-    </span>
+    </a>
   );
 }
 

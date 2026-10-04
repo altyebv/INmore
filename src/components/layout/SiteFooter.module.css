@@ -72,10 +72,10 @@
   display: inline-flex;
   direction: ltr;
   color: rgba(247, 245, 241, 0.5);
-  cursor: default;
   transition: color var(--dur-base) var(--ease-out);
 }
-.credit:hover { color: var(--paper-100); }
+.credit:hover,
+.credit:focus-visible { color: var(--paper-100); }
 
 .signature {
   display: block;
