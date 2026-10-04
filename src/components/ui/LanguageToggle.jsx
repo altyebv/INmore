@@ -1,5 +1,6 @@
 import cx from '@/lib/utils/cx';
-import { LOCALES, useLocale } from '@/i18n';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { LOCALES, localizePath, useLocale } from '@/i18n';
 import styles from './LanguageToggle.module.css';
 
 /**
@@ -12,6 +13,13 @@ import styles from './LanguageToggle.module.css';
  */
 export function LanguageToggle({ className }) {
   const { locale, setLocale, t } = useLocale();
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const switchTo = (code) => {
+    setLocale(code);
+    navigate(localizePath(`${location.pathname}${location.search}${location.hash}`, code));
+  };
 
   return (
     <div className={cx(styles.toggle, className)} role="group" aria-label={t.common.language}>
@@ -23,7 +31,7 @@ export function LanguageToggle({ className }) {
           lang={option.htmlLang}
           aria-pressed={option.code === locale}
           aria-label={option.label}
-          onClick={() => setLocale(option.code)}
+          onClick={() => switchTo(option.code)}
         >
           {option.short}
         </button>
