@@ -9,7 +9,7 @@ import { fileURLToPath } from 'node:url';
  */
 const src = fileURLToPath(new URL('./src', import.meta.url));
 
-export default defineConfig({
+export default defineConfig(({ isSsrBuild }) => ({
   plugins: [react()],
   resolve: {
     alias: { '@': src },
@@ -17,13 +17,16 @@ export default defineConfig({
   build: {
     target: 'es2020',
     rollupOptions: {
-      output: {
-        manualChunks: {
-          three: ['three'],
-          r3f: ['@react-three/fiber', '@react-three/drei'],
-        },
-      },
+      // The prerender build leaves dependencies to Node, so there is nothing to chunk.
+      output: isSsrBuild
+        ? {}
+        : {
+            manualChunks: {
+              three: ['three'],
+              r3f: ['@react-three/fiber', '@react-three/drei'],
+            },
+          },
     },
     chunkSizeWarningLimit: 1200,
   },
-});
+}));
