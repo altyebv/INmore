@@ -11,6 +11,9 @@
 .title { font-size: var(--step-4); max-width: 14ch; }
 .lede { font-size: var(--step-0); color: var(--fg-muted); max-width: 40ch; margin-top: var(--space-5); }
 
+:global([lang='ar']) .title { max-width: 18ch; }
+:global([lang='ar']) .lede { max-width: 44ch; line-height: 1.7; }
+
 .details { display: grid; gap: var(--space-4); margin-top: clamp(2rem, 5vw, 3.5rem); }
 .detail { display: grid; gap: var(--space-1); }
 .detailLabel {
@@ -61,6 +64,8 @@
 .textarea { resize: vertical; min-height: 7rem; line-height: 1.55; }
 
 .hint { font-family: var(--font-mono); font-size: var(--step--2); color: var(--fg-faint); }
+
+:global([lang='ar']) .hint { line-height: 1.7; }
 
 .status {
   padding: var(--space-3);
