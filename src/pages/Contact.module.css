@@ -24,6 +24,15 @@
   color: var(--fg-faint);
 }
 .detailValue { font-size: var(--step-0); }
+address.detailValue { display: grid; font-style: normal; }
+.mapLink {
+  justify-self: start;
+  font-size: var(--step--1);
+  color: var(--fg-muted);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+.mapLink:hover { color: var(--fg); }
 
 .form {
   display: grid;
