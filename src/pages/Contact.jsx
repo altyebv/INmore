@@ -85,16 +85,35 @@ export function Contact() {
             </div>
             <div className={styles.detail}>
               <span className={styles.detailLabel}>{c.phoneLabel}</span>
-              <a
-                className={`${styles.detailValue} u-ltr`}
-                href={`tel:${company.phone.replace(/\s/g, '')}`}
-              >
-                {company.phone}
-              </a>
+              {company.phones.map((number) => (
+                <a
+                  key={number}
+                  className={`${styles.detailValue} u-ltr`}
+                  href={`tel:${number.replace(/\s/g, '')}`}
+                >
+                  {number}
+                </a>
+              ))}
             </div>
             <div className={styles.detail}>
               <span className={styles.detailLabel}>{c.studioLabel}</span>
-              <span className={styles.detailValue}>{company.address.join('، ')}</span>
+              <address className={styles.detailValue}>
+                {company.address.map((line) => (
+                  <span key={line}>{line}</span>
+                ))}
+              </address>
+              <a
+                className={styles.mapLink}
+                href={company.mapUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {c.mapLabel}
+              </a>
+            </div>
+            <div className={styles.detail}>
+              <span className={styles.detailLabel}>{c.hoursLabel}</span>
+              <span className={styles.detailValue}>{company.hours}</span>
             </div>
           </Reveal>
         </div>
