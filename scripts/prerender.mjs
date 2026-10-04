@@ -13,7 +13,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const dist = join(root, 'dist');
 
-const { render, paths, LOCALES, SITE_URL, localizePath, pageUrls } = await import(
+const { render, paths, LOCALES, SITE_URL, localizePath, pageUrls, structuredData } = await import(
   pathToFileURL(join(root, 'dist-ssr', 'entry-server.js')).href
 );
 
@@ -25,6 +25,9 @@ const escape = (value) =>
     .replace(/"/g, '&quot;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;');
+
+// Who the business is, for search engines — the same on every page.
+const jsonLd = JSON.stringify(structuredData).replace(/</g, '\\u003c');
 
 function headFor(url, { title, description, noindex }) {
   const { canonical, alternates, ogLocale } = pageUrls(url);
@@ -40,6 +43,7 @@ function headFor(url, { title, description, noindex }) {
     description && `<meta property="og:description" content="${escape(description)}" />`,
     `<meta property="og:url" content="${canonical}" />`,
     `<meta property="og:locale" content="${ogLocale}" />`,
+    `<script type="application/ld+json">${jsonLd}</script>`,
   ]
     .filter(Boolean)
     .join('\n    ');
