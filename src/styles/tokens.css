@@ -26,6 +26,20 @@
   --accent-soft: #f26a44;
   --accent-dim: rgba(226, 72, 31, 0.16);
 
+  /* --- Colour: process (the four bars of the logo) -------------------------- */
+  --cyan: #009be3;
+  --magenta: #e5007e;
+  --yellow: #f5de02;
+  --key: #1f2020;
+  /* The four plates as one hard-edged strip, for rules and edges. */
+  --cmyk-strip: linear-gradient(
+    to right,
+    var(--cyan) 0 25%,
+    var(--magenta) 25% 50%,
+    var(--yellow) 50% 75%,
+    var(--key) 75% 100%
+  );
+
   /* --- Semantic surfaces ---------------------------------------------------- */
   --bg: var(--ink-900);
   --bg-raised: var(--ink-800);
