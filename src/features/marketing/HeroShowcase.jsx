@@ -2,6 +2,7 @@ import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } fro
 import { localizeProduct } from '@/i18n';
 import { useContent, useLocale } from '@/i18n';
 import useMediaQuery from '@/lib/utils/useMediaQuery';
+import useHydrated from '@/lib/utils/useHydrated';
 import styles from './HeroShowcase.module.css';
 
 /**
@@ -46,6 +47,8 @@ export function HeroShowcase({ products: source = [], className }) {
   const { locale, isRTL } = useLocale();
   const reducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)');
   const compact = useMediaQuery('(max-width: 900px)');
+  // WebGL is the browser's alone: the prerendered page carries the empty stage.
+  const hydrated = useHydrated();
 
   // Names and categories are read on screen, so they have to be the visitor's.
   // `localizeProduct` swaps only the readable fields, so what reaches the rail
@@ -205,17 +208,19 @@ export function HeroShowcase({ products: source = [], className }) {
       <div className={styles.halo} aria-hidden="true" />
 
       <div className={styles.canvas}>
-        <Suspense fallback={null}>
-          <HeroCanvas
-            products={products}
-            targetRef={targetRef}
-            progressRef={progressRef}
-            onSelect={onSelectSlot}
-            onCentreChange={onCentreChange}
-            reducedMotion={reducedMotion}
-            dpr={dpr}
-          />
-        </Suspense>
+        {hydrated && (
+          <Suspense fallback={null}>
+            <HeroCanvas
+              products={products}
+              targetRef={targetRef}
+              progressRef={progressRef}
+              onSelect={onSelectSlot}
+              onCentreChange={onCentreChange}
+              reducedMotion={reducedMotion}
+              dpr={dpr}
+            />
+          </Suspense>
+        )}
       </div>
 
       {/* Arrows sit either side of the centred product: close enough to read as
