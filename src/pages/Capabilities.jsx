@@ -1,4 +1,5 @@
 import Button from '@/components/ui/Button';
+import Plates from '@/components/ui/Plates';
 import Reveal from '@/components/ui/Reveal';
 import Section from '@/components/ui/Section';
 import { useContent } from '@/i18n';
@@ -14,7 +15,10 @@ export function Capabilities() {
   return (
     <main id="main" className={styles.page}>
       <div className={'u-shell ' + styles.masthead}>
-        <Reveal className="u-label">{c.eyebrow}</Reveal>
+        <Reveal className={styles.mark}>
+          <Plates kind="cmyk" />
+          <span className="u-label">{c.eyebrow}</span>
+        </Reveal>
         <Reveal as="h1" className={styles.title} delay={70}>
           {c.heading}
         </Reveal>
@@ -62,9 +66,12 @@ export function Capabilities() {
           ))}
         </div>
 
-        <Reveal delay={280} style={{ marginTop: 'var(--space-7)' }}>
+        <Reveal className={styles.actions} delay={280}>
           <Button to="/studio" variant="primary" size="lg">
             {c.cta}
+          </Button>
+          <Button to="/digital" size="lg">
+            {c.digitalCta}
           </Button>
         </Reveal>
       </Section>
