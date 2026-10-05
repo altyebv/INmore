@@ -13,6 +13,15 @@ import { SITE_URL } from '@/lib/site';
 
 const tel = (number) => number.replace(/\s/g, '');
 
+/** The print side, named the way people search for it. */
+const PRINT_SERVICES = [
+  'Brand identity and logo design',
+  'Packaging design and printing',
+  'Printed paper cups, bags and boxes',
+  'Business cards and stationery printing',
+  'T-shirt and apparel printing',
+];
+
 const business = {
   '@type': 'LocalBusiness',
   '@id': `${SITE_URL}/#business`,
@@ -47,6 +56,17 @@ const business = {
   hasMap: en.company.mapUrl,
   sameAs: [en.company.instagram],
   areaServed: { '@type': 'Country', name: 'Qatar' },
+  hasOfferCatalog: {
+    '@type': 'OfferCatalog',
+    name: 'Services',
+    itemListElement: [
+      ...PRINT_SERVICES.map((name) => ({ name })),
+      ...en.digitalServices.map((service) => ({ name: service.title, description: service.summary })),
+    ].map((service) => ({
+      '@type': 'Offer',
+      itemOffered: { '@type': 'Service', ...service },
+    })),
+  },
   openingHoursSpecification: [
     {
       '@type': 'OpeningHoursSpecification',
