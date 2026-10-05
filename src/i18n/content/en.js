@@ -10,14 +10,14 @@ const email = 'hello@inmore.store';
 const phones = ['+974 5199 9340', '+974 5199 9273'];
 const whatsapp = 'https://wa.me/97451999340';
 const instagram = 'https://www.instagram.com/inmore.qa/';
-const mapUrl = 'https://www.google.com/maps/search/?api=1&query=INMORE+Ezdan+Mall+Al+Gharrafa+Doha';
+const mapUrl = 'https://share.google/NkcF8REdggsFl5qWX';
 
 export default {
   company: {
     name: 'INMORE',
     legalName: 'INMORE Advertising',
     location: 'Ezdan Mall, Al Gharrafa, Doha',
-    statement: 'We turn brands into printed things people notice, keep and carry.',
+    statement: 'We build brands people can hold in their hands and find on their screens.',
     email,
     phones,
     whatsapp,
@@ -30,7 +30,8 @@ export default {
   nav: [
     { to: '/studio', label: 'Studio' },
     { to: '/work', label: 'Work' },
-    { to: '/capabilities', label: 'Capabilities' },
+    { to: '/capabilities', label: 'Print' },
+    { to: '/digital', label: 'Digital' },
     { to: '/order', label: 'Order' },
     { to: '/contact', label: 'Contact' },
   ],
@@ -41,7 +42,8 @@ export default {
       items: [
         { to: '/studio', label: 'Preview your product' },
         { to: '/work', label: 'Work' },
-        { to: '/capabilities', label: 'Capabilities' },
+        { to: '/capabilities', label: 'Print & production' },
+        { to: '/digital', label: 'Digital services' },
         { to: '/order', label: 'Place an order' },
         { to: '/contact', label: 'Start a project' },
       ],
@@ -55,6 +57,118 @@ export default {
         { href: instagram, label: 'Instagram' },
       ],
     },
+  ],
+
+  /*
+   * The two halves of the house. Print is where a brand is held; digital is
+   * where it is found. Everything else on the site hangs off one or the other.
+   */
+  practices: [
+    {
+      id: 'print',
+      plates: 'cmyk',
+      label: 'Print & production',
+      title: 'Made to be held.',
+      body: 'Packaging, stationery, apparel and giveaways, designed around the real material and produced to a proof you approve.',
+      items: [
+        'Brand identity and packaging design',
+        'Offset, digital and screen printing',
+        'Foil, emboss, lamination and finishing',
+        'Samples, quality control and delivery',
+      ],
+      to: '/capabilities',
+      cta: 'See print capabilities',
+    },
+    {
+      id: 'digital',
+      plates: 'rgb',
+      label: 'Digital',
+      title: 'Made to be found.',
+      body: 'The accounts, campaigns, websites and apps that carry the same brand onto the screen, set up properly and looked after.',
+      items: [
+        'Social accounts, secured and managed',
+        'Digital advertising',
+        'Websites, e-stores and mobile apps',
+        'SEO and digital presence',
+      ],
+      to: '/digital',
+      cta: 'See digital services',
+    },
+  ],
+
+  digitalServices: [
+    {
+      id: 'social-setup',
+      index: '01',
+      title: 'Social accounts, opened and secured',
+      summary:
+        'We register your accounts under the right names and lock them down, so the brand owns its handles from day one.',
+      detail: ['Name and handle registration', 'Business account setup', 'Two-step security and recovery', 'Ownership stays with you'],
+    },
+    {
+      id: 'social-management',
+      index: '02',
+      title: 'Accounts in one place, properly run',
+      summary:
+        'Every account brought under one roof, with a content plan, a consistent look and someone answering.',
+      detail: ['Centralised access and roles', 'Content calendar', 'Post design and copy', 'Replies and community care'],
+    },
+    {
+      id: 'advertising',
+      index: '03',
+      title: 'Digital advertising',
+      summary:
+        'Search and social campaigns built around one clear goal, with the spend and the results reported plainly.',
+      detail: ['Search and social campaigns', 'Audience and keyword planning', 'Ad creative in Arabic and English', 'Monthly reporting'],
+    },
+    {
+      id: 'presence',
+      index: '04',
+      title: 'Digital presence',
+      summary:
+        'Your business looking the same, and correct, everywhere people look it up: maps, profiles, listings and links.',
+      detail: ['Google Business Profile', 'Listings and directories', 'Consistent name, address and hours', 'Reviews and reputation'],
+    },
+    {
+      id: 'web',
+      index: '05',
+      title: 'Websites and e-stores',
+      summary:
+        'Fast, bilingual websites and online stores, designed to match the brand and built to be found.',
+      detail: ['Company and campaign websites', 'Online stores and checkout', 'Arabic and English, right-to-left done properly', 'Domains, hosting and care'],
+    },
+    {
+      id: 'apps',
+      index: '06',
+      title: 'Mobile applications',
+      summary:
+        'Apps for iPhone and Android when a website is not enough: ordering, loyalty, booking and internal tools.',
+      detail: ['iOS and Android', 'Design and prototyping', 'Store publishing', 'Updates and support'],
+    },
+    {
+      id: 'seo',
+      index: '07',
+      title: 'Search engine optimisation',
+      summary:
+        'The technical and content work that helps the right searches reach you, in Arabic and in English.',
+      detail: ['Technical site audit', 'Arabic and English keywords', 'Structured data and local search', 'Ranking reports'],
+    },
+  ],
+
+  digitalProcess: [
+    { step: '01', title: 'Audit', body: 'We look at what exists today: accounts, website, listings and what a search for your name shows.' },
+    { step: '02', title: 'Plan', body: 'A short plan with priorities, owners and a monthly budget, agreed before any work starts.' },
+    { step: '03', title: 'Build', body: 'Accounts are secured, the site or app is designed and built, campaigns are prepared.' },
+    { step: '04', title: 'Launch', body: 'You approve a preview first. Then it goes live, checked on real devices in both languages.' },
+    { step: '05', title: 'Grow', body: 'Each month we report what happened in plain numbers and adjust what is not working.' },
+  ],
+
+  /* The same brand decision, once on paper and once on a screen. */
+  surfaces: [
+    { print: 'The logo on the box', digital: 'The profile picture on every account' },
+    { print: 'The colours held on press', digital: 'The same colours in every post and page' },
+    { print: 'The QR code on the bag', digital: 'The page it opens, and what happens next' },
+    { print: 'The sign above the shop', digital: 'The pin, hours and reviews on the map' },
   ],
 
   disciplines: [
@@ -160,6 +274,9 @@ export default {
       testYourProduct: 'Preview your product',
       openStudio: 'Open the studio',
       seeAllWork: 'See all work',
+      digitalServices: 'Digital services',
+      startDigital: 'Start a digital project',
+      whatsapp: 'WhatsApp us',
       skipToContent: 'Skip to content',
       home: 'INMORE — home',
       openMenu: 'Open menu',
@@ -170,14 +287,14 @@ export default {
     },
 
     home: {
-      title: 'INMORE — Branding, print and production in Doha',
+      title: 'INMORE — Branding, print and digital marketing in Doha',
       description:
-        'INMORE is an advertising, branding and production house at Ezdan Mall, Al Gharrafa, Doha, creating packaging, print and branded objects for businesses in Qatar.',
-      eyebrow: 'Advertising · Branding · Packaging · Production',
+        'INMORE is a branding house at Ezdan Mall, Al Gharrafa, Doha: printed packaging and products, plus social media, websites, apps, ads and SEO for businesses in Qatar.',
+      eyebrow: 'Branding · Print · Digital',
       headlineLead: 'Your brand,',
-      headlineEmphasis: 'made to be held.',
+      headlineEmphasis: 'in hand and on screen.',
       lede:
-        'We design, print and finish the branded things people meet in real life: boxes, bags, cups, stationery, uniforms and launch kits.',
+        'We design and print the things people carry, and build the accounts, websites and campaigns they find you through.',
       scroll: 'Scroll',
       carouselLabel: 'Products',
       previousProduct: 'Previous product',
@@ -282,8 +399,14 @@ export default {
       inviteTitle: 'See your logo on the product before it goes to press.',
       inviteBody:
         'Upload your artwork, size it, place it, and turn the product in your hands. The preview gives our team a clear starting point for the real print.',
-      disciplinesEyebrow: 'What we do',
-      disciplinesTitle: 'Brand, design and production under one roof.',
+      practicesEyebrow: 'What we do',
+      practicesTitle: 'One brand, in two places.',
+      practicesLede:
+        'People meet a brand in their hands and on their screens. We design and make both from the same identity, so they match.',
+      digitalEyebrow: 'Digital',
+      digitalTitle: 'The same brand, built for the screen.',
+      digitalLede:
+        'Our digital division works the way the print floor does: a clear scope, a preview you approve before launch, and one team answerable for the result.',
       workEyebrow: 'Selected work',
       workTitle: 'Recent runs from the press.',
       workLede:
@@ -309,17 +432,17 @@ export default {
       eyebrow: 'Work',
       heading: 'Printed work with a real-world finish.',
       lede:
-        'A selection of recent production across packaging, events, hospitality and retail. Full case studies are added as each client approves them.',
+        'A selection of recent production across packaging, events, hospitality and retail. Full case studies are added as each client approves them, and digital projects will join them as they go live.',
       noteTitle: 'Want to see your brand on one of these?',
       noteBody:
         'The studio lets you place your logo on a real product and bring the preview into an order or conversation.',
     },
 
     capabilities: {
-      title: 'Capabilities — INMORE',
+      title: 'Print and production — INMORE',
       description:
         'Print methods, finishes, substrates and formats produced in-house by INMORE in Doha, Qatar.',
-      eyebrow: 'Capabilities',
+      eyebrow: 'Print & production',
       heading: 'Everything between the idea and the delivery.',
       lede:
         'Design and production sit close together, so colour, material, finish and deadline are considered from the start.',
@@ -328,16 +451,39 @@ export default {
       processEyebrow: 'Process',
       processTitle: 'Five stages, clearly handled.',
       cta: 'Preview a product',
+      digitalCta: 'See digital services',
+    },
+
+    digital: {
+      title: 'Digital marketing, websites and apps in Doha — INMORE',
+      description:
+        'Social media setup and management, digital advertising, websites, e-stores, mobile apps and SEO for businesses in Qatar, from INMORE at Ezdan Mall, Doha.',
+      eyebrow: 'Digital',
+      heading: 'Made to be found.',
+      lede:
+        'Accounts, advertising, websites and apps that carry your brand onto the screen: set up properly, kept consistent and looked after by one team in Doha.',
+      servicesEyebrow: 'Services',
+      servicesTitle: 'Seven things we take off your desk.',
+      ctaTitle: 'Not sure where to start?',
+      ctaBody: 'Tell us where the brand is today. We will say what we would do first, and what can wait.',
+      surfacesEyebrow: 'One brand, two surfaces',
+      surfacesTitle: 'What we print and what we publish come from the same file.',
+      surfacesLede:
+        'Design, print and digital sit together here, so the colours, type and tone your customer holds are the ones they scroll past.',
+      printLabel: 'In print',
+      digitalLabel: 'On screen',
+      processEyebrow: 'Process',
+      processTitle: 'From a first look to a monthly report.',
     },
 
     contact: {
       title: 'Contact — INMORE',
       description:
-        'Visit INMORE at Ezdan Mall, Al Gharrafa, Doha, or start a project online — branding, design and print production in Qatar.',
+        'Visit INMORE at Ezdan Mall, Al Gharrafa, Doha, or start a project online — branding, print production and digital services in Qatar.',
       eyebrow: 'Contact',
-      heading: 'Tell us what you need to make.',
+      heading: 'Tell us what you need.',
       lede:
-        'Product, quantity and deadline are enough to start. If you already have artwork, send it along and we will guide the next step.',
+        'For print, the product, quantity and deadline are enough to start. For digital, tell us where the brand is today and where you want it to be.',
       emailLabel: 'Email',
       phoneLabel: 'Telephone',
       studioLabel: 'Studio',
@@ -347,9 +493,11 @@ export default {
         name: 'Name',
         company: 'Company',
         email: 'Email',
-        product: 'Product',
-        quantity: 'Quantity',
-        message: 'What would you like to make?',
+        product: 'Product or service',
+        groupPrint: 'Print',
+        groupDigital: 'Digital',
+        quantity: 'Quantity (print)',
+        message: 'Tell us about the project',
         productUnsure: 'Not sure yet',
         productOther: 'Something else',
         quantityPlaceholder: 'e.g. 5,000',
