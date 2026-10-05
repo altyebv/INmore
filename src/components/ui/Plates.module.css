@@ -1,0 +1,26 @@
+.plates {
+  display: inline-flex;
+  gap: 5px;
+  flex: none;
+}
+
+.plates i {
+  display: block;
+  width: 1.5rem;
+  height: 5px;
+  border-radius: var(--radius-pill);
+}
+
+.cyan { background: var(--cyan); }
+.magenta { background: var(--magenta); }
+.yellow { background: var(--yellow); }
+
+/* Key is black: a hairline keeps the fourth plate present on a dark surface. */
+.key {
+  background: var(--key);
+  box-shadow: inset 0 0 0 1px var(--line-strong);
+}
+
+.red { background: var(--red); }
+.green { background: var(--green); }
+.blue { background: var(--blue); }
