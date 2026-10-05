@@ -1,6 +1,20 @@
 .page { padding-top: var(--header-h); }
 
 .masthead { padding-block: clamp(4rem, 9vw, 8rem) clamp(2rem, 5vw, 4rem); }
+.mark {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  margin-bottom: var(--space-4);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-top: var(--space-7);
+}
+
 .title { font-size: var(--step-5); max-width: 15ch; }
 .lede { font-size: var(--step-1); color: var(--fg-muted); max-width: 48ch; margin-top: var(--space-5); }
 
