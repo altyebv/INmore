@@ -17,7 +17,7 @@ const ENDPOINT = import.meta.env.VITE_CONTACT_ENDPOINT;
  * to a normal POST without touching the markup or the fields.
  */
 export function Contact() {
-  const { company, ui } = useContent();
+  const { company, digitalServices, ui } = useContent();
   const products = useLocalizedCatalogue(catalogue.all);
   const c = ui.contact;
 
@@ -160,11 +160,20 @@ export function Contact() {
               </label>
               <select className={styles.select} id="product" name="product" defaultValue="">
                 <option value="">{c.fields.productUnsure}</option>
-                {products.map((product) => (
-                  <option key={product.id} value={product.name}>
-                    {product.name}
-                  </option>
-                ))}
+                <optgroup label={c.fields.groupPrint}>
+                  {products.map((product) => (
+                    <option key={product.id} value={product.name}>
+                      {product.name}
+                    </option>
+                  ))}
+                </optgroup>
+                <optgroup label={c.fields.groupDigital}>
+                  {digitalServices.map((service) => (
+                    <option key={service.id} value={service.title}>
+                      {service.title}
+                    </option>
+                  ))}
+                </optgroup>
                 <option value="Other">{c.fields.productOther}</option>
               </select>
             </div>
