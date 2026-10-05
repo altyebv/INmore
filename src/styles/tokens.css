@@ -31,6 +31,11 @@
   --magenta: #e5007e;
   --yellow: #f5de02;
   --key: #1f2020;
+
+  /* --- Colour: screen (the three lights, for the digital side) -------------- */
+  --red: #f0403c;
+  --green: #22c26e;
+  --blue: #2f6dff;
   /* The four plates as one hard-edged strip, for rules and edges. */
   --cmyk-strip: linear-gradient(
     to right,
