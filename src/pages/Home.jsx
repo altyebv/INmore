@@ -1,4 +1,5 @@
 import Button from '@/components/ui/Button';
+import Plates from '@/components/ui/Plates';
 import Reveal from '@/components/ui/Reveal';
 import Section from '@/components/ui/Section';
 import HeroProduct from '@/features/marketing/HeroProduct';
@@ -10,7 +11,7 @@ import usePageMeta from '@/lib/utils/usePageMeta';
 import styles from './Home.module.css';
 
 export function Home() {
-  const { disciplines, process, work, chain } = useContent();
+  const { practices, digitalServices, process, work, chain } = useContent();
   const { ui } = useContent();
   const c = ui.home;
   const common = ui.common;
@@ -40,15 +41,47 @@ export function Home() {
 
             <Reveal className={styles.heroMeta} delay={180}>
               <p className={styles.heroLede}>{c.lede}</p>
-              <Button to="/studio" variant="accent" size="lg">
-                {common.testYourProduct}
-              </Button>
+              <div className={styles.heroActions}>
+                <Button to="/studio" variant="accent" size="lg">
+                  {common.testYourProduct}
+                </Button>
+                <Button to="/digital" variant="glass" size="lg">
+                  {common.digitalServices}
+                </Button>
+              </div>
             </Reveal>
           </div>
         </div>
 
         <span className={styles.scrollCue}>{c.scroll}</span>
       </section>
+
+      {/* --- The two practices ---------------------------------------------- */}
+      {/* The whole offer in one view: what is held, and what is found. Each
+          panel is marked with its own colour model — inks for print, lights
+          for screen — and leads to the page that goes into detail. */}
+      <Section eyebrow={c.practicesEyebrow} title={c.practicesTitle} lede={c.practicesLede}>
+        <div className={styles.practices}>
+          {practices.map((practice, i) => (
+            <Reveal key={practice.id} className={styles.practice} delay={i * 90}>
+              <div className={styles.practiceLabel}>
+                <span>{practice.label}</span>
+                <Plates kind={practice.plates} />
+              </div>
+              <h3 className={styles.practiceTitle}>{practice.title}</h3>
+              <p className={styles.practiceBody}>{practice.body}</p>
+              <ul className={styles.practiceList}>
+                {practice.items.map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
+              <div>
+                <Button to={practice.to}>{practice.cta}</Button>
+              </div>
+            </Reveal>
+          ))}
+        </div>
+      </Section>
 
       {/* --- Flat to formed ------------------------------------------------ */}
       <Section eyebrow={c.chainEyebrow} title={c.chainTitle} tight>
@@ -86,24 +119,34 @@ export function Home() {
         </div>
       </Section>
 
-      {/* --- Disciplines ---------------------------------------------------- */}
-      <Section eyebrow={c.disciplinesEyebrow} title={c.disciplinesTitle}>
-        <div className={styles.disciplines}>
-          {disciplines.map((discipline, i) => (
-            <Reveal key={discipline.id} className={styles.discipline} delay={i * 60}>
-              <span className={styles.disciplineIndex}>{discipline.index}</span>
-              <h3 className={styles.disciplineTitle}>{discipline.title}</h3>
-              <div className={styles.disciplineBody}>
-                <p className={styles.disciplineSummary}>{discipline.summary}</p>
-                <ul className={styles.disciplineList}>
-                  {discipline.detail.map((item) => (
-                    <li key={item}>{item}</li>
-                  ))}
-                </ul>
-              </div>
+      {/* --- Digital -------------------------------------------------------- */}
+      {/* Seven services and one way in. The eighth cell is the invitation, so
+          the grid closes on an action rather than on an empty corner. */}
+      <Section eyebrow={c.digitalEyebrow} title={c.digitalTitle} lede={c.digitalLede}>
+        <div className={`${styles.chain} ${styles.chainEight}`}>
+          {digitalServices.map((service, i) => (
+            <Reveal key={service.id} className={styles.chainStep} delay={i * 50}>
+              <span className={styles.chainIndex}>{service.index}</span>
+              <h3 className={styles.chainTitle}>{service.title}</h3>
+              <p className={styles.chainBody}>{service.summary}</p>
             </Reveal>
           ))}
+
+          <Reveal className={`${styles.chainStep} ${styles.chainCta}`} delay={digitalServices.length * 50}>
+            <Plates kind="rgb" />
+            <h3 className={styles.chainTitle}>{ui.digital.ctaTitle}</h3>
+            <p className={styles.chainBody}>{ui.digital.ctaBody}</p>
+            <div>
+              <Button to="/contact" variant="accent">
+                {common.startDigital}
+              </Button>
+            </div>
+          </Reveal>
         </div>
+
+        <Reveal delay={200} style={{ marginTop: 'var(--space-6)' }}>
+          <Button to="/digital">{common.digitalServices}</Button>
+        </Reveal>
       </Section>
 
       {/* --- Product range -------------------------------------------------- */}
